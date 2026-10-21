@@ -1,0 +1,185 @@
+# LangFuse v4 自托管，仅供本机排查 Agent 链路
+# 与上游 docker-compose.yml 的差异：只发布 3000，其余端口一律不映射到宿主机，避开 9090/9099/9000/9001/5432/6379
+# 密钥都是明文本机默认值，勿上生产
+name: langfuse-stack
+
+services:
+  langfuse-worker:
+    container_name: langfuse-worker
+    image: docker.langfuse.com/langfuse/langfuse-worker:4
+    depends_on: &langfuse-depends-on
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    environment: &langfuse-worker-env
+      NEXTAUTH_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:langfuse@postgres:5432/postgres
+      SALT: ragent-langfuse-local-salt
+      # openssl rand -hex 32，必须是 64 位 hex
+      ENCRYPTION_KEY: 9cc413bc319488878c22c7558ae3853bfc54b350e5baa2db404b660ac15bd2ef
+      # 本机排查栈不往上游回传使用统计
+      TELEMETRY_ENABLED: "false"
+      # 1 GiB 容器给 V8 留 768 MiB 堆，其余空间供 native buffer、线程栈与运行时使用
+      NODE_OPTIONS: --max-old-space-size=768
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: langfuse
+      # 单节点必须显式关掉，否则建表走 ON CLUSTER 直接失败
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: langfuse-minio
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      # 不发布 minio 端口，媒体端点只能给内部地址，代价是 UI 里多模态附件预览不可用（本项目的 trace 是纯文本）
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: langfuse-minio
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_AUTH: langfuse
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  langfuse-web:
+    container_name: langfuse-web
+    image: docker.langfuse.com/langfuse/langfuse:4
+    depends_on: *langfuse-depends-on
+    ports:
+      - "3000:3000"
+    environment:
+      <<: *langfuse-worker-env
+      NEXTAUTH_SECRET: ragent-langfuse-local-nextauth-secret
+      # 首次启动自动建组织、项目、账号与固定密钥，起栈即可用，不必登 UI 复制密钥
+      LANGFUSE_INIT_ORG_ID: ragent-local-org
+      LANGFUSE_INIT_ORG_NAME: ragent
+      LANGFUSE_INIT_PROJECT_ID: ragent-local
+      LANGFUSE_INIT_PROJECT_NAME: ragent-service
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: pk-lf-ragent-local
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: sk-lf-ragent-local
+      LANGFUSE_INIT_USER_EMAIL: admin@ragent.dev
+      LANGFUSE_INIT_USER_NAME: admin
+      LANGFUSE_INIT_USER_PASSWORD: admintrace
+      # Web 启动峰值高于 Worker，单独覆盖共享环境里的堆上限
+      NODE_OPTIONS: --max-old-space-size=1024
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+
+  clickhouse:
+    container_name: langfuse-clickhouse
+    image: clickhouse/clickhouse-server:25.12
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: langfuse
+    volumes:
+      - langfuse-clickhouse-data:/var/lib/clickhouse
+      - langfuse-clickhouse-logs:/var/log/clickhouse-server
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+
+  minio:
+    container_name: langfuse-minio
+    # chainguard 免费档只提供 latest，是这套里唯一没钉住版本的镜像；拉不动时的换法见 README
+    image: cgr.dev/chainguard/minio
+    entrypoint: sh
+    # 先建出 langfuse 桶再起服务；控制台不发布，不必指定端口
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: langfuse-minio
+    volumes:
+      - langfuse-minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
+      start_period: 1s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  redis:
+    container_name: langfuse-redis
+    image: redis:7
+    # noeviction 是 BullMQ 的硬要求，改成别的策略会静默丢摄取任务
+    command: >
+      --requirepass langfuse
+      --maxmemory 96mb
+      --maxmemory-policy noeviction
+    volumes:
+      - langfuse-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  postgres:
+    container_name: langfuse-postgres
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: langfuse
+      POSTGRES_DB: postgres
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - langfuse-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+volumes:
+  langfuse-postgres-data:
+  langfuse-clickhouse-data:
+  langfuse-clickhouse-logs:
+  langfuse-minio-data:
+  langfuse-redis-data:
+
+networks:
+  default:
+    name: langfuse-net

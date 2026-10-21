@@ -1,0 +1,9 @@
+// 只把时间线投影层单独编出来给 node 断言用 —— 它没有运行时依赖 编出来就是一个独立 ESM 文件
+{
+  "extends": "../tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "../.output/agent-timeline"
+  },
+  "include": ["../src/lib/agentTimeline.ts"]
+}

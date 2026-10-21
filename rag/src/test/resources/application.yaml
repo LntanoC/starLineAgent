@@ -1,0 +1,9 @@
+# Keep the bootstrap configuration as the single source of truth without
+# registering another module's resource directory as an IntelliJ content root.
+spring:
+  config:
+    import:
+      # IntelliJ normally runs tests from the repository root.
+      - optional:file:${user.dir}/bootstrap/src/main/resources/application.yaml
+      # Maven Surefire normally runs tests from this module's directory.
+      - optional:file:${user.dir}/../bootstrap/src/main/resources/application.yaml
