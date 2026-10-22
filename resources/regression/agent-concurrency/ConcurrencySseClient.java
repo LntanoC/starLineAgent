@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /** Real-service SSE recorder. Each instance borrows one user's independent login session. */
 final class ConcurrencySseClient implements AutoCloseable {
     private static final String CHAT_PATH = "/agent/v1/chat";
-    private final RagentHttpClient http;
+    private final StarlineHttpClient http;
     private final HttpClient client;
     private final ExecutorService readers = Executors.newCachedThreadPool(daemonFactory("concurrency-sse"));
     private final ScheduledExecutorService deadlines = Executors.newSingleThreadScheduledExecutor(
@@ -51,7 +51,7 @@ final class ConcurrencySseClient implements AutoCloseable {
     private final Set<LiveTurn> active = ConcurrentHashMap.newKeySet();
     private volatile boolean closed;
 
-    ConcurrencySseClient(RagentHttpClient http, InitializerConfig config) {
+    ConcurrencySseClient(StarlineHttpClient http, InitializerConfig config) {
         this.http = http;
         this.client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(config.getInt("server.connect-timeout-seconds", 5)))
@@ -70,9 +70,9 @@ final class ConcurrencySseClient implements AutoCloseable {
         LiveTurn turn = new LiveTurn(question, conversationId, framesFile, authorization);
         active.add(turn);
         turn.completion().whenComplete((result, error) -> active.remove(turn));
-        String path = CHAT_PATH + "?question=" + RagentHttpClient.encodeQuery(question)
+        String path = CHAT_PATH + "?question=" + StarlineHttpClient.encodeQuery(question)
                 + (conversationId == null || conversationId.isBlank() ? ""
-                : "&conversationId=" + RagentHttpClient.encodeQuery(conversationId));
+                : "&conversationId=" + StarlineHttpClient.encodeQuery(conversationId));
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(http.baseUrl() + path))
                     .timeout(timeout).header("Accept", "text/event-stream")
@@ -137,7 +137,7 @@ final class ConcurrencySseClient implements AutoCloseable {
         }
         deadlines.shutdownNow();
         readers.shutdownNow();
-        // The borrowed RagentHttpClient remains logged in; its owner manages logout.
+        // The borrowed StarlineHttpClient remains logged in; its owner manages logout.
     }
 
     final class LiveTurn {

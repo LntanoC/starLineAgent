@@ -17,7 +17,7 @@ import static com.nageoffer.ai.ragent.initializer.LongTermMemoryMain.*;
  * 补测结果单独记录，保留原七轮测评的结论
  */
 final class MemoryRecallCheck {
-    static int run(InitializerConfig config, Path output, RagentHttpClient http, JdbcClient jdbc,
+    static int run(InitializerConfig config, Path output, StarlineHttpClient http, JdbcClient jdbc,
                    String uid, Map<String, Object> baseline) throws Exception {
         List<Map<String, Object>> before = objects(baseline.get("memory"));
         if (active(before).stream().anyMatch(LongTermMemoryMain::target))

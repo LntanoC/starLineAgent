@@ -45,7 +45,7 @@ public final class LongTermMemoryMain {
         Files.createDirectories(output);
         System.out.println("产物目录：" + output);
         List<Map<String, Object>> turns = new ArrayList<>(), checks = new ArrayList<>();
-        try (RagentHttpClient http = new RagentHttpClient(config); JdbcClient jdbc = new JdbcClient(config, "database")) {
+        try (StarlineHttpClient http = new StarlineHttpClient(config); JdbcClient jdbc = new JdbcClient(config, "database")) {
             String user = http.login(config.require("auth.username"), config.require("auth.password")).userId();
             if (user == null || user.isBlank()) throw new IllegalStateException("登录响应缺少 userId");
             String uid = JdbcClient.literal(user);

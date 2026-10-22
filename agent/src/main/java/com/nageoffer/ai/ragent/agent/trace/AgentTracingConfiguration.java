@@ -140,7 +140,7 @@ public class AgentTracingConfiguration {
      */
     @Bean
     public OtelTracingMiddleware otelTracingMiddleware(OpenTelemetrySdk sdk) {
-        return new RagentOtelTracingMiddleware(sdk.getTracer(INSTRUMENTATION_SCOPE));
+        return new StarlineOtelTracingMiddleware(sdk.getTracer(INSTRUMENTATION_SCOPE));
     }
 
     /**

@@ -20,11 +20,11 @@ final class LegacyMemoryCleanup {
     private static final String ID = "2110548997088772096";
     private static final String CONTENT = "用户平时用 Apple Pencil 记笔记时习惯左手握笔";
 
-    static void run(InitializerConfig config, Path output, RagentHttpClient http, JdbcClient jdbc,
+    static void run(InitializerConfig config, Path output, StarlineHttpClient http, JdbcClient jdbc,
                     String uid, Map<String, Object> baseline) throws Exception {
         runSpecific(config, output, http, jdbc, uid, baseline, ID, CONTENT);
     }
-    static void runSpecific(InitializerConfig config, Path output, RagentHttpClient http, JdbcClient jdbc,
+    static void runSpecific(InitializerConfig config, Path output, StarlineHttpClient http, JdbcClient jdbc,
                     String uid, Map<String, Object> baseline, String id, String content) throws Exception {
         List<Map<String, Object>> before = objects(baseline.get("memory"));
         Map<String, Object> target = before.stream().filter(m -> id.equals(text(m, "id"))).findFirst()

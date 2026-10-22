@@ -15,16 +15,12 @@
  * limitations under the License.
  */
 
-package com.nageoffer.ai.ragent;
+package com.nageoffer.ai.ragent.starline.config;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.nageoffer.ai.ragent.starline.service.StarlineMailProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-@SpringBootTest
-class RagentCoreApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
-}
+@Configuration
+@EnableConfigurationProperties(StarlineMailProperties.class)
+public class StarlinePropertiesConfiguration {}

@@ -212,14 +212,14 @@ class AgentToolBodyTracerTest {
         assertThat(tool.getAttributes().get(GenAiAttributes.TOOL_DESCRIPTION)).isEqualTo(TOOL_DESCRIPTION);
         assertThat(tool.getAttributes().get(GenAiAttributes.TOOL_TYPE))
                 .isEqualTo(GenAiAttributes.TOOL_TYPE_FUNCTION);
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_STATUS))
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_STATUS))
                 .isEqualTo(AgentToolStatus.DONE.value());
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_SPAN_SCOPE))
-                .isEqualTo(RagentAttributes.SPAN_SCOPE_BODY);
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_SPAN_SCOPE))
+                .isEqualTo(StarlineAttributes.SPAN_SCOPE_BODY);
         // 跑顺了不落 OK：OTel 约定成功留空，补一句 OK 会覆盖别处已判定的失败
         assertThat(tool.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
         assertThat(tool.getAttributes().get(AgentErrorTypes.KEY)).isNull();
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_ERROR_SOURCE)).isNull();
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_ERROR_SOURCE)).isNull();
     }
 
     /**
@@ -243,9 +243,9 @@ class AgentToolBodyTracerTest {
         runUnderBatch(() -> trace("call-2", () -> Mono.just(success("call-2"))));
 
         SpanData tool = toolSpan();
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_BATCH_ID)).isEqualTo(RUN_ID + "-0");
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_CALL_INDEX)).isEqualTo(1L);
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_CALL_INDEX))
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_BATCH_ID)).isEqualTo(RUN_ID + "-0");
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_CALL_INDEX)).isEqualTo(1L);
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_CALL_INDEX))
                 .isEqualTo((long) facts.callIndexOf("call-2"));
     }
 
@@ -264,9 +264,9 @@ class AgentToolBodyTracerTest {
         SpanData tool = toolSpan();
         assertThat(tool.getAttributes().get(AgentTraceAttributes.USER_ID)).isEqualTo("u-1001");
         assertThat(tool.getAttributes().get(AgentTraceAttributes.SESSION_ID)).isEqualTo("c-2002");
-        assertThat(tool.getAttributes().get(RagentAttributes.TASK_ID)).isEqualTo("t-9001");
-        assertThat(tool.getAttributes().get(RagentAttributes.REPLY_TO_MESSAGE_ID)).isEqualTo("m-3003");
-        assertThat(attributeKeys(tool)).doesNotContain(RagentAttributes.CONFIRM_MESSAGE_ID.getKey());
+        assertThat(tool.getAttributes().get(StarlineAttributes.TASK_ID)).isEqualTo("t-9001");
+        assertThat(tool.getAttributes().get(StarlineAttributes.REPLY_TO_MESSAGE_ID)).isEqualTo("m-3003");
+        assertThat(attributeKeys(tool)).doesNotContain(StarlineAttributes.CONFIRM_MESSAGE_ID.getKey());
     }
 
     /**
@@ -326,7 +326,7 @@ class AgentToolBodyTracerTest {
                 assertThat(data.getAttributes().get(GenAiAttributes.TOOL_NAME)).isEqualTo(TOOL_NAME));
         assertThat(tools).extracting(data -> data.getAttributes().get(GenAiAttributes.TOOL_CALL_ID))
                 .containsExactlyInAnyOrder("call-1", "call-2");
-        assertThat(tools).extracting(data -> data.getAttributes().get(RagentAttributes.TOOL_CALL_INDEX))
+        assertThat(tools).extracting(data -> data.getAttributes().get(StarlineAttributes.TOOL_CALL_INDEX))
                 .containsExactlyInAnyOrder(0L, 1L);
         // 后一条的起点早于前一条的终点，区间真重叠；共用一个区间就看不出谁卡住了
         assertThat(facts.toolFact("call-2").startedAt()).isLessThan(facts.toolFact("call-1").endedAt());
@@ -342,12 +342,12 @@ class AgentToolBodyTracerTest {
         runUnderBatch(() -> trace("call-1", () -> Mono.just(error("call-1"))));
 
         SpanData tool = toolSpan();
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_STATUS))
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_STATUS))
                 .isEqualTo(AgentToolStatus.FAILED.value());
         assertThat(tool.getStatus().getStatusCode()).isEqualTo(StatusCode.ERROR);
         assertThat(tool.getAttributes().get(AgentErrorTypes.KEY)).isEqualTo(AgentErrorTypes.TOOL_ERROR.value());
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_ERROR_SOURCE))
-                .isEqualTo(RagentAttributes.ERROR_SOURCE_TOOL_RESULT);
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_ERROR_SOURCE))
+                .isEqualTo(StarlineAttributes.ERROR_SOURCE_TOOL_RESULT);
     }
 
     /**
@@ -363,8 +363,8 @@ class AgentToolBodyTracerTest {
         assertThat(tool.getStatus().getStatusCode()).isEqualTo(StatusCode.ERROR);
         assertThat(tool.getAttributes().get(AgentErrorTypes.KEY))
                 .isEqualTo(IllegalStateException.class.getName());
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_ERROR_SOURCE))
-                .isEqualTo(RagentAttributes.ERROR_SOURCE_EXCEPTION);
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_ERROR_SOURCE))
+                .isEqualTo(StarlineAttributes.ERROR_SOURCE_EXCEPTION);
         assertThat(tool.getStatus().getDescription()).isEmpty();
         assertThat(tool.getEvents()).extracting(EventData::getName).contains("exception");
     }
@@ -389,10 +389,10 @@ class AgentToolBodyTracerTest {
         SpanData tool = toolSpan();
         assertThat(tool.getStatus().getStatusCode()).isEqualTo(StatusCode.ERROR);
         assertThat(tool.getAttributes().get(AgentErrorTypes.KEY)).isEqualTo(AgentErrorTypes.CANCELLED.value());
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_STATUS))
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_STATUS))
                 .isEqualTo(AgentToolStatus.INTERRUPTED.value());
         // 取消不是工具的错，不给它安一个 error.source
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_ERROR_SOURCE)).isNull();
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_ERROR_SOURCE)).isNull();
         assertThat(tool.getEndEpochNanos()).isEqualTo(TimeUnit.MILLISECONDS.toNanos(facts.terminationAt()));
         assertThat(facts.toolFact("call-1").endedAt()).isEqualTo(facts.terminationAt());
     }
@@ -452,10 +452,10 @@ class AgentToolBodyTracerTest {
         runUnderBatch(() -> trace("call-1", Mono::empty));
 
         SpanData tool = toolSpan();
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_STATUS))
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_STATUS))
                 .isEqualTo(AgentToolStatus.FAILED.value());
         assertThat(tool.getAttributes().get(AgentErrorTypes.KEY)).isEqualTo(AgentErrorTypes.TOOL_ERROR.value());
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_ERROR_SOURCE)).isNull();
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_ERROR_SOURCE)).isNull();
     }
 
     /**
@@ -486,7 +486,7 @@ class AgentToolBodyTracerTest {
         runUnderBatch(() -> trace("call-1", () -> Mono.just(success("call-1"))));
         root.end();
 
-        assertThat(toolSpan().getAttributes().get(RagentAttributes.REACT_ROUND_INDEX)).isEqualTo(2L);
+        assertThat(toolSpan().getAttributes().get(StarlineAttributes.REACT_ROUND_INDEX)).isEqualTo(2L);
     }
 
     /**
@@ -496,7 +496,7 @@ class AgentToolBodyTracerTest {
     void shouldLeaveRoundIndexUnwrittenWhenNoRoundStarted() {
         runUnderBatch(() -> trace("call-1", () -> Mono.just(success("call-1"))));
 
-        assertThat(toolSpan().getAttributes().get(RagentAttributes.REACT_ROUND_INDEX)).isNull();
+        assertThat(toolSpan().getAttributes().get(StarlineAttributes.REACT_ROUND_INDEX)).isNull();
     }
 
     private Mono<ToolResultBlock> trace(String toolCallId, Supplier<Mono<ToolResultBlock>> body) {

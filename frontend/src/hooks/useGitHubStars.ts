@@ -1,8 +1,8 @@
 import * as React from "react";
 
-const REPOSITORY_API_URL = "https://api.github.com/repos/nageoffer/ragent";
-const STAR_CACHE_KEY = "ragent.github-stars";
-const LEGACY_STAR_CACHE_KEY = "ragent.agent.github-stars";
+const REPOSITORY_API_URL = "https://api.github.com/repos/LntanoC/starLineAgent";
+const STAR_CACHE_KEY = "starline.github-stars";
+const LEGACY_STAR_CACHE_KEY = "starline.agent.github-stars";
 const STAR_CACHE_TTL = 3 * 60 * 60 * 1000;
 const STAR_RETRY_DELAY = 5 * 60 * 1000;
 

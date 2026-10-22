@@ -135,15 +135,15 @@ public final class AgentToolBodyTracer {
         if (tool != null && tool.getDescription() != null) {
             span.setAttribute(GenAiAttributes.TOOL_DESCRIPTION, tool.getDescription());
         }
-        span.setAttribute(RagentAttributes.TOOL_SPAN_SCOPE, RagentAttributes.SPAN_SCOPE_BODY);
+        span.setAttribute(StarlineAttributes.TOOL_SPAN_SCOPE, StarlineAttributes.SPAN_SCOPE_BODY);
         // 与根、轮次、批同一组身份键：追踪后端不替子节点继承父节点的用户与会话，漏写这里就查不到 TOOL
         AgentRunTracer.writeIdentity(span, runtimeContext);
         // 工具体挂在批下、批与推理是兄弟，按轮聚合工具耗时只能靠这把键
         AgentRunTracer.writeRoundIndex(span, runtimeContext);
         ToolFact fact = facts.toolFact(toolCallId);
-        span.setAttribute(RagentAttributes.TOOL_CALL_INDEX, fact.callIndex());
+        span.setAttribute(StarlineAttributes.TOOL_CALL_INDEX, fact.callIndex());
         if (fact.batchId() != null) {
-            span.setAttribute(RagentAttributes.TOOL_BATCH_ID, fact.batchId());
+            span.setAttribute(StarlineAttributes.TOOL_BATCH_ID, fact.batchId());
         }
         writeArguments(span, param);
         return span;
@@ -177,18 +177,18 @@ public final class AgentToolBodyTracer {
             return;
         }
         // 空完成是工具违约，交给同一处状态映射判成失败，不在这里另立一种状态
-        span.setAttribute(RagentAttributes.TOOL_STATUS, status.value());
+        span.setAttribute(StarlineAttributes.TOOL_STATUS, status.value());
         if (error != null) {
             span.setStatus(StatusCode.ERROR);
             span.setAttribute(AgentErrorTypes.KEY, AgentErrorTypes.ofThrowable(error));
-            span.setAttribute(RagentAttributes.TOOL_ERROR_SOURCE, RagentAttributes.ERROR_SOURCE_EXCEPTION);
+            span.setAttribute(StarlineAttributes.TOOL_ERROR_SOURCE, StarlineAttributes.ERROR_SOURCE_EXCEPTION);
             span.recordException(error);
         } else if (status == AgentToolStatus.FAILED) {
             span.setStatus(StatusCode.ERROR);
             span.setAttribute(AgentErrorTypes.KEY, AgentErrorTypes.TOOL_ERROR.value());
             if (result != null) {
                 // 没结果就没观测到来源，宁可空着也不猜一个
-                span.setAttribute(RagentAttributes.TOOL_ERROR_SOURCE, RagentAttributes.ERROR_SOURCE_TOOL_RESULT);
+                span.setAttribute(StarlineAttributes.TOOL_ERROR_SOURCE, StarlineAttributes.ERROR_SOURCE_TOOL_RESULT);
             }
         } else if (status == AgentToolStatus.INTERRUPTED) {
             span.setStatus(StatusCode.ERROR);
@@ -225,7 +225,7 @@ public final class AgentToolBodyTracer {
         if (span == null) {
             return;
         }
-        span.setAttribute(RagentAttributes.TOOL_STATUS, AgentToolStatus.INTERRUPTED.value());
+        span.setAttribute(StarlineAttributes.TOOL_STATUS, AgentToolStatus.INTERRUPTED.value());
         span.setStatus(StatusCode.ERROR);
         span.setAttribute(AgentErrorTypes.KEY, AgentErrorTypes.ofCancelledSpan(facts.terminationAt()));
         // 断在半路的没有返回值，写这一份是为了让「有入参、没输出」不再等价于一次静默成功

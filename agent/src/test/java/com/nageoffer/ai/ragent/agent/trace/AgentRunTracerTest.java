@@ -71,8 +71,8 @@ class AgentRunTracerTest {
         root.end();
 
         SpanData data = onlySpan();
-        assertThat(data.getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_INTERRUPTED);
+        assertThat(data.getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_INTERRUPTED);
         assertThat(data.getAttributes().get(AgentTraceAttributes.LEVEL))
                 .isEqualTo(AgentTraceAttributes.LEVEL_WARNING);
         assertThat(data.getAttributes().get(AgentTraceAttributes.STATUS_MESSAGE)).isNotBlank();
@@ -91,8 +91,8 @@ class AgentRunTracerTest {
         root.end();
 
         SpanData data = onlySpan();
-        assertThat(data.getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_ABORTED);
+        assertThat(data.getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_ABORTED);
         assertThat(data.getAttributes().get(AgentErrorTypes.KEY)).isEqualTo(AgentErrorTypes.CANCELLED.value());
         assertThat(data.getAttributes().get(AgentTraceAttributes.LEVEL))
                 .isEqualTo(AgentTraceAttributes.LEVEL_ERROR);
@@ -107,8 +107,8 @@ class AgentRunTracerTest {
         AgentRunTracer.markCompleted(ctx);
         root.end();
 
-        assertThat(onlySpan().getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_INTERRUPTED);
+        assertThat(onlySpan().getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_INTERRUPTED);
     }
 
     /**
@@ -120,8 +120,8 @@ class AgentRunTracerTest {
         AgentRunTracer.markFailed(ctx);
         root.end();
 
-        assertThat(onlySpan().getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_ABORTED);
+        assertThat(onlySpan().getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_ABORTED);
     }
 
     /**
@@ -133,8 +133,8 @@ class AgentRunTracerTest {
         root.end();
 
         SpanData data = onlySpan();
-        assertThat(data.getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_COMPLETED);
+        assertThat(data.getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_COMPLETED);
         assertThat(data.getAttributes().get(AgentTraceAttributes.LEVEL)).isNull();
         assertThat(data.getAttributes().get(AgentErrorTypes.KEY)).isNull();
     }
@@ -148,8 +148,8 @@ class AgentRunTracerTest {
         root.end();
 
         SpanData data = onlySpan();
-        assertThat(data.getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_FAILED);
+        assertThat(data.getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_FAILED);
         assertThat(data.getAttributes().get(AgentTraceAttributes.LEVEL)).isNull();
     }
 
@@ -168,7 +168,7 @@ class AgentRunTracerTest {
         }).doesNotThrowAnyException();
 
         root.end();
-        assertThat(onlySpan().getAttributes().get(RagentAttributes.RUN_OUTCOME)).isNull();
+        assertThat(onlySpan().getAttributes().get(StarlineAttributes.RUN_OUTCOME)).isNull();
     }
 
     private SpanData onlySpan() {

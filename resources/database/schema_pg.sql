@@ -1062,3 +1062,29 @@ COMMENT ON COLUMN t_agent_memory_control.user_id IS '用户ID';
 COMMENT ON COLUMN t_agent_memory_control.revision IS '记忆集版本号，提交期与水位一同双校验';
 COMMENT ON COLUMN t_agent_memory_control.create_time IS '建行时刻，兼作抽取下界：更早的历史消息不倒灌';
 COMMENT ON COLUMN t_agent_memory_control.update_time IS '更新时间';
+
+
+-- 星序 MVP 活动信息与邮箱提醒
+CREATE TABLE IF NOT EXISTS t_starline_event_reminder (
+    id              VARCHAR(64) PRIMARY KEY,
+    user_id         VARCHAR(64) NOT NULL,
+    artist_name     VARCHAR(160) NOT NULL,
+    event_name      VARCHAR(240),
+    info_status     VARCHAR(32) NOT NULL,
+    source_name     VARCHAR(160),
+    source_url      TEXT,
+    ticket_time     TIMESTAMP,
+    email           VARCHAR(320),
+    remind_at       TIMESTAMP,
+    reminder_status VARCHAR(32) NOT NULL,
+    sent_at         TIMESTAMP,
+    created_time    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_starline_user_created
+    ON t_starline_event_reminder (user_id, created_time DESC);
+
+CREATE INDEX IF NOT EXISTS idx_starline_due_reminders
+    ON t_starline_event_reminder (reminder_status, remind_at)
+    WHERE reminder_status = 'PENDING';

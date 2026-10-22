@@ -108,7 +108,7 @@ public final class ConcurrencyRegressionMain {
         for (String key : List.of("server.base-url", "execution.engine-type", "agent.chat.provider", "agent.chat.model",
                 "agent.memory.context-window-chars", "agent.memory.summary-enabled", "agent.memory.long-term-enabled",
                 "execution.expected-vector-type", "execution.expected-storage-type")) env.put(key, config.get(key, "unknown"));
-        try (RagentHttpClient admin = new RagentHttpClient(config); JdbcClient jdbc = new JdbcClient(config, "database")) {
+        try (StarlineHttpClient admin = new StarlineHttpClient(config); JdbcClient jdbc = new JdbcClient(config, "database")) {
             var login = admin.login(config.require("auth.username"), config.require("auth.password"));
             if (!"admin".equals(login.role())) throw new IllegalStateException("configured account cannot create isolated test users");
             env.put("runtimeMeta", admin.get("/agent/v1/meta"));
@@ -129,7 +129,7 @@ public final class ConcurrencyRegressionMain {
         Path secretDir = out.resolve(".credentials");
         Files.createDirectories(secretDir);
         Files.setPosixFilePermissions(secretDir, PosixFilePermissions.fromString("rwx------"));
-        try (RagentHttpClient admin = new RagentHttpClient(config); JdbcClient jdbc = new JdbcClient(config, "database")) {
+        try (StarlineHttpClient admin = new StarlineHttpClient(config); JdbcClient jdbc = new JdbcClient(config, "database")) {
             admin.login(config.require("auth.username"), config.require("auth.password"));
             Set<String> occupied = new HashSet<>();
             for (List<String> row : jdbc.queryRows("SELECT username FROM t_user")) occupied.add(row.get(0));
@@ -139,7 +139,7 @@ public final class ConcurrencyRegressionMain {
                 Path credential = secretDir.resolve(label + ".json");
                 Files.createFile(credential, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));
                 write(credential, Map.of("username",username,"password",password,"userId",userId));
-                RagentHttpClient http = new RagentHttpClient(config);
+                StarlineHttpClient http = new StarlineHttpClient(config);
                 String actual = http.login(username,password).userId();
                 if (!userId.equals(actual)) { http.close(); throw new IllegalStateException("created/logged-in identity mismatch"); }
                 String marker = "RG" + UUID.randomUUID().toString().replace("-", "").substring(0,16).toUpperCase();
@@ -256,7 +256,7 @@ public final class ConcurrencyRegressionMain {
                 "Both streams must show model activity before cancellation, rather than only an accepted request.");
         String taskId=String.valueOf(ta.live.snapshot().get("taskId"));
         boolean denied=false;
-        try { b.http.postEmpty("/agent/v1/stop?taskId="+RagentHttpClient.encodeQuery(taskId)); }
+        try { b.http.postEmpty("/agent/v1/stop?taskId="+StarlineHttpClient.encodeQuery(taskId)); }
         catch(Exception e) { denied=e.getMessage()!=null&&(e.getMessage().contains("权限")||e.getMessage().contains("403")||e.getMessage().contains("任务不存在或已结束")); evidence.put("foreignStopError",e.getMessage()); }
         check("cancel.foreign-user-denied",denied?"PASS":"FAIL","User B cannot stop user A's active task.");
         if(bothActive) {
@@ -273,7 +273,7 @@ public final class ConcurrencyRegressionMain {
         Identity a=identities.get(0), b=identities.get(1);
         boolean inaccessible=false;
         try {
-            Object response=b.http.get("/agent/v1/conversations/"+RagentHttpClient.encodePath(a.conversation)+"/messages");
+            Object response=b.http.get("/agent/v1/conversations/"+StarlineHttpClient.encodePath(a.conversation)+"/messages");
             evidence.put("foreignConversationResponse",response);
             inaccessible=response instanceof List<?> list&&list.isEmpty();
         } catch(Exception e) { inaccessible=e.getMessage()!=null&&(e.getMessage().contains("不存在")||e.getMessage().contains("权限")||e.getMessage().contains("403")); evidence.put("foreignConversationError",e.getMessage()); }
@@ -288,7 +288,7 @@ public final class ConcurrencyRegressionMain {
         return "本轮标记"+u.marker+"，回答首尾都原样写出。请写一份约2200字的个人电脑文件管理与备份指南，分20个编号，逐项说明步骤、例子和注意事项。不要调用工具，不要保存长期记忆，直接持续输出完整指南。";
     }
     private void stop(Identity user,String taskId) throws Exception {
-        user.http.postEmpty("/agent/v1/stop?taskId="+RagentHttpClient.encodeQuery(taskId));
+        user.http.postEmpty("/agent/v1/stop?taskId="+StarlineHttpClient.encodeQuery(taskId));
     }
     private void stopUnfinished() {
         for(Turn t:turns) if(!t.live.completion().isDone() || !Boolean.TRUE.equals(t.live.snapshot().get("done"))) {
@@ -510,8 +510,8 @@ public final class ConcurrencyRegressionMain {
         System.out.println("[concurrency] read-only recheck="+target);
     }
     private static final class Identity {
-        final String label,username,userId,marker;final RagentHttpClient http;final ConcurrencySseClient sse;String conversation;
-        Identity(String l,String n,String id,String m,RagentHttpClient h,ConcurrencySseClient s){label=l;username=n;userId=id;marker=m;http=h;sse=s;}
+        final String label,username,userId,marker;final StarlineHttpClient http;final ConcurrencySseClient sse;String conversation;
+        Identity(String l,String n,String id,String m,StarlineHttpClient h,ConcurrencySseClient s){label=l;username=n;userId=id;marker=m;http=h;sse=s;}
     }
     private static final class Turn {
         final String name,question,expected;final Identity identity;final boolean expectMarker;final ConcurrencySseClient.LiveTurn live;ConcurrencySseClient.Result result;

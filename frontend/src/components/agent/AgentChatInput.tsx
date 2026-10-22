@@ -67,7 +67,7 @@ export function AgentChatInput() {
           className="agent-composer-input"
           value={value}
           rows={1}
-          placeholder={awaiting ? "请先在上方确认或取消该操作" : "给 RagentAI 发送消息"}
+          placeholder={awaiting ? "请先在上方确认或取消该操作" : "给 starline星序 发送消息"}
           onChange={(event) => setValue(event.target.value)}
           onCompositionStart={() => {
             isComposingRef.current = true;

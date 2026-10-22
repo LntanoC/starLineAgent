@@ -58,10 +58,10 @@ public final class AgentRunTracer {
      * 不按「先写者胜」：强制断流一定发生在优雅中断之后，先写者胜会把被掐链的运行永久掩盖成正常中断
      */
     private static final List<String> SEVERITY = List.of(
-            RagentAttributes.RUN_OUTCOME_COMPLETED,
-            RagentAttributes.RUN_OUTCOME_FAILED,
-            RagentAttributes.RUN_OUTCOME_INTERRUPTED,
-            RagentAttributes.RUN_OUTCOME_ABORTED);
+            StarlineAttributes.RUN_OUTCOME_COMPLETED,
+            StarlineAttributes.RUN_OUTCOME_FAILED,
+            StarlineAttributes.RUN_OUTCOME_INTERRUPTED,
+            StarlineAttributes.RUN_OUTCOME_ABORTED);
 
     /**
      * 先读 Reactor 上下文再退回 ThreadLocal，与官方中间件同一套取法，跨线程后仍能找到父节点
@@ -100,7 +100,7 @@ public final class AgentRunTracer {
     static void writeRoundIndex(Span span, RuntimeContext ctx) {
         int round = currentRound(ctx);
         if (span != null && round > 0) {
-            span.setAttribute(RagentAttributes.REACT_ROUND_INDEX, round);
+            span.setAttribute(StarlineAttributes.REACT_ROUND_INDEX, round);
         }
     }
 
@@ -124,9 +124,9 @@ public final class AgentRunTracer {
         if (StrUtil.isNotBlank(ctx.getSessionId())) {
             span.setAttribute(AgentTraceAttributes.SESSION_ID, ctx.getSessionId());
         }
-        writeContextId(span, ctx, AgentTraceContextKeys.TASK_ID, RagentAttributes.TASK_ID);
-        writeContextId(span, ctx, AgentTraceContextKeys.REPLY_TO_MESSAGE_ID, RagentAttributes.REPLY_TO_MESSAGE_ID);
-        writeContextId(span, ctx, AgentTraceContextKeys.CONFIRM_MESSAGE_ID, RagentAttributes.CONFIRM_MESSAGE_ID);
+        writeContextId(span, ctx, AgentTraceContextKeys.TASK_ID, StarlineAttributes.TASK_ID);
+        writeContextId(span, ctx, AgentTraceContextKeys.REPLY_TO_MESSAGE_ID, StarlineAttributes.REPLY_TO_MESSAGE_ID);
+        writeContextId(span, ctx, AgentTraceContextKeys.CONFIRM_MESSAGE_ID, StarlineAttributes.CONFIRM_MESSAGE_ID);
     }
 
     /**
@@ -140,14 +140,14 @@ public final class AgentRunTracer {
     }
 
     public static void markCompleted(RuntimeContext ctx) {
-        writeOutcome(ctx, RagentAttributes.RUN_OUTCOME_COMPLETED, null);
+        writeOutcome(ctx, StarlineAttributes.RUN_OUTCOME_COMPLETED, null);
     }
 
     /**
      * 级别与报错原文由 onAgent 的错误回调写，这里只补结局，免得两处互相盖掉
      */
     public static void markFailed(RuntimeContext ctx) {
-        writeOutcome(ctx, RagentAttributes.RUN_OUTCOME_FAILED, null);
+        writeOutcome(ctx, StarlineAttributes.RUN_OUTCOME_FAILED, null);
     }
 
     /**
@@ -156,7 +156,7 @@ public final class AgentRunTracer {
      * 官方那层随后按 onComplete 写 OK，OK 配着一个错误类型是自相矛盾的数据
      */
     public static void markInterrupted(RuntimeContext ctx) {
-        writeOutcome(ctx, RagentAttributes.RUN_OUTCOME_INTERRUPTED, span -> {
+        writeOutcome(ctx, StarlineAttributes.RUN_OUTCOME_INTERRUPTED, span -> {
             span.setAttribute(AgentTraceAttributes.LEVEL, AgentTraceAttributes.LEVEL_WARNING);
             span.setAttribute(AgentTraceAttributes.STATUS_MESSAGE, INTERRUPTED_MESSAGE);
         });
@@ -168,7 +168,7 @@ public final class AgentRunTracer {
      * 不写 StatusCode：官方 onAgent 的取消回调已经写过 ERROR + cancelled，这里再写只是重复一遍
      */
     public static void markAborted(RuntimeContext ctx) {
-        writeOutcome(ctx, RagentAttributes.RUN_OUTCOME_ABORTED, span -> {
+        writeOutcome(ctx, StarlineAttributes.RUN_OUTCOME_ABORTED, span -> {
             span.setAttribute(AgentErrorTypes.KEY, AgentErrorTypes.CANCELLED.value());
             span.setAttribute(AgentTraceAttributes.LEVEL, AgentTraceAttributes.LEVEL_ERROR);
             span.setAttribute(AgentTraceAttributes.STATUS_MESSAGE, ABORTED_MESSAGE);
@@ -184,7 +184,7 @@ public final class AgentRunTracer {
         if (ref == null || !ref.claim(outcome)) {
             return;
         }
-        ref.span.setAttribute(RagentAttributes.RUN_OUTCOME, outcome);
+        ref.span.setAttribute(StarlineAttributes.RUN_OUTCOME, outcome);
         if (extra != null) {
             extra.accept(ref.span);
         }

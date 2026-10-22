@@ -12,7 +12,7 @@ OTel 语义约定里同一份事实经常有两三种写法，全写上去只会
 | `gen_ai.conversation.id` | 和 `langfuse.session.id` 同源同值，都取 `ctx.getSessionId()` |
 | 批 span 上的三个 OTel span event | Langfuse 摄取时整个丢弃，落库后查不到也过滤不了 |
 
-三个 event：`ragent.tool.awaiting_confirmation`、`ragent.tool.denied`、`ragent.tool.short_circuited`。随它们一起删的还有 `RagentAttributes` 的 `TOOL_MASKED_BY`、`ERROR_SOURCE_SKILL_MASKED`，和 `AgentErrorTypes` 的 `TOOL_MASKED`、`PRE_EXECUTION_ERROR`。后两个枚举值只在 event 属性上出现，遮蔽的调用在 `McpToolProxy.callAsync` 就返回了，走不到 `AgentToolBodyTracer.trace`，没有第二条路产出这两个值。
+三个 event：`ragent.tool.awaiting_confirmation`、`ragent.tool.denied`、`ragent.tool.short_circuited`。随它们一起删的还有 `StarlineAttributes` 的 `TOOL_MASKED_BY`、`ERROR_SOURCE_SKILL_MASKED`，和 `AgentErrorTypes` 的 `TOOL_MASKED`、`PRE_EXECUTION_ERROR`。后两个枚举值只在 event 属性上出现，遮蔽的调用在 `McpToolProxy.callAsync` 就返回了，走不到 `AgentToolBodyTracer.trace`，没有第二条路产出这两个值。
 
 删 event 不丢信息——同一批工具的逐条状态由 `AgentTraceEnrichmentMiddleware` 写进批 span 的 `langfuse.observation.output`：
 

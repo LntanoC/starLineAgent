@@ -52,9 +52,9 @@ function AgentHeader({ meta, rawOpen, onToggleRaw }: AgentHeaderProps) {
   return (
     <header className="agent-header">
       <div className="agent-brand">
-        <span className="agent-wordmark">RAGENT</span>
+        <span className="agent-wordmark">starline</span>
         <span className="agent-brand-sep">/</span>
-        <span className="agent-brand-tag">智能体</span>
+        <span className="agent-brand-tag">星序</span>
       </div>
 
       <div className="agent-header-center">
@@ -74,7 +74,7 @@ function AgentHeader({ meta, rawOpen, onToggleRaw }: AgentHeaderProps) {
 
       <div className="agent-header-right">
         <a
-          href="https://github.com/nageoffer/ragent"
+          href="https://github.com/LntanoC/starLineAgent"
           target="_blank"
           rel="noreferrer"
           className="agent-head-btn"

@@ -41,7 +41,7 @@ public final class MemoryAuditMain {
         Path out = Path.of(args[1]);
         Files.createDirectories(out);
         String mode = request.mode();
-        try (RagentHttpClient http = new RagentHttpClient(config); JdbcClient jdbc = new JdbcClient(config, "database")) {
+        try (StarlineHttpClient http = new StarlineHttpClient(config); JdbcClient jdbc = new JdbcClient(config, "database")) {
             if (mode.equals("env")) {
                 http.login(config.require("auth.username"), config.require("auth.password"));
                 Map<String, Object> env = new LinkedHashMap<>();

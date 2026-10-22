@@ -42,7 +42,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
     private final UserContextInterceptor userContextInterceptor;
 
     /**
-     * 拦截器全局顺序：登录(0) → 演示只读(10，由 RagentWebMvcConfiguration 注册) → 用户上下文(20)
+     * 拦截器全局顺序：登录(0) → 演示只读(10，由 StarlineWebMvcConfiguration 注册) → 用户上下文(20)
      */
     public static final int ORDER_LOGIN = 0;
     public static final int ORDER_DEMO_MODE = 10;

@@ -1,5 +1,6 @@
 import * as React from "react";
 import {
+  BellRing,
   BookOpen,
   Check,
   LogOut,
@@ -195,6 +196,10 @@ export function AgentSidebar() {
             <span className="agent-new-title">新建会话</span>
             <span className="agent-new-sub">从空白开始</span>
           </span>
+        </button>
+        <button type="button" className="agent-admin-btn" onClick={() => navigate("/starline/reminders")}>
+          <BellRing className="h-3.5 w-3.5" strokeWidth={2} />
+          星序活动提醒
         </button>
         {user?.role === "admin" ? (
           <button
@@ -400,9 +405,9 @@ export function AgentSidebar() {
             className="w-48 rounded-xl p-1"
           >
             <DropdownMenuItem asChild className="rounded-lg px-3 py-2 text-[13px]">
-              <a href="https://nageoffer.com/ragent" target="_blank" rel="noreferrer">
+              <a href="https://github.com/LntanoC/starLineAgent" target="_blank" rel="noreferrer">
                 <BookOpen className="mr-2 h-4 w-4" />
-                官方文档
+                星序项目仓库
               </a>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="rounded-lg px-3 py-2 text-[13px]">

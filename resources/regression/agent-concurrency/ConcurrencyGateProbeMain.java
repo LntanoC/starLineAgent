@@ -33,7 +33,7 @@ public final class ConcurrencyGateProbeMain {
         report.put("startedAt",Instant.now().toString());report.put("purpose","Compare expected same-user gate rejection under strict SSE vs mixed Accept, while another user runs.");
         List<Map<String,Object>> responses=new ArrayList<>();report.put("rejections",responses);
         ConcurrencySseClient.LiveTurn ta=null,tb=null;
-        try(RagentHttpClient ha=new RagentHttpClient(config);RagentHttpClient hb=new RagentHttpClient(config);
+        try(StarlineHttpClient ha=new StarlineHttpClient(config);StarlineHttpClient hb=new StarlineHttpClient(config);
             ConcurrencySseClient ca=new ConcurrencySseClient(ha,config);ConcurrencySseClient cb=new ConcurrencySseClient(hb,config)) {
             login(ha,run,a);login(hb,run,b);
             try {
@@ -50,8 +50,8 @@ public final class ConcurrencyGateProbeMain {
                         Map<String,Object> response=new LinkedHashMap<>();
                         response.put("accept",accept);response.put("sameConversation",existing);
                         response.put("activeABeforeRequest",!ta.completion().isDone());response.put("requestAt",Instant.now().toString());
-                        String uri=ha.baseUrl()+"/agent/v1/chat?question="+RagentHttpClient.encodeQuery("并发闸门对照请求，请只回答收到。")
-                                +(existing?"&conversationId="+RagentHttpClient.encodeQuery(String.valueOf(ma.get("conversationId"))):"");
+                        String uri=ha.baseUrl()+"/agent/v1/chat?question="+StarlineHttpClient.encodeQuery("并发闸门对照请求，请只回答收到。")
+                                +(existing?"&conversationId="+StarlineHttpClient.encodeQuery(String.valueOf(ma.get("conversationId"))):"");
                         try {
                             var pending=client.sendAsync(HttpRequest.newBuilder(URI.create(uri)).timeout(Duration.ofSeconds(10))
                                     .header("Authorization",ha.authorization()).header("Accept",accept).GET().build(),HttpResponse.BodyHandlers.ofString());
@@ -66,7 +66,7 @@ public final class ConcurrencyGateProbeMain {
                 long deadline=System.nanoTime()+Duration.ofSeconds(10).toNanos();
                 while(ta.snapshot().get("firstTokenAt")==null&&!ta.completion().isDone()&&System.nanoTime()<deadline)Thread.sleep(50);
                 report.put("targetHadModelOutput",ta.snapshot().get("firstTokenAt")!=null);
-                if(!ta.completion().isDone())ha.postEmpty("/agent/v1/stop?taskId="+RagentHttpClient.encodeQuery(String.valueOf(ma.get("taskId"))));
+                if(!ta.completion().isDone())ha.postEmpty("/agent/v1/stop?taskId="+StarlineHttpClient.encodeQuery(String.valueOf(ma.get("taskId"))));
                 report.put("targetResult",ta.completion().get(130,TimeUnit.SECONDS).toMap());
                 report.put("survivorResult",tb.completion().get(130,TimeUnit.SECONDS).toMap());
             } finally {
@@ -80,7 +80,7 @@ public final class ConcurrencyGateProbeMain {
         System.out.println("[concurrency] gate-diagnostic="+output);
         for(Map<String,Object> r:responses)System.out.println("[concurrency] accept="+r.get("accept")+" sameConversation="+r.get("sameConversation")+" status="+r.get("httpStatus")+" body="+r.get("body"));
     }
-    private static void login(RagentHttpClient http,Path run,Map<String,Object> identity) throws Exception {
+    private static void login(StarlineHttpClient http,Path run,Map<String,Object> identity) throws Exception {
         Map<String,Object> credential=SimpleJson.object(SimpleJson.parse(Files.readString(run.resolve(".credentials").resolve(identity.get("label")+".json"))));
         var session=http.login(String.valueOf(credential.get("username")),String.valueOf(credential.get("password")));
         if(!String.valueOf(identity.get("userId")).equals(session.userId()))throw new IllegalStateException("identity mismatch");
@@ -88,9 +88,9 @@ public final class ConcurrencyGateProbeMain {
     private static String question(Map<String,Object> identity) {
         return "回答先写标记"+identity.get("marker")+"。请分25个编号写一份2200字的Mac文件管理与备份指南，每条包含步骤和例子。不要调用工具，不保存长期记忆，持续输出完整指南。";
     }
-    private static void cleanup(RagentHttpClient http,ConcurrencySseClient.LiveTurn turn) {
+    private static void cleanup(StarlineHttpClient http,ConcurrencySseClient.LiveTurn turn) {
         if(turn==null||Boolean.TRUE.equals(turn.snapshot().get("done")))return;
-        try{Object task=turn.snapshot().get("taskId");if(task!=null)http.postEmpty("/agent/v1/stop?taskId="+RagentHttpClient.encodeQuery(String.valueOf(task)));}
+        try{Object task=turn.snapshot().get("taskId");if(task!=null)http.postEmpty("/agent/v1/stop?taskId="+StarlineHttpClient.encodeQuery(String.valueOf(task)));}
         catch(Exception ignored){ /* final Redis recheck remains authoritative */ }
     }
 }

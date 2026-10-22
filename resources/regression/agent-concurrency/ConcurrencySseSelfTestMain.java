@@ -121,8 +121,8 @@ public final class ConcurrencySseSelfTestMain {
         Files.writeString(configFile, "server.base-url=http://127.0.0.1:" + server.getAddress().getPort()
                 + "\nserver.connect-timeout-seconds=1\n", StandardCharsets.UTF_8);
         InitializerConfig config = InitializerConfig.load(configFile);
-        try (RagentHttpClient alice = new RagentHttpClient(config);
-             RagentHttpClient bob = new RagentHttpClient(config)) {
+        try (StarlineHttpClient alice = new StarlineHttpClient(config);
+             StarlineHttpClient bob = new StarlineHttpClient(config)) {
             alice.login("alice", "fake");
             bob.login("bob", "fake");
             try (ConcurrencySseClient a = new ConcurrencySseClient(alice, config);

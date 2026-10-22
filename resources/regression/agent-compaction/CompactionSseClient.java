@@ -31,10 +31,10 @@ final class CompactionSseClient {
     private static final String CHAT_PATH = "/agent/v1/chat";
     private static final String CONFIRM_PATH = "/agent/v1/chat/confirm";
 
-    private final RagentHttpClient http;
+    private final StarlineHttpClient http;
     private final Duration connectTimeout;
 
-    CompactionSseClient(RagentHttpClient http, InitializerConfig config) {
+    CompactionSseClient(StarlineHttpClient http, InitializerConfig config) {
         this.http = http;
         this.connectTimeout = Duration.ofSeconds(config.getInt("server.connect-timeout-seconds", 5));
     }
@@ -51,8 +51,8 @@ final class CompactionSseClient {
     }
 
     Reply ask(String question, String conversationId, Duration timeout) throws IOException, InterruptedException {
-        String path = CHAT_PATH + "?question=" + RagentHttpClient.encodeQuery(question)
-                + (conversationId == null ? "" : "&conversationId=" + RagentHttpClient.encodeQuery(conversationId));
+        String path = CHAT_PATH + "?question=" + StarlineHttpClient.encodeQuery(question)
+                + (conversationId == null ? "" : "&conversationId=" + StarlineHttpClient.encodeQuery(conversationId));
         return read(HttpRequest.newBuilder(URI.create(http.baseUrl() + path)).GET(), timeout, question);
     }
 

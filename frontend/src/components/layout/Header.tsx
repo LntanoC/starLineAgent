@@ -44,7 +44,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
         </div>
         <div className="flex items-center gap-2">
           <a
-            href="https://github.com/nageoffer/ragent"
+            href="https://github.com/LntanoC/starLineAgent"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"

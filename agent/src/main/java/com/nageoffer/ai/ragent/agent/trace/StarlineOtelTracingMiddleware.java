@@ -50,7 +50,7 @@ import java.util.function.Function;
  * 单工具的耗时与成败它一个都给不出；等工具体自己建 span 之后，同一次执行还会被两个工具语义节点各表达一遍
  * 这里换成 `tool_batch`：只说「这是一批、几个人、整批跑没跑」，工具语义留给真正的执行体
  */
-public class RagentOtelTracingMiddleware extends OtelTracingMiddleware {
+public class StarlineOtelTracingMiddleware extends OtelTracingMiddleware {
 
     /**
      * 固定串，工具名与调用 ID 一律进属性：span 名带动态参数会让后端的按名聚合失去意义
@@ -59,7 +59,7 @@ public class RagentOtelTracingMiddleware extends OtelTracingMiddleware {
 
     private final Tracer tracer;
 
-    public RagentOtelTracingMiddleware(Tracer tracer) {
+    public StarlineOtelTracingMiddleware(Tracer tracer) {
         this.tracer = tracer;
     }
 
@@ -78,7 +78,7 @@ public class RagentOtelTracingMiddleware extends OtelTracingMiddleware {
                     .setSpanKind(SpanKind.INTERNAL)
                     .startSpan();
             span.setAttribute(AgentTraceAttributes.OBSERVATION_TYPE, AgentTraceAttributes.TYPE_SPAN);
-            span.setAttribute(RagentAttributes.TOOL_BATCH_SIZE, calls.size());
+            span.setAttribute(StarlineAttributes.TOOL_BATCH_SIZE, calls.size());
 
             BatchOutcome outcome = new BatchOutcome();
             AtomicBoolean ended = new AtomicBoolean();
@@ -137,9 +137,9 @@ public class RagentOtelTracingMiddleware extends OtelTracingMiddleware {
     private static void settle(Span span, AgentToolExecutionFacts facts, int batchIndex, BatchOutcome outcome) {
         ToolBatchFact batch = facts == null ? null : facts.batchAt(batchIndex);
         if (batch != null) {
-            span.setAttribute(RagentAttributes.TOOL_BATCH_ID, batch.batchId());
+            span.setAttribute(StarlineAttributes.TOOL_BATCH_ID, batch.batchId());
         }
-        span.setAttribute(RagentAttributes.TOOL_BATCH_OUTCOME, outcome.resolve());
+        span.setAttribute(StarlineAttributes.TOOL_BATCH_OUTCOME, outcome.resolve());
     }
 
     /**
@@ -175,16 +175,16 @@ public class RagentOtelTracingMiddleware extends OtelTracingMiddleware {
 
         private String resolve() {
             if (interrupted) {
-                return RagentAttributes.OUTCOME_INTERRUPTED;
+                return StarlineAttributes.OUTCOME_INTERRUPTED;
             }
             if (awaiting) {
-                return RagentAttributes.OUTCOME_AWAITING;
+                return StarlineAttributes.OUTCOME_AWAITING;
             }
             if (denied && !executed) {
-                return RagentAttributes.OUTCOME_DENIED;
+                return StarlineAttributes.OUTCOME_DENIED;
             }
             // 一个事件都没收到时也报 executed：批已经交给框架执行，说它被拒或在等待都不是真话
-            return RagentAttributes.OUTCOME_EXECUTED;
+            return StarlineAttributes.OUTCOME_EXECUTED;
         }
     }
 }

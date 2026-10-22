@@ -32,7 +32,7 @@ final class NaturalMemoryCheck {
         System.out.println("逐轮记录工具、待处理数与抽取台账；不强迫后台写入，测后另行通过聊天清理新增条目。");
     }
 
-    static void run(InitializerConfig config, Path output, RagentHttpClient http, JdbcClient jdbc,
+    static void run(InitializerConfig config, Path output, StarlineHttpClient http, JdbcClient jdbc,
                     String uid, Map<String, Object> baseline) throws Exception {
         List<Map<String, Object>> original = objects(baseline.get("memory"));
         if (active(original).stream().anyMatch(LongTermMemoryMain::target)) throw new IllegalStateException("已有生效屏幕偏好，停止");

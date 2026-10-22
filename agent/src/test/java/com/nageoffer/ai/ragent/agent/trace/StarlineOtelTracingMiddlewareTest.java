@@ -70,7 +70,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  * 官方那层的 execute_tool 盖着整批调用却写着单工具语义，这里换成不冒充工具的 tool_batch
  * 断言的是导出快照：span 名、属性分层、四种批结局、以及取消时的收口时刻
  */
-class RagentOtelTracingMiddlewareTest {
+class StarlineOtelTracingMiddlewareTest {
 
     private static final String RUN_ID = "t-9001";
     private static final String TOOL_BATCH_SPAN = "tool_batch";
@@ -82,7 +82,7 @@ class RagentOtelTracingMiddlewareTest {
     private SdkTracerProvider tracerProvider;
     private MutableClock clock;
     private AgentToolExecutionFacts facts;
-    private RagentOtelTracingMiddleware middleware;
+    private StarlineOtelTracingMiddleware middleware;
     private AgentToolBatchMiddleware batchMiddleware;
 
     /**
@@ -107,7 +107,7 @@ class RagentOtelTracingMiddlewareTest {
                 .build();
         clock = new MutableClock(Instant.now());
         facts = new AgentToolExecutionFacts(RUN_ID, clock);
-        middleware = new RagentOtelTracingMiddleware(tracerProvider.get("test"));
+        middleware = new StarlineOtelTracingMiddleware(tracerProvider.get("test"));
         batchMiddleware = new AgentToolBatchMiddleware();
     }
 
@@ -135,10 +135,10 @@ class RagentOtelTracingMiddlewareTest {
         assertThat(batch.getParentSpanId()).isEqualTo(span(ROOT_SPAN).getSpanId());
         assertThat(batch.getAttributes().asMap().keySet().stream().map(AttributeKey::getKey))
                 .noneMatch(key -> key.startsWith("gen_ai."));
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_ID)).isEqualTo(RUN_ID + "-0");
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_SIZE)).isEqualTo(1L);
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_EXECUTED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_ID)).isEqualTo(RUN_ID + "-0");
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_SIZE)).isEqualTo(1L);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_EXECUTED);
         // 跑顺了不写 error.type，也不落 OK：内层还要往同一个 span 上写更坏的结论
         assertThat(batch.getAttributes().get(AgentErrorTypes.KEY)).isNull();
         assertThat(batch.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
@@ -163,9 +163,9 @@ class RagentOtelTracingMiddlewareTest {
                 new ToolResultEndEvent("r1", "call-2", "leave_submit", ToolResultState.SUCCESS))));
 
         SpanData batch = batchSpan();
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_SIZE)).isEqualTo(2L);
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_EXECUTED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_SIZE)).isEqualTo(2L);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_EXECUTED);
     }
 
     /**
@@ -181,8 +181,8 @@ class RagentOtelTracingMiddlewareTest {
                 new RequireUserConfirmEvent("r1", List.of(write, read)))));
 
         SpanData batch = batchSpan();
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_AWAITING);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_AWAITING);
         // 逐条待确认的调用由内层中间件写进产出名册，批上不再落 OTel 事件：LangFuse 摄取时会丢掉它们
         assertThat(batch.getEvents()).isEmpty();
         assertThat(exported.stream().filter(data -> !ROOT_SPAN.equals(data.getName()))).hasSize(1);
@@ -199,8 +199,8 @@ class RagentOtelTracingMiddlewareTest {
         runUnderRoot(acting(ctx, List.of(write), Flux.just(new AllToolsDeniedEvent(List.of(write)))));
 
         SpanData batch = batchSpan();
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_DENIED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_DENIED);
         assertThat(batch.getEvents()).isEmpty();
     }
 
@@ -221,8 +221,8 @@ class RagentOtelTracingMiddlewareTest {
 
         runUnderRoot(acting(ctx, List.of(leaveSubmit("call-1"), leaveSubmit("call-2")), events));
 
-        assertThat(batchSpan().getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_EXECUTED);
+        assertThat(batchSpan().getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_EXECUTED);
     }
 
     /**
@@ -239,8 +239,8 @@ class RagentOtelTracingMiddlewareTest {
                 new ToolResultEndEvent("r1", "call-1", "leave_submit", ToolResultState.ERROR))));
 
         SpanData batch = batchSpan();
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_EXECUTED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_EXECUTED);
         assertThat(batch.getAttributes().get(AgentErrorTypes.KEY)).isNull();
         assertThat(batch.getEvents()).isEmpty();
         assertThat(facts.toolFact("call-1").shortCircuitReason()).isNull();
@@ -267,8 +267,8 @@ class RagentOtelTracingMiddlewareTest {
         // 「零 span」按全树扫描断言，不是「时长很短」
         assertThat(exported.stream().filter(data -> data.getName().startsWith("execute_tool"))).isEmpty();
         // 批级结局是四值闭集，没有短路那一档，整批全遮蔽时退回兜底值 executed
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_EXECUTED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_EXECUTED);
     }
 
     /**
@@ -321,8 +321,8 @@ class RagentOtelTracingMiddlewareTest {
                 new ToolResultEndEvent("r1", "call-1", "leave_submit", ToolResultState.INTERRUPTED))));
 
         SpanData batch = batchSpan();
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_INTERRUPTED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_INTERRUPTED);
         assertThat(batch.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
         assertThat(batch.getAttributes().get(AgentErrorTypes.KEY)).isNull();
     }
@@ -366,8 +366,8 @@ class RagentOtelTracingMiddlewareTest {
         SpanData batch = batchSpan();
         assertThat(batch.getStatus().getStatusCode()).isEqualTo(StatusCode.ERROR);
         assertThat(batch.getAttributes().get(AgentErrorTypes.KEY)).isEqualTo(AgentErrorTypes.CANCELLED.value());
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_INTERRUPTED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_INTERRUPTED);
         assertThat(batch.getEndEpochNanos())
                 .isEqualTo(TimeUnit.MILLISECONDS.toNanos(facts.terminationAt()));
     }
@@ -418,9 +418,9 @@ class RagentOtelTracingMiddlewareTest {
                 new ToolResultEndEvent("r1", "call-1", "leave_submit", ToolResultState.SUCCESS))));
 
         SpanData batch = batchSpan();
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_ID)).isNull();
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_EXECUTED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_ID)).isNull();
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_EXECUTED);
     }
 
     /**
@@ -429,13 +429,13 @@ class RagentOtelTracingMiddlewareTest {
      */
     @Test
     void shouldOverrideActingHookOnly() throws Exception {
-        assertThat(Arrays.stream(RagentOtelTracingMiddleware.class.getDeclaredMethods())
+        assertThat(Arrays.stream(StarlineOtelTracingMiddleware.class.getDeclaredMethods())
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .map(Method::getName))
                 .containsOnly("onActing");
         assertThat(Modifier.isStatic(OtelTracingMiddleware.class.getDeclaredField("hookRegistered").getModifiers()))
                 .isTrue();
-        assertThat(Arrays.stream(RagentOtelTracingMiddleware.class.getDeclaredFields())
+        assertThat(Arrays.stream(StarlineOtelTracingMiddleware.class.getDeclaredFields())
                 .filter(field -> Modifier.isStatic(field.getModifiers()))
                 .map(field -> field.getType().getName()))
                 .doesNotContain(boolean.class.getName());

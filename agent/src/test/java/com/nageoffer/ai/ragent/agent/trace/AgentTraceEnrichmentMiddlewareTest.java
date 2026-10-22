@@ -113,7 +113,7 @@ class AgentTraceEnrichmentMiddlewareTest {
     private SdkTracerProvider tracerProvider;
     private Tracer tracer;
     private AgentToolExecutionFacts facts;
-    private RagentOtelTracingMiddleware tracingMiddleware;
+    private StarlineOtelTracingMiddleware tracingMiddleware;
     private AgentToolBatchMiddleware batchMiddleware;
     private AgentTraceEnrichmentMiddleware middleware;
 
@@ -140,7 +140,7 @@ class AgentTraceEnrichmentMiddlewareTest {
                 .build();
         tracer = tracerProvider.get("test");
         facts = new AgentToolExecutionFacts(TASK_ID, Clock.systemUTC());
-        tracingMiddleware = new RagentOtelTracingMiddleware(tracer);
+        tracingMiddleware = new StarlineOtelTracingMiddleware(tracer);
         batchMiddleware = new AgentToolBatchMiddleware();
         middleware = new AgentTraceEnrichmentMiddleware(tracer, serializer(true));
     }
@@ -162,19 +162,19 @@ class AgentTraceEnrichmentMiddlewareTest {
         // 叫 react round 会被当成一整轮 ReAct 读，实际这条 span 的耗时不含工具
         assertThat(spanNames()).noneMatch(name -> name.startsWith("react"));
         assertThat(reasoningSpans()).hasSize(2);
-        assertThat(reasoningSpans().get(1).getAttributes().get(RagentAttributes.CONTEXT_MESSAGE_COUNT)).isEqualTo(2L);
-        assertThat(reasoningSpans().get(1).getAttributes().get(RagentAttributes.CONTEXT_CHARS)).isPositive();
+        assertThat(reasoningSpans().get(1).getAttributes().get(StarlineAttributes.CONTEXT_MESSAGE_COUNT)).isEqualTo(2L);
+        assertThat(reasoningSpans().get(1).getAttributes().get(StarlineAttributes.CONTEXT_CHARS)).isPositive();
 
         SpanData root = span(ROOT_SPAN);
         assertThat(root.getAttributes().get(AgentTraceAttributes.OBSERVATION_TYPE))
                 .isEqualTo(AgentTraceAttributes.TYPE_AGENT);
-        assertThat(root.getAttributes().get(RagentAttributes.RUN_KIND)).isEqualTo(RagentAttributes.RUN_KIND_ASK);
+        assertThat(root.getAttributes().get(StarlineAttributes.RUN_KIND)).isEqualTo(StarlineAttributes.RUN_KIND_ASK);
         // 名字由运行方式拼出，两者必须一直对得上，只钉续跑那一侧会放过首问这条分支
         assertThat(root.getAttributes().get(AgentTraceAttributes.TRACE_NAME)).isEqualTo("ragent.run.ask");
         assertThat(root.getAttributes().get(AgentTraceAttributes.OBSERVATION_INPUT)).isEqualTo("北京明天天气");
         // 跑完也要留结局：只有中断路径写，属性缺失就分不清是没中断还是追踪压根没生效
-        assertThat(root.getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_COMPLETED);
+        assertThat(root.getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_COMPLETED);
         // 工具定义只在首轮写一次，逐轮重复几十份 schema 没有意义
         assertThat(root.getAttributes().get(AgentTraceAttributes.META_TOOL_DEFINITIONS))
                 .contains("search_knowledge");
@@ -223,8 +223,8 @@ class AgentTraceEnrichmentMiddlewareTest {
                 "reasoning#0", 1L, "chat#0", 1L, TOOL_BATCH_SPAN + "#0", 1L,
                 "reasoning#1", 2L, "chat#1", 2L));
         // 根上是总轮数，不是某一轮的序号，两把键不能混用
-        assertThat(span(ROOT_SPAN).getAttributes().get(RagentAttributes.REACT_ROUNDS)).isEqualTo(2L);
-        assertThat(span(ROOT_SPAN).getAttributes().get(RagentAttributes.REACT_ROUND_INDEX)).isNull();
+        assertThat(span(ROOT_SPAN).getAttributes().get(StarlineAttributes.REACT_ROUNDS)).isEqualTo(2L);
+        assertThat(span(ROOT_SPAN).getAttributes().get(StarlineAttributes.REACT_ROUND_INDEX)).isNull();
     }
 
     /**
@@ -249,8 +249,8 @@ class AgentTraceEnrichmentMiddlewareTest {
 
         driveTwoRounds(ctx);
 
-        assertThat(reasoningSpans()).map(data -> data.getAttributes().get(RagentAttributes.ROUND_OUTCOME))
-                .containsExactly(RagentAttributes.RUN_OUTCOME_COMPLETED, RagentAttributes.RUN_OUTCOME_COMPLETED);
+        assertThat(reasoningSpans()).map(data -> data.getAttributes().get(StarlineAttributes.ROUND_OUTCOME))
+                .containsExactly(StarlineAttributes.RUN_OUTCOME_COMPLETED, StarlineAttributes.RUN_OUTCOME_COMPLETED);
     }
 
     /**
@@ -262,8 +262,8 @@ class AgentTraceEnrichmentMiddlewareTest {
 
         driveTwoRounds(ctx);
 
-        assertThat(span(ROOT_SPAN).getAttributes().get(RagentAttributes.CONTRACT_VERSION))
-                .isEqualTo(RagentAttributes.CONTRACT_VERSION_VALUE);
+        assertThat(span(ROOT_SPAN).getAttributes().get(StarlineAttributes.CONTRACT_VERSION))
+                .isEqualTo(StarlineAttributes.CONTRACT_VERSION_VALUE);
     }
 
     /**
@@ -305,11 +305,11 @@ class AgentTraceEnrichmentMiddlewareTest {
         driveTwoRounds(ctx);
 
         SpanData root = span(ROOT_SPAN);
-        assertThat(root.getAttributes().get(RagentAttributes.TASK_ID)).isEqualTo(TASK_ID);
-        assertThat(root.getAttributes().get(RagentAttributes.REPLY_TO_MESSAGE_ID)).isEqualTo(REPLY_TO_MESSAGE_ID);
-        assertThat(root.getAttributes().get(RagentAttributes.CONFIRM_MESSAGE_ID)).isNull();
+        assertThat(root.getAttributes().get(StarlineAttributes.TASK_ID)).isEqualTo(TASK_ID);
+        assertThat(root.getAttributes().get(StarlineAttributes.REPLY_TO_MESSAGE_ID)).isEqualTo(REPLY_TO_MESSAGE_ID);
+        assertThat(root.getAttributes().get(StarlineAttributes.CONFIRM_MESSAGE_ID)).isNull();
         // 只写根 span 会让 observation 级的过滤与聚合失准
-        assertThat(span("reasoning").getAttributes().get(RagentAttributes.TASK_ID)).isEqualTo(TASK_ID);
+        assertThat(span("reasoning").getAttributes().get(StarlineAttributes.TASK_ID)).isEqualTo(TASK_ID);
         assertThat(span(ROOT_SPAN).getAttributes().get(AgentTraceAttributes.USER_ID)).isEqualTo(USER_ID);
         assertThat(span(ROOT_SPAN).getAttributes().get(AgentTraceAttributes.SESSION_ID)).isEqualTo(CONVERSATION_ID);
     }
@@ -408,16 +408,16 @@ class AgentTraceEnrichmentMiddlewareTest {
         // 字面量而非常量拼接：名字是查询侧的聚合维度，改了值就该让这里变红
         assertThat(rootData.getAttributes().get(AgentTraceAttributes.TRACE_NAME))
                 .isEqualTo("ragent.run.confirm_resume");
-        assertThat(rootData.getAttributes().get(RagentAttributes.RUN_KIND))
-                .isEqualTo(RagentAttributes.RUN_KIND_CONFIRM_RESUME);
-        assertThat(rootData.getAttributes().get(RagentAttributes.CONFIRM_MESSAGE_ID)).isEqualTo(CONFIRM_MESSAGE_ID);
+        assertThat(rootData.getAttributes().get(StarlineAttributes.RUN_KIND))
+                .isEqualTo(StarlineAttributes.RUN_KIND_CONFIRM_RESUME);
+        assertThat(rootData.getAttributes().get(StarlineAttributes.CONFIRM_MESSAGE_ID)).isEqualTo(CONFIRM_MESSAGE_ID);
         // 续跑那条消息正文为空，退回结构化输出才看得见确认结果
         assertThat(rootData.getAttributes().get(AgentTraceAttributes.OBSERVATION_INPUT))
                 .contains(Msg.METADATA_CONFIRM_RESULTS);
 
         SpanData batch = span(TOOL_BATCH_SPAN);
         // 这批是上一次挂起留下的，不属于本次运行的任何一轮；写个 0 会在按轮聚合时多出一档假轮次
-        assertThat(batch.getAttributes().get(RagentAttributes.REACT_ROUND_INDEX)).isNull();
+        assertThat(batch.getAttributes().get(StarlineAttributes.REACT_ROUND_INDEX)).isNull();
         assertThat(batch.getAttributes().get(AgentTraceAttributes.OBSERVATION_OUTPUT)).contains("已提交, 单号 L-77");
         assertThat(batch.getAttributes().get(AgentTraceAttributes.LEVEL)).isNull();
     }
@@ -493,7 +493,7 @@ class AgentTraceEnrichmentMiddlewareTest {
         // 名字一样，出入参靠位置对齐就得靠这两个字段自证没错位
         assertThat(outputs.getJSONObject(0).getStr("name")).isEqualTo(outputs.getJSONObject(1).getStr("name"));
         // 一次 acting 就是一批，批次号取自事实源，前端那侧的批耗时才对得上这一个 span 的区间
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_ID)).isEqualTo(BATCH_ID);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_ID)).isEqualTo(BATCH_ID);
         assertThat(outputs.getJSONObject(0).getStr("batchId")).isEqualTo(BATCH_ID);
         assertThat(outputs.getJSONObject(1).getStr("batchId")).isEqualTo(BATCH_ID);
     }
@@ -526,8 +526,8 @@ class AgentTraceEnrichmentMiddlewareTest {
         assertThat(outputs.stream().map(item -> ((JSONObject) item).getBool("executed"))).containsOnly(false);
         // 归批只说明这两条同属一次 acting，跑没跑由 executed 与缺失的起止说了算
         assertThat(outputs.stream().map(item -> ((JSONObject) item).getStr("batchId"))).containsOnly(BATCH_ID);
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_AWAITING);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_AWAITING);
     }
 
     /**
@@ -556,10 +556,10 @@ class AgentTraceEnrichmentMiddlewareTest {
         root.end();
 
         SpanData batch = span(TOOL_BATCH_SPAN);
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_ID)).isEqualTo(BATCH_ID);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_ID)).isEqualTo(BATCH_ID);
         // 一条真跑过，批级结局就不能报「整批被拒」，否则已经落地的写操作会被读成没发生
-        assertThat(batch.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_EXECUTED);
+        assertThat(batch.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_EXECUTED);
         JSONArray outputs = JSONUtil.parseArray(batch.getAttributes().get(AgentTraceAttributes.OBSERVATION_OUTPUT));
         assertThat(outputs.getJSONObject(0).getStr("batchId")).isEqualTo(BATCH_ID);
         assertThat(outputs.getJSONObject(0).getStr("state")).isEqualTo(AgentToolStatus.DENIED.value());
@@ -644,8 +644,8 @@ class AgentTraceEnrichmentMiddlewareTest {
                 .isEqualTo(AgentTraceAttributes.LEVEL_ERROR);
         assertThat(rootData.getAttributes().get(AgentTraceAttributes.STATUS_MESSAGE)).isEqualTo("模型返回 402");
         // 失败与中断在 Langfuse 上都是一条红 trace，结局属性是唯一能把两者分开的字段
-        assertThat(rootData.getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_FAILED);
+        assertThat(rootData.getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_FAILED);
         // 没到刷新阈值也没有块结束事件，这段正文只可能是 error 回调补上的
         assertThat(rootOutput().getStr("answer")).isEqualTo("北京明天");
         assertThat(rootOutput().getStr("generate_reason")).isNull();
@@ -696,8 +696,8 @@ class AgentTraceEnrichmentMiddlewareTest {
 
         // 只有 end 过的 span 才进得了导出器，能查到就说明它没被漏在半开状态
         assertThat(reasoningSpans()).hasSize(1);
-        assertThat(span("reasoning").getAttributes().get(RagentAttributes.ROUND_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_FAILED);
+        assertThat(span("reasoning").getAttributes().get(StarlineAttributes.ROUND_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_FAILED);
         // 异常照旧往外抛，本层只负责收 span，不替业务把错吞掉
         assertThat(span(ROOT_SPAN).getAttributes().get(AgentTraceAttributes.LEVEL))
                 .isEqualTo(AgentTraceAttributes.LEVEL_ERROR);
@@ -859,10 +859,10 @@ class AgentTraceEnrichmentMiddlewareTest {
         // 结构、轮次与用量照旧：连这些一起没了就不叫关内容，叫关观测
         assertThat(span("chat").getAttributes().get(AgentTraceAttributes.USAGE_DETAILS))
                 .contains("\"input_cached_tokens\":20");
-        assertThat(span(ROOT_SPAN).getAttributes().get(RagentAttributes.REACT_ROUNDS)).isEqualTo(2L);
+        assertThat(span(ROOT_SPAN).getAttributes().get(StarlineAttributes.REACT_ROUNDS)).isEqualTo(2L);
         assertThat(span(ROOT_SPAN).getAttributes().get(AgentTraceAttributes.META_TOOL_DEFINITIONS))
                 .contains("search_knowledge");
-        assertThat(span(TOOL_BATCH_SPAN).getAttributes().get(RagentAttributes.REACT_ROUND_INDEX)).isEqualTo(1L);
+        assertThat(span(TOOL_BATCH_SPAN).getAttributes().get(StarlineAttributes.REACT_ROUND_INDEX)).isEqualTo(1L);
     }
 
     /**
@@ -1051,7 +1051,7 @@ class AgentTraceEnrichmentMiddlewareTest {
         Map<String, Long> indexes = new LinkedHashMap<>();
         Map<String, Integer> seen = new LinkedHashMap<>();
         for (SpanData data : exported) {
-            Long round = data.getAttributes().get(RagentAttributes.REACT_ROUND_INDEX);
+            Long round = data.getAttributes().get(StarlineAttributes.REACT_ROUND_INDEX);
             if (round != null) {
                 int ordinal = seen.merge(data.getName(), 0, (old, ignored) -> old + 1);
                 indexes.put(data.getName() + "#" + ordinal, round);

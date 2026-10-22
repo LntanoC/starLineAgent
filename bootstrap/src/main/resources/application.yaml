@@ -4,6 +4,8 @@ server:
     context-path: /api/ragent
 
 spring:
+  config:
+    import: optional:classpath:starline-application.yaml
   application:
     name: ragent${unique-name:}-service
 

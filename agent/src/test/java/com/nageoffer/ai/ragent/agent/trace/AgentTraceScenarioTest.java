@@ -99,7 +99,7 @@ class AgentTraceScenarioTest {
     private MutableClock clock;
     private AgentToolExecutionFacts facts;
     private RuntimeContext ctx;
-    private RagentOtelTracingMiddleware tracing;
+    private StarlineOtelTracingMiddleware tracing;
     private AgentTraceEnrichmentMiddleware enrichment;
     private AgentToolBatchMiddleware batching;
     private Span root;
@@ -128,7 +128,7 @@ class AgentTraceScenarioTest {
                 .build();
         GlobalOpenTelemetry.set(OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build());
         Tracer tracer = tracerProvider.get("test");
-        tracing = new RagentOtelTracingMiddleware(tracer);
+        tracing = new StarlineOtelTracingMiddleware(tracer);
         batching = new AgentToolBatchMiddleware();
         clock = new MutableClock(Instant.now());
         captureContent(true);
@@ -166,9 +166,9 @@ class AgentTraceScenarioTest {
 
         SpanData tool = toolSpan("call-1");
         assertThat(tool.getParentSpanId()).isEqualTo(span(BATCH_SPAN).getSpanId());
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_STATUS)).isEqualTo(AgentToolStatus.DONE.value());
-        assertThat(batchSpan().getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_EXECUTED);
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_STATUS)).isEqualTo(AgentToolStatus.DONE.value());
+        assertThat(batchSpan().getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_EXECUTED);
         assertThat(durationMillis(tool)).isEqualTo(12);
 
         assertSpanNames(ROOT_SPAN, BATCH_SPAN, SUBMIT_SPAN);
@@ -197,7 +197,7 @@ class AgentTraceScenarioTest {
         assertThat(durationMillis(slowSpan)).isEqualTo(100);
         // 并行的判据是区间交叠而不是两条都在同一个批下：串行跑完也共父
         assertThat(fastSpan.getEndEpochNanos()).isLessThan(slowSpan.getEndEpochNanos());
-        assertThat(batchSpan().getAttributes().get(RagentAttributes.TOOL_BATCH_SIZE)).isEqualTo(2L);
+        assertThat(batchSpan().getAttributes().get(StarlineAttributes.TOOL_BATCH_SIZE)).isEqualTo(2L);
 
         assertSpanNames(ROOT_SPAN, BATCH_SPAN, SUBMIT_SPAN, QUERY_SPAN);
         assertInvariants(List.of("call-1", "call-2"), List.of());
@@ -221,10 +221,10 @@ class AgentTraceScenarioTest {
 
         assertThat(exported.stream().filter(data -> SUBMIT_SPAN.equals(data.getName()))).hasSize(2);
         // 序号跟名册走，不跟事件到达顺序走：先回来的那条不许把序号抢到 0
-        assertThat(toolSpan("call-1").getAttributes().get(RagentAttributes.TOOL_CALL_INDEX)).isEqualTo(0L);
-        assertThat(toolSpan("call-2").getAttributes().get(RagentAttributes.TOOL_CALL_INDEX)).isEqualTo(1L);
-        assertThat(toolSpan("call-1").getAttributes().get(RagentAttributes.TOOL_BATCH_ID))
-                .isEqualTo(toolSpan("call-2").getAttributes().get(RagentAttributes.TOOL_BATCH_ID));
+        assertThat(toolSpan("call-1").getAttributes().get(StarlineAttributes.TOOL_CALL_INDEX)).isEqualTo(0L);
+        assertThat(toolSpan("call-2").getAttributes().get(StarlineAttributes.TOOL_CALL_INDEX)).isEqualTo(1L);
+        assertThat(toolSpan("call-1").getAttributes().get(StarlineAttributes.TOOL_BATCH_ID))
+                .isEqualTo(toolSpan("call-2").getAttributes().get(StarlineAttributes.TOOL_BATCH_ID));
 
         assertSpanNames(ROOT_SPAN, BATCH_SPAN, SUBMIT_SPAN, SUBMIT_SPAN);
         assertInvariants(List.of("call-1", "call-2"), List.of());
@@ -293,7 +293,7 @@ class AgentTraceScenarioTest {
                 assertThat(value).doesNotContain("张三", "事假", "已受理", "p@ss"));
 
         // 结构与状态照旧：连这些一起没了就不叫关内容，叫关观测
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_STATUS)).isEqualTo(AgentToolStatus.DONE.value());
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_STATUS)).isEqualTo(AgentToolStatus.DONE.value());
         assertThat(tool.getAttributes().get(GenAiAttributes.TOOL_CALL_ID)).isEqualTo("call-1");
         assertInvariants(List.of("call-1"), List.of());
     }
@@ -357,8 +357,8 @@ class AgentTraceScenarioTest {
         SpanData tool = toolSpan("call-1");
         assertThat(tool.getStatus().getStatusCode()).isEqualTo(StatusCode.ERROR);
         assertThat(tool.getAttributes().get(AgentErrorTypes.KEY)).isEqualTo(AgentErrorTypes.TOOL_ERROR.value());
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_ERROR_SOURCE))
-                .isEqualTo(RagentAttributes.ERROR_SOURCE_TOOL_RESULT);
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_ERROR_SOURCE))
+                .isEqualTo(StarlineAttributes.ERROR_SOURCE_TOOL_RESULT);
         assertThat(toolSpan("call-2").getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
         assertThat(batchSpan().getAttributes().get(AgentTraceAttributes.LEVEL))
                 .isEqualTo(AgentTraceAttributes.LEVEL_ERROR);
@@ -378,8 +378,8 @@ class AgentTraceScenarioTest {
         clock.advance(300_000);
         endRoot();
 
-        assertThat(batchSpan().getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_AWAITING);
+        assertThat(batchSpan().getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_AWAITING);
         assertThat(batchSpan().getAttributes().get(AgentTraceAttributes.LEVEL))
                 .isEqualTo(AgentTraceAttributes.LEVEL_WARNING);
         // 批 span 也不许跨等待：它在事件落完那刻就收了，之后那五分钟与本次运行的耗时无关
@@ -399,8 +399,8 @@ class AgentTraceScenarioTest {
         start(List.of(denied), Flux.just(new AllToolsDeniedEvent(List.of(denied))));
         endRoot();
 
-        assertThat(batchSpan().getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_DENIED);
+        assertThat(batchSpan().getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_DENIED);
         assertThat(batchSpan().getAttributes().get(AgentTraceAttributes.OBSERVATION_OUTPUT))
                 .contains(AgentToolStatus.DENIED.value());
 
@@ -427,10 +427,10 @@ class AgentTraceScenarioTest {
         endRoot();
 
         List<SpanData> batches = exported.stream().filter(data -> BATCH_SPAN.equals(data.getName())).toList();
-        assertThat(batches).extracting(data -> data.getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .containsExactly(RagentAttributes.OUTCOME_AWAITING, RagentAttributes.OUTCOME_EXECUTED);
-        assertThat(batches.get(0).getAttributes().get(RagentAttributes.TOOL_BATCH_ID))
-                .isNotEqualTo(batches.get(1).getAttributes().get(RagentAttributes.TOOL_BATCH_ID));
+        assertThat(batches).extracting(data -> data.getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .containsExactly(StarlineAttributes.OUTCOME_AWAITING, StarlineAttributes.OUTCOME_EXECUTED);
+        assertThat(batches.get(0).getAttributes().get(StarlineAttributes.TOOL_BATCH_ID))
+                .isNotEqualTo(batches.get(1).getAttributes().get(StarlineAttributes.TOOL_BATCH_ID));
         assertThat(durationMillis(toolSpan("call-1"))).isEqualTo(18);
 
         assertSpanNames(ROOT_SPAN, BATCH_SPAN, ROOT_SPAN, BATCH_SPAN, SUBMIT_SPAN);
@@ -454,17 +454,17 @@ class AgentTraceScenarioTest {
         endRoot();
 
         SpanData tool = toolSpan("call-1");
-        assertThat(tool.getAttributes().get(RagentAttributes.TOOL_STATUS))
+        assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_STATUS))
                 .isEqualTo(AgentToolStatus.INTERRUPTED.value());
         assertThat(tool.getAttributes().get(AgentErrorTypes.KEY)).isEqualTo(AgentErrorTypes.CANCELLED.value());
         assertThat(tool.getEndEpochNanos()).isEqualTo(TimeUnit.MILLISECONDS.toNanos(facts.terminationAt()));
         assertThat(durationMillis(tool)).isEqualTo(40);
-        assertThat(batchSpan().getAttributes().get(RagentAttributes.TOOL_BATCH_OUTCOME))
-                .isEqualTo(RagentAttributes.OUTCOME_INTERRUPTED);
+        assertThat(batchSpan().getAttributes().get(StarlineAttributes.TOOL_BATCH_OUTCOME))
+                .isEqualTo(StarlineAttributes.OUTCOME_INTERRUPTED);
         assertThat(batchSpan().getEndEpochNanos()).isEqualTo(TimeUnit.MILLISECONDS.toNanos(facts.terminationAt()));
         // 断在半路的一律不许留成功相：状态、级别、error.type 三处任缺一处就会被读成跑完了
         assertThat(exported).noneMatch(data -> AgentToolStatus.DONE.value()
-                .equals(data.getAttributes().get(RagentAttributes.TOOL_STATUS)));
+                .equals(data.getAttributes().get(StarlineAttributes.TOOL_STATUS)));
 
         assertSpanNames(ROOT_SPAN, BATCH_SPAN, SUBMIT_SPAN);
         assertInvariants(List.of(), List.of());
@@ -484,7 +484,7 @@ class AgentTraceScenarioTest {
             // span 不自己读时钟，两端都从事实源抄：不同源就意味着 PG、SSE、Langfuse 会各说各的
             assertThat(tool.getStartEpochNanos()).isEqualTo(TimeUnit.MILLISECONDS.toNanos(fact.startedAt()));
             assertThat(tool.getEndEpochNanos()).isEqualTo(TimeUnit.MILLISECONDS.toNanos(fact.endedAt()));
-            assertThat(tool.getAttributes().get(RagentAttributes.TOOL_CALL_INDEX))
+            assertThat(tool.getAttributes().get(StarlineAttributes.TOOL_CALL_INDEX))
                     .isEqualTo((long) fact.callIndex());
         }
         for (String toolCallId : unexecuted) {

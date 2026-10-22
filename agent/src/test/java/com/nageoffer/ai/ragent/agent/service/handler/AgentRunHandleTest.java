@@ -20,7 +20,7 @@ package com.nageoffer.ai.ragent.agent.service.handler;
 import com.nageoffer.ai.ragent.agent.tool.AgentToolExecutionFacts;
 import com.nageoffer.ai.ragent.agent.trace.AgentRunTracer;
 import com.nageoffer.ai.ragent.agent.trace.CollectingSpanExporter;
-import com.nageoffer.ai.ragent.agent.trace.RagentAttributes;
+import com.nageoffer.ai.ragent.agent.trace.StarlineAttributes;
 import com.nageoffer.ai.ragent.framework.web.SseEmitterSender;
 import com.nageoffer.ai.ragent.framework.web.StreamTaskManager;
 import io.agentscope.core.agent.RuntimeContext;
@@ -403,8 +403,8 @@ class AgentRunHandleTest {
 
         handle.interruptUpstream();
 
-        assertThat(onlySpan().getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_INTERRUPTED);
+        assertThat(onlySpan().getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_INTERRUPTED);
     }
 
     /**
@@ -424,8 +424,8 @@ class AgentRunHandleTest {
 
         handle.interruptUpstream();
 
-        assertThat(onlySpan().getAttributes().get(RagentAttributes.RUN_OUTCOME))
-                .isEqualTo(RagentAttributes.RUN_OUTCOME_ABORTED);
+        assertThat(onlySpan().getAttributes().get(StarlineAttributes.RUN_OUTCOME))
+                .isEqualTo(StarlineAttributes.RUN_OUTCOME_ABORTED);
     }
 
     @Test

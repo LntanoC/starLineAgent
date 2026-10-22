@@ -23,15 +23,15 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-/** Ragent HTTP API client implemented with java.net.http.HttpClient. */
-final class RagentHttpClient implements AutoCloseable {
+/** Starline HTTP API client implemented with java.net.http.HttpClient. */
+final class StarlineHttpClient implements AutoCloseable {
 
     private final String baseUrl;
     private final Duration requestTimeout;
     private final HttpClient client;
     private String token;
 
-    RagentHttpClient(InitializerConfig config) {
+    StarlineHttpClient(InitializerConfig config) {
         this.baseUrl = stripTrailingSlash(config.require("server.base-url"));
         this.requestTimeout = Duration.ofSeconds(config.getInt("server.request-timeout-seconds", 60));
         this.client = HttpClient.newBuilder()
@@ -80,7 +80,7 @@ final class RagentHttpClient implements AutoCloseable {
     }
 
     Object uploadDocument(String kbId, Path file, String ingestionSpec) throws IOException, InterruptedException {
-        String boundary = "----RagentInitializer" + UUID.randomUUID().toString().replace("-", "");
+        String boundary = "----StarlineInitializer" + UUID.randomUUID().toString().replace("-", "");
         ByteArrayOutputStream body = new ByteArrayOutputStream();
         writeField(body, boundary, "sourceType", "file");
         writeField(body, boundary, "processMode", "chunk");
@@ -200,7 +200,7 @@ final class RagentHttpClient implements AutoCloseable {
         if (!"0".equals(code)) {
             String message = SimpleJson.string(envelope, "message");
             String requestId = SimpleJson.string(envelope, "requestId");
-            throw new IllegalStateException("Ragent API 失败: " + message
+            throw new IllegalStateException("Starline API 失败: " + message
                     + (requestId == null ? "" : " (requestId=" + requestId + ")"));
         }
         return envelope.get("data");

@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 final class MemorySseClient {
     private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
-    Map<String, Object> ask(RagentHttpClient http, String question, String conversation, int timeout, Path rawFile) throws Exception {
+    Map<String, Object> ask(StarlineHttpClient http, String question, String conversation, int timeout, Path rawFile) throws Exception {
         Map<String, Object> result = askObserved(http, question, conversation, timeout, rawFile);
         requireSuccessful(result);
         return result;
@@ -30,9 +30,9 @@ final class MemorySseClient {
      * 缺少流结束事件或必要的会话、消息、状态字段时抛出异常
      * 调用方根据 replyComplete 判断回复是否成功
      */
-    Map<String, Object> askObserved(RagentHttpClient http, String question, String conversation, int timeout, Path rawFile) throws Exception {
-        String url = http.baseUrl() + "/agent/v1/chat?question=" + RagentHttpClient.encodeQuery(question)
-                + (conversation == null ? "" : "&conversationId=" + RagentHttpClient.encodeQuery(conversation));
+    Map<String, Object> askObserved(StarlineHttpClient http, String question, String conversation, int timeout, Path rawFile) throws Exception {
+        String url = http.baseUrl() + "/agent/v1/chat?question=" + StarlineHttpClient.encodeQuery(question)
+                + (conversation == null ? "" : "&conversationId=" + StarlineHttpClient.encodeQuery(conversation));
         HttpRequest request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(timeout))
                 .header("Authorization", http.authorization()).header("Accept", "text/event-stream").GET().build();
         long start = System.nanoTime();

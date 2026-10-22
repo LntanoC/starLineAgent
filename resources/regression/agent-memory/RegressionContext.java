@@ -23,7 +23,7 @@ final class RegressionContext implements AutoCloseable {
 
     private final Path suiteDir;
     private final InitializerConfig config;
-    private final RagentHttpClient http;
+    private final StarlineHttpClient http;
     private final JdbcClient jdbc;
     private final AgentChatClient chat;
     private final AgentStateProbe probe;
@@ -36,7 +36,7 @@ final class RegressionContext implements AutoCloseable {
         this.suiteDir = suiteDir;
         this.config = config;
         this.arguments = arguments;
-        this.http = new RagentHttpClient(config);
+        this.http = new StarlineHttpClient(config);
         this.jdbc = new JdbcClient(config, "database");
         this.chat = new AgentChatClient(http, config);
         this.probe = new AgentStateProbe(jdbc);
@@ -61,7 +61,7 @@ final class RegressionContext implements AutoCloseable {
      * 记忆按 userId 分片，回归台必须拿到真实 userId 才能定位 t_agent_state
      */
     String login() throws IOException, InterruptedException {
-        RagentHttpClient.LoginSession session = http.login(config.require("auth.username"),
+        StarlineHttpClient.LoginSession session = http.login(config.require("auth.username"),
                 config.require("auth.password"));
         if (session.userId() == null || session.userId().isBlank()) {
             throw new IllegalStateException("登录响应缺少 userId，无法定位会话状态");

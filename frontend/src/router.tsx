@@ -26,6 +26,7 @@ import { AgentPromptPage } from "@/pages/admin/agents/AgentPromptPage";
 import { AgentSkillPage } from "@/pages/admin/agent-skills/AgentSkillPage";
 import { AgentSkillEditPage } from "@/pages/admin/agent-skills/AgentSkillEditPage";
 import { UserListPage } from "@/pages/admin/users/UserListPage";
+import { StarlineRemindersPage } from "@/pages/StarlineRemindersPage";
 import { useAuthStore } from "@/stores/authStore";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -90,6 +91,14 @@ export const router = createBrowserRouter([
     element: (
       <RequireAuth>
         <EngineGate />
+      </RequireAuth>
+    )
+  },
+  {
+    path: "/starline/reminders",
+    element: (
+      <RequireAuth>
+        <StarlineRemindersPage />
       </RequireAuth>
     )
   },

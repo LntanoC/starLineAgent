@@ -110,7 +110,7 @@ public final class CompactionRegressionMain {
             }
             sessions = resumes.size();
         }
-        try (RagentHttpClient http = new RagentHttpClient(config);
+        try (StarlineHttpClient http = new StarlineHttpClient(config);
              JdbcClient platform = new JdbcClient(config, "database");
              JdbcClient biz = new JdbcClient(config, "biz-database")) {
             String userId = http.login(config.require("auth.username"), config.require("auth.password")).userId();

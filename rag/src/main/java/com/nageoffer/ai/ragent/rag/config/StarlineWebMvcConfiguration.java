@@ -42,7 +42,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Configuration
 @RequiredArgsConstructor
-public class RagentWebMvcConfiguration implements WebMvcConfigurer {
+public class StarlineWebMvcConfiguration implements WebMvcConfigurer {
 
     /**
      * 体验环境只读模式拦截器，属 rag 域概念，注册点收在本配置而非登录配置

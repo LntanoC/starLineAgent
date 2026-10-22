@@ -101,7 +101,7 @@ class LangfuseReadbackProbe {
         AgentTraceSerializer serializer = new AgentTraceSerializer(32768, 131072, true);
         AgentToolBodyTracer.configure(serializer);
         AgentTraceEnrichmentMiddleware enrichment = new AgentTraceEnrichmentMiddleware(tracer, serializer);
-        RagentOtelTracingMiddleware tracing = new RagentOtelTracingMiddleware(tracer);
+        StarlineOtelTracingMiddleware tracing = new StarlineOtelTracingMiddleware(tracer);
         AgentToolBatchMiddleware batching = new AgentToolBatchMiddleware();
 
         AgentToolExecutionFacts facts = new AgentToolExecutionFacts("probe-task", Clock.systemUTC());

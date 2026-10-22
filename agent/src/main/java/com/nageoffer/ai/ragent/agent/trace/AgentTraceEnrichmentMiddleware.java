@@ -102,12 +102,12 @@ public class AgentTraceEnrichmentMiddleware implements MiddlewareBase {
             }
             // trace 名与运行方式同源：各写一个三元表达式迟早有一处漏改，读的人也就分不清该信哪个
             String runKind = isConfirmResume(input.msgs())
-                    ? RagentAttributes.RUN_KIND_CONFIRM_RESUME : RagentAttributes.RUN_KIND_ASK;
-            span.setAttribute(AgentTraceAttributes.TRACE_NAME, RagentAttributes.TRACE_NAME_PREFIX + runKind);
+                    ? StarlineAttributes.RUN_KIND_CONFIRM_RESUME : StarlineAttributes.RUN_KIND_ASK;
+            span.setAttribute(AgentTraceAttributes.TRACE_NAME, StarlineAttributes.TRACE_NAME_PREFIX + runKind);
             span.setAttribute(AgentTraceAttributes.OBSERVATION_TYPE, AgentTraceAttributes.TYPE_AGENT);
-            span.setAttribute(RagentAttributes.RUN_KIND, runKind);
+            span.setAttribute(StarlineAttributes.RUN_KIND, runKind);
             // 契约版本只写根 span：语义换代后查询侧凭它区分两代数据，不必靠某个属性有没有来猜
-            span.setAttribute(RagentAttributes.CONTRACT_VERSION, RagentAttributes.CONTRACT_VERSION_VALUE);
+            span.setAttribute(StarlineAttributes.CONTRACT_VERSION, StarlineAttributes.CONTRACT_VERSION_VALUE);
             span.setAttribute(AgentTraceAttributes.OBSERVATION_INPUT, describeQuestion(input.msgs()));
             AgentRunTracer.writeIdentity(span, ctx);
 
@@ -167,14 +167,14 @@ public class AgentTraceEnrichmentMiddleware implements MiddlewareBase {
             // span 已经开了，终止回调却要到本段末尾才挂上，这中间抛出就没人再收它，故整段兜住
             try {
                 span.setAttribute(AgentTraceAttributes.OBSERVATION_TYPE, AgentTraceAttributes.TYPE_CHAIN);
-                span.setAttribute(RagentAttributes.REACT_ROUND_INDEX, round);
-                span.setAttribute(RagentAttributes.CONTEXT_MESSAGE_COUNT, input.messages().size());
-                span.setAttribute(RagentAttributes.CONTEXT_CHARS, AgentContextChars.total(input.messages()));
+                span.setAttribute(StarlineAttributes.REACT_ROUND_INDEX, round);
+                span.setAttribute(StarlineAttributes.CONTEXT_MESSAGE_COUNT, input.messages().size());
+                span.setAttribute(StarlineAttributes.CONTEXT_CHARS, AgentContextChars.total(input.messages()));
                 AgentRunTracer.writeIdentity(span, ctx);
                 // 轮数每轮覆写一次，后写覆盖前写，中断在任何一轮都留得下当时的真实轮数
                 // 工具定义只在首轮写，逐轮重复几十份 schema 没有意义，序列化也只在这个分支里发生
                 AgentRunTracer.writeRootAttribute(ctx, root -> {
-                    root.setAttribute(RagentAttributes.REACT_ROUNDS, round);
+                    root.setAttribute(StarlineAttributes.REACT_ROUNDS, round);
                     if (round == 1) {
                         root.setAttribute(AgentTraceAttributes.META_TOOL_DEFINITIONS,
                                 serializer.toolDefinitions(input.tools()));
@@ -184,16 +184,16 @@ public class AgentTraceEnrichmentMiddleware implements MiddlewareBase {
                 return ContextPropagationOperator.runWithContext(
                         next.apply(input)
                                 .doOnComplete(() -> endSpan(span, ended, StatusCode.OK, null,
-                                        RagentAttributes.RUN_OUTCOME_COMPLETED))
+                                        StarlineAttributes.RUN_OUTCOME_COMPLETED))
                                 .doOnCancel(() -> endSpan(span, ended, StatusCode.ERROR, null,
-                                        RagentAttributes.RUN_OUTCOME_INTERRUPTED))
+                                        StarlineAttributes.RUN_OUTCOME_INTERRUPTED))
                                 .doOnError(e -> endSpan(span, ended, StatusCode.ERROR, e,
-                                        RagentAttributes.RUN_OUTCOME_FAILED)),
+                                        StarlineAttributes.RUN_OUTCOME_FAILED)),
                         span.storeInContext(parent));
             } catch (RuntimeException e) {
                 // next.apply 也在这段里：内层有中间件的 onReasoning 是即时执行的，它抛出时回调一个都还没挂上
                 // 不在这里收口，这条 span 永不 end，也就永不导出，那一轮在链路上整个消失，子节点跟着变孤儿
-                endSpan(span, ended, StatusCode.ERROR, e, RagentAttributes.RUN_OUTCOME_FAILED);
+                endSpan(span, ended, StatusCode.ERROR, e, StarlineAttributes.RUN_OUTCOME_FAILED);
                 throw e;
             }
         });
@@ -219,7 +219,7 @@ public class AgentTraceEnrichmentMiddleware implements MiddlewareBase {
             span.setAttribute(GenAiAttributes.PROVIDER_NAME, GenAiAttributes.PROVIDER_OPENAI);
             span.setAttribute(GenAiAttributes.REQUEST_STREAM, true);
             // 遮蔽生效之后的名单，能直接看出技能遮蔽有没有在干活
-            span.setAttribute(RagentAttributes.TOOLS_VISIBLE, toolNames(input.tools()));
+            span.setAttribute(StarlineAttributes.TOOLS_VISIBLE, toolNames(input.tools()));
             AgentRunTracer.writeIdentity(span, ctx);
             AgentRunTracer.writeRoundIndex(span, ctx);
 
@@ -433,7 +433,7 @@ public class AgentTraceEnrichmentMiddleware implements MiddlewareBase {
         if (!ended.compareAndSet(false, true)) {
             return;
         }
-        span.setAttribute(RagentAttributes.ROUND_OUTCOME, outcome);
+        span.setAttribute(StarlineAttributes.ROUND_OUTCOME, outcome);
         span.setStatus(status, error == null ? "" : StrUtil.nullToEmpty(error.getMessage()));
         if (error != null) {
             span.recordException(error);

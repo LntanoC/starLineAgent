@@ -24,7 +24,7 @@ final class InitializerContext implements AutoCloseable {
     private final Path agentTypeDir;
     private final InitializerConfig config;
     private final InitializerDataset dataset;
-    private final RagentHttpClient http;
+    private final StarlineHttpClient http;
     private final JdbcClient jdbc;
     private final RedisRespClient redis;
     private final boolean dryRun;
@@ -32,7 +32,7 @@ final class InitializerContext implements AutoCloseable {
     private final String confirmation;
     private final String runId = UUID.randomUUID().toString();
     private final Map<String, KnowledgeBaseRuntime> knowledgeBases = new HashMap<>();
-    private RagentHttpClient.LoginSession loginSession;
+    private StarlineHttpClient.LoginSession loginSession;
     private JdbcClient bizJdbc;
 
     private InitializerContext(Path agentTypeDir, InitializerConfig config, InitializerDataset dataset,
@@ -43,7 +43,7 @@ final class InitializerContext implements AutoCloseable {
         this.dryRun = dryRun;
         this.skipWarmup = skipWarmup;
         this.confirmation = confirmation;
-        this.http = new RagentHttpClient(config);
+        this.http = new StarlineHttpClient(config);
         this.jdbc = new JdbcClient(config, "database");
         this.redis = new RedisRespClient(config);
     }
@@ -90,7 +90,7 @@ final class InitializerContext implements AutoCloseable {
         return dataset;
     }
 
-    RagentHttpClient http() {
+    StarlineHttpClient http() {
         return http;
     }
 

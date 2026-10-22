@@ -24,7 +24,7 @@ import io.opentelemetry.api.common.AttributeKey;
  * <p>
  * 这一层表达的是标准约定还没有的项目事实，换任何 OTLP 后端都仍然成立
  */
-public final class RagentAttributes {
+public final class StarlineAttributes {
 
     /**
      * 整轮运行的结局，回答「这条 trace 是怎么结束的」，与工具级、模型级的成败无关
@@ -150,6 +150,6 @@ public final class RagentAttributes {
      */
     public static final String ERROR_SOURCE_EXCEPTION = "exception";
 
-    private RagentAttributes() {
+    private StarlineAttributes() {
     }
 }

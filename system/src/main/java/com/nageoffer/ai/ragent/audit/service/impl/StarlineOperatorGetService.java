@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
-public class RagentOperatorGetService implements IOperatorGetService {
+public class StarlineOperatorGetService implements IOperatorGetService {
 
     private static final String SYSTEM_OPERATOR = "SYSTEM";
 

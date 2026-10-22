@@ -309,7 +309,7 @@ public final class AgentMemoryEvaluationMain {
         for (Class<?> type : List.of(AgentMemoryEvaluationMain.class, EvaluationDataset.class, EvaluationState.class,
                 EvaluationReportMain.class, EvaluationUsageGatewayMain.class, AgentChatClient.class,
                 InitializerConfig.class, ApplicationYamlConfig.class, RegressionContext.class,
-                RagentHttpClient.class, JdbcClient.class, SimpleJson.class)) {
+                StarlineHttpClient.class, JdbcClient.class, SimpleJson.class)) {
             fingerprintClass(type, result);
         }
         return result;

@@ -28,10 +28,10 @@ final class AgentChatClient {
 
     private static final String CHAT_PATH = "/agent/v1/chat";
 
-    private final RagentHttpClient http;
+    private final StarlineHttpClient http;
     private final HttpClient client;
 
-    AgentChatClient(RagentHttpClient http, InitializerConfig config) {
+    AgentChatClient(StarlineHttpClient http, InitializerConfig config) {
         this.http = http;
         this.client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(config.getInt("server.connect-timeout-seconds", 5)))
@@ -46,9 +46,9 @@ final class AgentChatClient {
      */
     AgentTurnResult ask(String question, String conversationId, Duration timeout)
             throws IOException, InterruptedException {
-        String path = CHAT_PATH + "?question=" + RagentHttpClient.encodeQuery(question)
+        String path = CHAT_PATH + "?question=" + StarlineHttpClient.encodeQuery(question)
                 + (conversationId == null || conversationId.isBlank()
-                ? "" : "&conversationId=" + RagentHttpClient.encodeQuery(conversationId));
+                ? "" : "&conversationId=" + StarlineHttpClient.encodeQuery(conversationId));
         HttpRequest request = HttpRequest.newBuilder(URI.create(http.baseUrl() + path))
                 .timeout(timeout)
                 .header("Accept", "text/event-stream")
