@@ -4,11 +4,11 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
-import com.nageoffer.ai.ragent.initializer.AgentChatClient.AgentTurnResult;
-import com.nageoffer.ai.ragent.initializer.AgentStateProbe.Snapshot;
-import com.nageoffer.ai.ragent.initializer.MemoryTurnScript.Turn;
+import com.nageoffer.ai.starlineagent.initializer.AgentChatClient.AgentTurnResult;
+import com.nageoffer.ai.starlineagent.initializer.AgentStateProbe.Snapshot;
+import com.nageoffer.ai.starlineagent.initializer.MemoryTurnScript.Turn;
 
 import java.util.ArrayList;
 import java.util.Collections;

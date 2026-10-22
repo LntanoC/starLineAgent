@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -441,13 +441,13 @@ public final class ConcurrencyRegressionMain {
     }
     private void report() throws Exception {
         if(preflightOnly) {
-            Files.writeString(out.resolve("report.md"),"# Ragent 并发回归预检\n\n仅检查服务和数据库连通性，没有执行并发请求，不能据此判断是否支持并行。详见 environment.json 和 checks.json。\n",StandardCharsets.UTF_8);
+            Files.writeString(out.resolve("report.md"),"# StarlineAgent 并发回归预检\n\n仅检查服务和数据库连通性，没有执行并发请求，不能据此判断是否支持并行。详见 environment.json 和 checks.json。\n",StandardCharsets.UTF_8);
             return;
         }
         long fail=checks.stream().filter(c->"FAIL".equals(c.get("status"))).count();
         long unknown=checks.stream().filter(c->Set.of("UNKNOWN","UNCOVERED").contains(c.get("status"))).count();
         String verdict=fail>0?"FAIL：存在失败检查，不能据此宣称并发链路全部正确。":unknown>0?"INCOMPLETE：部分观测不足，需要结合失败/未知项判断。":"PASS：本次覆盖路径支持多用户并行，检查未发现串用户。";
-        StringBuilder md=new StringBuilder("# Ragent 真服务并发回归报告\n\n").append("生成时间：").append(Instant.now()).append("\n\n**").append(verdict).append("**\n\n")
+        StringBuilder md=new StringBuilder("# StarlineAgent 真服务并发回归报告\n\n").append("生成时间：").append(Instant.now()).append("\n\n**").append(verdict).append("**\n\n")
                 .append("- 服务：").append(config.require("server.base-url")).append("\n- 独立测试账号：").append(identities.size())
                 .append("\n- 请求数（含预期拒绝）：").append(turns.size()).append("\n- Redis 原子快照最大同时运行用户数：").append(evidence.getOrDefault("maxSimultaneousRedisRunningUsers",0))
                 .append("\n- FAIL：").append(fail).append("；UNKNOWN：").append(unknown).append("\n\n")
@@ -483,8 +483,8 @@ public final class ConcurrencyRegressionMain {
     }
     private static Map<String,Object> sourceHashes() throws Exception {
         Map<String,Object> hashes=new LinkedHashMap<>();
-        for(String name:List.of("pom.xml","agent/src/main/java/com/nageoffer/ai/ragent/agent/config/ReActAgentProvider.java",
-                "agent/src/main/java/com/nageoffer/ai/ragent/agent/service/impl/AgentChatServiceImpl.java")) {
+        for(String name:List.of("pom.xml","agent/src/main/java/com/nageoffer/ai/starlineagent/agent/config/ReActAgentProvider.java",
+                "agent/src/main/java/com/nageoffer/ai/starlineagent/agent/service/impl/AgentChatServiceImpl.java")) {
             Path file=Path.of(name);if(Files.exists(file))hashes.put(name,java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file))));
         }
         return hashes;

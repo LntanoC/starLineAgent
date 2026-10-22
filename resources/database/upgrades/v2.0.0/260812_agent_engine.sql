@@ -1,5 +1,5 @@
 -- v2.0.0 260812 Agent 执行架构（v2 ReAct）
--- ragent.engine.type=agent 时启用：会话/消息与 workflow 两套分立，t_agent_state 为 AgentScope 状态存储
+-- starlineagent.engine.type=agent 时启用：会话/消息与 workflow 两套分立，t_agent_state 为 AgentScope 状态存储
 -- 全部语句可重复执行
 
 -- 1. 建表
@@ -84,7 +84,7 @@ COMMENT ON COLUMN t_agent_state.update_time IS '更新时间';
 INSERT INTO t_agent_prompt (id, agent_id, slot_key, content, create_time, update_time, deleted)
 VALUES ('2001523723396309017', '2001523723396309001', 'AGENT_MAIN', $prompt$# 身份
 你是一个能调用工具完成任务的智能助手。
-若上层已设定具体人设与业务身份，以其为准；未设定时，你的名字是 Ragent。
+若上层已设定具体人设与业务身份，以其为准；未设定时，你的名字是 StarlineAgent。
 被问到你是谁、能做什么：依据上层人设与本次会话实际提供的工具清单及其描述作答，不检索，不说"没有查到相关资料"，不承诺清单之外的能力，也不报出工具的内部标识符。
 
 # 工具选择

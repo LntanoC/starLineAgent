@@ -1,6 +1,6 @@
 # 快速测试指南
 
-## 问题：No static resource api/ragent/knowledge-base
+## 问题：No static resource api/starlineagent/knowledge-base
 
 ### 原因
 前端开发环境需要配置代理，将API请求转发到后端服务器。
@@ -26,14 +26,14 @@ server: {
 
 #### 1. 确认后端服务运行
 ```bash
-curl http://localhost:8080/api/ragent/knowledge-base
+curl http://localhost:8080/api/starlineagent/knowledge-base
 # 应该返回：{"code":"A000001","message":"未登录或登录已过期",...}
 # 这说明后端服务正常，只是需要登录
 ```
 
 #### 2. 重启前端开发服务器
 ```bash
-cd /Users/machen/workspace/nageoffer/ragent/frontend
+cd /Users/machen/workspace/nageoffer/starlineagent/frontend
 
 # 停止旧的服务器（如果有）
 pkill -f "vite"
@@ -80,14 +80,14 @@ UPDATE t_user SET role = 'admin' WHERE username = 'your_username';
 
 | 前端请求 | 代理后 | 后端实际路径 |
 |---------|--------|-------------|
-| /api/ragent/knowledge-base | http://localhost:8080/api/ragent/knowledge-base | /knowledge-base (context-path已包含/api/ragent) |
+| /api/starlineagent/knowledge-base | http://localhost:8080/api/starlineagent/knowledge-base | /knowledge-base (context-path已包含/api/starlineagent) |
 
 ### 网络请求检查
 
 打开浏览器开发者工具（F12）-> Network标签，查看请求：
 
 **正常情况：**
-- Request URL: http://localhost:5173/api/ragent/knowledge-base
+- Request URL: http://localhost:5173/api/starlineagent/knowledge-base
 - Status: 200 OK 或 401 Unauthorized（未登录）
 - Response: JSON格式数据
 

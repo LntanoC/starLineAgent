@@ -7,4 +7,4 @@ mkdir -p "$classes_dir"
 javac -encoding UTF-8 -d "$classes_dir" \
   "$repo_dir"/resources/initializer/common/*.java "$suite_dir"/*.java
 cd -- "$repo_dir"
-exec java -cp "$classes_dir" com.nageoffer.ai.ragent.initializer.LongTermMemoryMain "$suite_dir" "$@"
+exec java -cp "$classes_dir" com.nageoffer.ai.starlineagent.initializer.LongTermMemoryMain "$suite_dir" "$@"

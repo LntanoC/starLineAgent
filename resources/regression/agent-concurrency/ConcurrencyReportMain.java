@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -461,7 +461,7 @@ public final class ConcurrencyReportMain {
     }
     private void save() throws IOException {
         write(runDir.resolve("analysis.json"),analysis);write(runDir.resolve("analysis-checks.json"),checks);
-        StringBuilder md=new StringBuilder("# Ragent 真服务并发回归：独立离线复核\n\n生成时间：").append(analysis.get("generatedAt"))
+        StringBuilder md=new StringBuilder("# StarlineAgent 真服务并发回归：独立离线复核\n\n生成时间：").append(analysis.get("generatedAt"))
                 .append("\n\n**是否并行：").append(analysis.get("parallelConclusion")).append("。** Redis 原子采样最多同时有 ").append(analysis.get("redisMaxActiveUsers"))
                 .append(" 个测试用户运行位；独立 SSE 原始时间线另验证了模型输出区间交叠与到达顺序交错。\n\n**已观测路径的数据隔离：")
                 .append(analysis.get("isolationConclusion")).append("；覆盖完整性：").append(analysis.get("coverageConclusion"))

@@ -45,7 +45,7 @@ public class AgentRunGateAudit {
         }
 
         Path report = repo.resolve("agent/target/surefire-reports/"
-                + "TEST-com.nageoffer.ai.ragent.agent.service.handler.AgentRunGateTest.xml");
+                + "TEST-com.nageoffer.ai.starlineagent.agent.service.handler.AgentRunGateTest.xml");
         String classpath = readClasspath(report);
         String mockito = Arrays.stream(classpath.split(Pattern.quote(File.pathSeparator)))
                 .filter(path -> path.contains("mockito-core-") && path.endsWith(".jar"))

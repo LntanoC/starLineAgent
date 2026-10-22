@@ -1,6 +1,6 @@
-# Ragent 数据初始化器
+# StarlineAgent 数据初始化器
 
-把一个已经运行的 Ragent 环境，重置成模板声明的确定状态。以默认模板 `enterprise-knowledge-base` 为例，
+把一个已经运行的 StarlineAgent 环境，重置成模板声明的确定状态。以默认模板 `enterprise-knowledge-base` 为例，
 执行成功后环境中存在模板定义的 2 个知识库、10 份文档、29 个意图节点、2 份技能手册和 15 条示例
 问题，且这 15 个问题都已被真实提问过一遍，答案和推荐追问都已落库。
 
@@ -23,24 +23,24 @@
 执行前确认五件事：
 
 - JDK 17 可用，`java` 与 `javac` 都在 PATH 中；
-- RagentAI、PostgreSQL、Redis 已启动；
+- StarlineAgentAI、PostgreSQL、Redis 已启动；
 - 服务读的是 `bootstrap/src/main/resources/application.yaml`，也就是模板所指向的那一份；
-- 服务运行在 `ragent.demo-mode=false`，否则写接口会被拒绝；
-- 服务运行在 `ragent.engine.type=agent`，模板中的实时数据问题由 Agent 调用 MCP 工具；
+- 服务运行在 `starlineagent.demo-mode=false`，否则写接口会被拒绝；
+- 服务运行在 `starlineagent.engine.type=agent`，模板中的实时数据问题由 Agent 调用 MCP 工具；
 - `mcp-server` 已启动，模板里有 9 个意图节点挂着 MCP 工具，预热会真的调到它。
 
 以下命令在项目根目录执行，先编译再初始化：
 
 ```bash
-rm -rf /tmp/ragent-initializer-classes && mkdir -p /tmp/ragent-initializer-classes
+rm -rf /tmp/starlineagent-initializer-classes && mkdir -p /tmp/starlineagent-initializer-classes
 
 javac -encoding UTF-8 \
-  -d /tmp/ragent-initializer-classes \
+  -d /tmp/starlineagent-initializer-classes \
   resources/initializer/common/*.java \
   resources/initializer/enterprise-knowledge-base/*.java
 
-java -cp /tmp/ragent-initializer-classes \
-  com.nageoffer.ai.ragent.initializer.InitializeMain \
+java -cp /tmp/starlineagent-initializer-classes \
+  com.nageoffer.ai.starlineagent.initializer.InitializeMain \
   --agent-type-dir resources/initializer/enterprise-knowledge-base \
   --confirm RESET-ENTERPRISE-KNOWLEDGE-BASE
 ```
@@ -55,7 +55,7 @@ java -cp /tmp/ragent-initializer-classes \
 编译这一步在源码变化后必须重跑。直接复用 `/tmp` 中的旧 class，会出现配置项缺失这类与当前源码
 不一致的错误。
 
-不放心就先加 `--dry-run` 跑一遍。它照样连接 RagentAI、PostgreSQL 和 Redis 并执行全部预检，打印
+不放心就先加 `--dry-run` 跑一遍。它照样连接 StarlineAgentAI、PostgreSQL 和 Redis 并执行全部预检，打印
 清理范围与后续创建动作，但不清理也不创建业务数据。
 
 改过 `docs/`、`intents/`、`prompts/`、`skills/` 或任何 properties 之后，先重算完整性基线，否则预检会以
@@ -78,7 +78,7 @@ java -cp /tmp/ragent-initializer-classes \
 | 入口 | 作用 | 是否修改业务数据 |
 | --- | --- | --- |
 | `ValidateDatasetMain` | 校验本地模板：目录、元数据引用、数量和 SHA-256，不连接任何服务 | 否 |
-| `PreflightMain` | 校验 RagentAI 登录、Admin 身份、后端类型、PostgreSQL、Redis 和系统空闲状态 | 否 |
+| `PreflightMain` | 校验 StarlineAgentAI 登录、Admin 身份、后端类型、PostgreSQL、Redis 和系统空闲状态 | 否 |
 | `CleanupMain` | 只执行清理，要求 `--confirm` | 是 |
 | `KnowledgeBaseInitMain` | 创建或复用知识库 | 是 |
 | `DocumentInitMain` | 上传、切分或替换文档 | 是 |
@@ -104,8 +104,8 @@ java -cp /tmp/ragent-initializer-classes \
 改完模板只想本地自查，用 `ValidateDatasetMain`，它不需要服务在线：
 
 ```bash
-java -cp /tmp/ragent-initializer-classes \
-  com.nageoffer.ai.ragent.initializer.ValidateDatasetMain \
+java -cp /tmp/starlineagent-initializer-classes \
+  com.nageoffer.ai.starlineagent.initializer.ValidateDatasetMain \
   --agent-type-dir resources/initializer/enterprise-knowledge-base
 ```
 
@@ -159,7 +159,7 @@ java -cp /tmp/ragent-initializer-classes \
 初始化器同时运行，校验运行中后端与 `application.yaml` 声明一致，并在写入后重新查询验证知识库、
 文档、Chunk、意图及绑定关系。
 
-RagentAI 服务本身不读初始化锁，所以空闲检查只能证明检查当下没有任务。初始化期间不要让用户访问
+StarlineAgentAI 服务本身不读初始化锁，所以空闲检查只能证明检查当下没有任务。初始化期间不要让用户访问
 系统，最好在站点开放前执行。
 
 ## 三个输入
@@ -168,7 +168,7 @@ RagentAI 服务本身不读初始化锁，所以空闲检查只能证明检查�
 
 1. `enterprise-knowledge-base/` 描述目标状态，包括知识库、文档、意图、提示词、技能、示例问题和
    清理白名单。
-2. `bootstrap/src/main/resources/application.yaml` 描述当前运行环境，包括 RagentAI 地址、PostgreSQL、
+2. `bootstrap/src/main/resources/application.yaml` 描述当前运行环境，包括 StarlineAgentAI 地址、PostgreSQL、
    Redis、向量后端和对象存储后端。
 3. `enterprise-knowledge-base/initializer.properties` 描述本次初始化行为，包括 Admin 账号、超时、
    并发保护、Redis 清理范围和最终数量断言。
@@ -182,7 +182,7 @@ RagentAI 服务本身不读初始化锁，所以空闲检查只能证明检查�
 - 相对的 `application.config` 以 `initializer.properties` 所在目录为基准，而不是当前工作目录；
 - properties 和 YAML 标量都支持 `${ENV}` 与 `${ENV:default}` 环境变量占位符；
 - `server.base-url` 由 `server.address`、`server.port`、SSL 和 context path 自动生成；
-- Admin 账号来自 `auth.username` 和 `auth.password`，不要混入 RagentAI 主配置。
+- Admin 账号来自 `auth.username` 和 `auth.password`，不要混入 StarlineAgentAI 主配置。
 
 初始化器只依赖 JDK。执行数据库操作时，它会依次从当前 Classpath、本机 Maven 缓存和
 `bootstrap/target` 启动包中寻找 PostgreSQL JDBC 驱动，都找不到时才需要配置
@@ -216,17 +216,17 @@ resources/initializer/
 ## 常见错误
 
 - `文件 checksum 不一致`：改过模板文件但没重算基线，按「快速执行」末尾的命令重新生成。
-- `缺少配置项 server.base-url`：通常是 `/tmp/ragent-initializer-classes` 中仍有旧 class。删除该目录并
+- `缺少配置项 server.base-url`：通常是 `/tmp/starlineagent-initializer-classes` 中仍有旧 class。删除该目录并
   全量重新编译，不要先手工复制一份重复配置。
 - `application.yaml 不存在`：检查 `application.config`。相对路径从当前 properties 文件所在目录解析。
-- RagentAI 连接失败：核对 `application.yaml` 中的端口、context path、SSL 和监听地址，并确认服务已启动。
+- StarlineAgentAI 连接失败：核对 `application.yaml` 中的端口、context path、SSL 和监听地址，并确认服务已启动。
 - `检测到运行中的任务`：停止新流量，等待已有文档、RAG、摄取或 Agent 任务结束后重试。
 - `连续 N 次提问失败，跳过本轮`：重试没救回来，整体流程继续。零星几轮属正常损耗，大面积跳过说明模型
   或服务端有问题，排查后单独重跑 `WarmupMain` 补数据，不需要重新初始化。
 - `SSE 流未收到 done 事件即结束`：服务端在回答过程中抛异常断流，去应用日志里看这一题的真实报错。
 - `答案没有落库，finish 事件缺少 messageId`：模型已经回答，但消息持久化失败，按数据库日志排查。
 - `连续 N 次生成推荐追问失败`：答案本身没问题，是追问生成这一步的模型调用失败，重跑 `WarmupMain` 即可。
-- 写接口被拒绝：确认运行中的服务使用 `ragent.demo-mode=false`。
+- 写接口被拒绝：确认运行中的服务使用 `starlineagent.demo-mode=false`。
 - PostgreSQL 驱动缺失：先构建 `bootstrap`，或显式配置 `database.jdbc-driver-path`。
 
-需要完整异常栈时，在命令前设置 `RAGENT_INITIALIZER_DEBUG=true`。
+需要完整异常栈时，在命令前设置 `STARLINEAGENT_INITIALIZER_DEBUG=true`。

@@ -28,10 +28,10 @@
 
 ## API
 
-应用已有 context path /api/ragent：
+应用已有 context path /api/starlineagent：
 
-- GET /api/ragent/starline/events：当前登录用户的活动与提醒
-- POST /api/ragent/starline/events：创建待公布记录或已确认来源的邮箱提醒
-- DELETE /api/ragent/starline/events/{id}/reminder：取消仍处于待发送状态的提醒
+- GET /api/starlineagent/starline/events：当前登录用户的活动与提醒
+- POST /api/starlineagent/starline/events：创建待公布记录或已确认来源的邮箱提醒
+- DELETE /api/starlineagent/starline/events/{id}/reminder：取消仍处于待发送状态的提醒
 
 所有接口按当前登录用户隔离数据。

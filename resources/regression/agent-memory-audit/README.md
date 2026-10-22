@@ -48,7 +48,7 @@ javac -encoding UTF-8 -d resources/regression/agent-memory-audit/artifacts/class
 
 ```bash
 java -cp resources/regression/agent-memory-audit/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.MemoryAuditSelfTest
+  com.nageoffer.ai.starlineagent.initializer.MemoryAuditSelfTest
 ```
 
 覆盖未启动/延迟启动/超时的观察、读库和文件失败时留证、聊天超时、参数校验、摘要证据过滤，以及摘要运行流程的提前停止、未覆盖、失败留档和空目录保护。
@@ -60,7 +60,7 @@ audit_out="resources/regression/agent-memory-audit/artifacts/memory-audit-$(date
 audit_suite="resources/regression/agent-memory-audit"
 audit() {
   java -cp resources/regression/agent-memory-audit/artifacts/classes \
-    com.nageoffer.ai.ragent.initializer.MemoryAuditMain \
+    com.nageoffer.ai.starlineagent.initializer.MemoryAuditMain \
     resources/regression/agent-memory/regression.properties "$audit_out" "$@"
 }
 audit env
@@ -146,7 +146,7 @@ audit ask management verify-cleared "$audit_suite/management-07-check-cleared.tx
 
 ```bash
 java -cp resources/regression/agent-memory-audit/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.MemoryAuditSummaryMain \
+  com.nageoffer.ai.starlineagent.initializer.MemoryAuditSummaryMain \
   --output-dir resources/regression/agent-memory-audit/artifacts/summary-audit-preview --dry-run
 ```
 
@@ -154,7 +154,7 @@ java -cp resources/regression/agent-memory-audit/artifacts/classes \
 
 ```bash
 java -cp resources/regression/agent-memory-audit/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.MemoryAuditSummaryMain \
+  com.nageoffer.ai.starlineagent.initializer.MemoryAuditSummaryMain \
   --output-dir "resources/regression/agent-memory-audit/artifacts/summary-audit-$(date +%Y%m%d-%H%M%S)"
 ```
 
@@ -166,7 +166,7 @@ java -cp resources/regression/agent-memory-audit/artifacts/classes \
 
 ```bash
 java -cp resources/regression/agent-memory-audit/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.MemoryAuditMain \
+  com.nageoffer.ai.starlineagent.initializer.MemoryAuditMain \
   resources/regression/agent-memory/regression.properties \
   resources/regression/agent-memory-audit/artifacts/your-summary-run export-summary summary main
 ```

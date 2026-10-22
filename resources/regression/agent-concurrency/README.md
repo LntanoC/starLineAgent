@@ -2,7 +2,7 @@
 
 [返回回归总览](../README.md)
 
-本套件直接调用已经启动的 Ragent，不启动或重启服务、不替换模型、不修改提示词或数据库结构。
+本套件直接调用已经启动的 StarlineAgent，不启动或重启服务、不替换模型、不修改提示词或数据库结构。
 通过真实 HTTP/SSE 请求和只读数据库观察，分别回答三个问题：
 
 1. **是否真的并行**：不同用户的运行位是否在同一个 Redis 原子快照中同时存在，模型输出的客户端接收时间线是否重叠。
@@ -13,8 +13,8 @@
 
 ## 前提与范围
 
-- Java 17+；Ragent、PostgreSQL、Redis、当前配置的 MCP 服务已启动。
-- 默认继承 `bootstrap/src/main/resources/application.yaml` 和 `mcp-server/src/main/resources/application.yml`；支持用 `--config` 指定本地配置。环境变量 `RAGENT_REGRESSION_USERNAME` / `RAGENT_REGRESSION_PASSWORD` 覆盖创建账号所需的管理员登录。
+- Java 17+；StarlineAgent、PostgreSQL、Redis、当前配置的 MCP 服务已启动。
+- 默认继承 `bootstrap/src/main/resources/application.yaml` 和 `mcp-server/src/main/resources/application.yml`；支持用 `--config` 指定本地配置。环境变量 `STARLINEAGENT_REGRESSION_USERNAME` / `STARLINEAGENT_REGRESSION_PASSWORD` 覆盖创建账号所需的管理员登录。
 - 每轮通过 `/users` 创建独立普通账号（默认 4 个，可选 2–12 个）。只操作这些测试账号的会话和记忆。
 - 普通聊天会调用当前真实模型，产生正常模型用量。请求仅要求只读商品、知识库、本人订单/购物车查询，以及测试账号自己的记忆整理；不提交交易、售后或工单。
 - 所有数据库探针只读。MCP 业务库只输出聚合行数与摘要，平台库只导出本轮测试用户/会话的数据。不批量读取其他用户聊天，不直接造库内状态。
@@ -54,11 +54,11 @@ bash resources/regression/agent-concurrency/run.sh --recheck "$run_dir"
 
 # 离线分析原始帧、请求索引、数据库与Redis证据，生成最终报告
 java -cp resources/regression/agent-concurrency/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.ConcurrencyReportMain --run-dir "$run_dir"
+  com.nageoffer.ai.starlineagent.initializer.ConcurrencyReportMain --run-dir "$run_dir"
 
 # 若补做了只读复查，可明确指定最新快照；不覆盖原始执行记录
 java -cp resources/regression/agent-concurrency/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.ConcurrencyReportMain \
+  com.nageoffer.ai.starlineagent.initializer.ConcurrencyReportMain \
   --run-dir "$run_dir" --snapshot-dir "$run_dir/recheck-实际时间戳"
 ```
 
@@ -70,7 +70,7 @@ java -cp resources/regression/agent-concurrency/artifacts/classes \
 
 ```bash
 java -cp resources/regression/agent-concurrency/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.ConcurrencyGateProbeMain "$run_dir"
+  com.nageoffer.ai.starlineagent.initializer.ConcurrencyGateProbeMain "$run_dir"
 ```
 
 结果在 `gate-diagnostic-*/`。补充诊断后再执行一次 `--recheck`，把新会话也纳入最终数据库观察。脚本没有修改服务配置或业务代码。
@@ -97,13 +97,13 @@ java -cp resources/regression/agent-concurrency/artifacts/classes \
 
 ```bash
 java -cp resources/regression/agent-concurrency/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.ConcurrencySseSelfTestMain
+  com.nageoffer.ai.starlineagent.initializer.ConcurrencySseSelfTestMain
 java -cp resources/regression/agent-concurrency/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.ConcurrencyReportMain --self-test
+  com.nageoffer.ai.starlineagent.initializer.ConcurrencyReportMain --self-test
 ```
 
-SSE 自检只绑定本机临时 HTTP 端口，不调用 Ragent，不创建用户；覆盖真实 cancel payload、双用户独立登录头、JSON拒绝、帧解析、缺失终态、硬超时与半帧留证。
+SSE 自检只绑定本机临时 HTTP 端口，不调用 StarlineAgent，不创建用户；覆盖真实 cancel payload、双用户独立登录头、JSON拒绝、帧解析、缺失终态、硬超时与半帧留证。
 
 本套件不向运行服务注入 SDK 原生动态工具组或 `ToolEmitter`，不验证它们的线程安全；也不覆盖多节点、进程重启、无界并发容量或尚未接入的其他存储后端。通过结果始终限定于本次已启动服务、实际触发的功能与观测并发度。
 
-运行名额使用 `ragent:agent:run-permit:<userId>:<slot>` 的 Redisson Hash 锁。采样配置 `agent.max-concurrent-runs-per-user` 必须与后端一致（默认 5），脚本在一个 Redis Lua 快照中读全部名额；Redis 最终收敛检查也使用这些新 key。此套在线回归会调用模型和工具；本次本地验证不自动运行它。
+运行名额使用 `starlineagent:agent:run-permit:<userId>:<slot>` 的 Redisson Hash 锁。采样配置 `agent.max-concurrent-runs-per-user` 必须与后端一致（默认 5），脚本在一个 Redis Lua 快照中读全部名额；Redis 最终收敛检查也使用这些新 key。此套在线回归会调用模型和工具；本次本地验证不自动运行它。

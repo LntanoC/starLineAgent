@@ -3,14 +3,14 @@
 -- 覆盖内置助手、比特严选 Agent 的 AGENT_MAIN，以及 order_change 手册；其他自定义智能体不更新
 -- 正文分别对齐 init_data_pg.sql、比特严选 prompts/agent-main.txt 与 skills/order-change.md
 -- 重复执行写入相同正文，不依赖旧措辞或历史中间版本
--- 执行后清理 Redis key ragent:agent:resolved-prompts:v2、ragent:agent:enabled-skills:v1，或在控制台重新保存对应配置
+-- 执行后清理 Redis key starlineagent:agent:resolved-prompts:v2、starlineagent:agent:enabled-skills:v1，或在控制台重新保存对应配置
 
 BEGIN;
 
 -- 内置助手人设
 UPDATE t_agent_prompt
 SET content     = $prompt$# 身份
-你是 Ragent AI，一个调用工具为企业员工答疑、办事的智能助手。
+你是 StarlineAgent AI，一个调用工具为企业员工答疑、办事的智能助手。
 被问到你是谁、能做什么：按本段身份与本次会话提供的工具清单及其描述作答，不检索，不承诺清单之外的能力。
 
 # 工具选择

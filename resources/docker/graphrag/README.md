@@ -11,11 +11,11 @@ KV / 向量 / 文档状态**复用宿主机已有的 PostgreSQL**（后端同一
 
 ## 前置条件
 
-- 宿主机 PostgreSQL 可访问，且已安装 `pgvector`（与后端共用，库名默认 `ragent`）
+- 宿主机 PostgreSQL 可访问，且已安装 `pgvector`（与后端共用，库名默认 `starlineagent`）
 - 已准备百炼 API Key（LLM 与 Embedding 共用）
 - 已安装 Docker / Docker Compose
 
-Compose 从同目录 `.env` 读取本地参数；仓库只提交 `.env.example`，实际 `.env` 已加入 `.gitignore`。默认 PostgreSQL 配置与项目 `application.yaml` 一致：`postgres/postgres`、数据库 `ragent`。
+Compose 从同目录 `.env` 读取本地参数；仓库只提交 `.env.example`，实际 `.env` 已加入 `.gitignore`。默认 PostgreSQL 配置与项目 `application.yaml` 一致：`postgres/postgres`、数据库 `starlineagent`。
 
 `LLM_BINDING` 与 `EMBEDDING_BINDING` 仍配置为 `openai`，这是 LightRAG 对 OpenAI 兼容接口的适配器名称；实际供应商由 `*_BINDING_HOST`、模型名和 API Key 决定，当前均指向阿里云百炼。
 
@@ -38,7 +38,7 @@ Docker Compose 默认把首个 Compose 文件所在目录作为项目目录，�
 
 > `.env` 的自动加载只适用于这个 Docker Compose 启动。IDEA 中单独启动 Spring Boot 时，如需同一组 API Key，还要在 Spring Boot Run Configuration 的 Environment variables 中选择该 `.env`。
 
-首次拉起会构建本地 `ragent/neo4j-gds:5.26-2.13.11` 镜像，并下载一次约 62 MB 的 GDS JAR；该步骤可能需要一到几分钟。GDS 随后固化在镜像层中，普通启动与重启不再访问插件下载站。`docker compose ps` 两个服务均 `healthy` 后即就绪。
+首次拉起会构建本地 `starlineagent/neo4j-gds:5.26-2.13.11` 镜像，并下载一次约 62 MB 的 GDS JAR；该步骤可能需要一到几分钟。GDS 随后固化在镜像层中，普通启动与重启不再访问插件下载站。`docker compose ps` 两个服务均 `healthy` 后即就绪。
 
 ## 验证
 

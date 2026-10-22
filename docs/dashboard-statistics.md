@@ -4,8 +4,8 @@
 
 只修改管理端查询和首页，不改聊天执行链路、工具执行、确认续跑、消息/记忆写入，也不新增数据库字段或迁移。
 
-- `ragent.engine.type=workflow`（或缺省）：装配原有 `DashboardServiceImpl`。
-- `ragent.engine.type=agent`：装配 `AgentDashboardService`。
+- `starlineagent.engine.type=workflow`（或缺省）：装配原有 `DashboardServiceImpl`。
+- `starlineagent.engine.type=agent`：装配 `AgentDashboardService`。
 - `/admin/dashboard/overview`、`/performance`、`/trends` 路径不变，均要求管理员角色。
 - `overview.engine` 与 `performance.engine` 是后端按部署配置返回的判别字段，首页不提供引擎切换按钮。
 - 前后端需要一起更新；无需数据库迁移。运行中的后端需重启才能加载新的统计实现。
@@ -51,7 +51,7 @@ Agent 统计仅支持 24h / 7d / 30d，粒度为 hour / day。时间过滤为 `[
 mvn -q -pl agent -am -Dtest=DashboardServiceImplTest,AgentDashboardServiceTest,AgentDashboardReaderTest -Dsurefire.failIfNoSpecifiedTests=false test
 ```
 
-`AgentDashboardReaderTest` 默认跳过真实数据库验证。显式提供 `-Dragent.dashboard.test.jdbc-url=jdbc:postgresql://localhost:5432/postgres?user=YOUR_USER` 后启用；测试只在独立连接中创建临时表，最后回滚，不修改持久业务表。
+`AgentDashboardReaderTest` 默认跳过真实数据库验证。显式提供 `-Dstarlineagent.dashboard.test.jdbc-url=jdbc:postgresql://localhost:5432/postgres?user=YOUR_USER` 后启用；测试只在独立连接中创建临时表，最后回滚，不修改持久业务表。
 
 前端隔离预览：在 `frontend` 目录运行 `npm run dev -- --port 5175`，访问 `/tests/dashboard-preview.html`。该入口不在生产路由/构建入口中，全部使用本地测试数据，API adapter 禁止访问业务接口。
 

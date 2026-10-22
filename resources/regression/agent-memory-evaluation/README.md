@@ -20,7 +20,7 @@ javac -encoding UTF-8 -d resources/regression/agent-memory-evaluation/artifacts/
   resources/regression/agent-memory-evaluation/*.java
 
 java -cp resources/regression/agent-memory-evaluation/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.AgentMemoryEvaluationMain \
+  com.nageoffer.ai.starlineagent.initializer.AgentMemoryEvaluationMain \
   --limit 1 \
   --variant baseline \
   --output-dir resources/regression/agent-memory-evaluation/artifacts/bit-evaluation/baseline
@@ -28,7 +28,7 @@ java -cp resources/regression/agent-memory-evaluation/artifacts/classes \
 
 默认读取展开格式的 `datasets/bit-selection.json`。`--limit 1` 先跑第一个短用例；去掉它跑整份数据。每个用例新建会话，用例内按顺序提问。再次运行时换一个输出目录，程序不会覆盖旧结果。
 
-连接和主模型默认继承 `application.yaml`，修改 `agent.chat.model` 后测评自动跟随，无需另写模型名。其他环境用 `--config /path/to/local.properties`，账号可通过 `RAGENT_EVAL_USERNAME`、`RAGENT_EVAL_PASSWORD` 设置。服务若使用 JVM 参数覆盖配置，测评配置也需同步对应项。
+连接和主模型默认继承 `application.yaml`，修改 `agent.chat.model` 后测评自动跟随，无需另写模型名。其他环境用 `--config /path/to/local.properties`，账号可通过 `STARLINEAGENT_EVAL_USERNAME`、`STARLINEAGENT_EVAL_PASSWORD` 设置。服务若使用 JVM 参数覆盖配置，测评配置也需同步对应项。
 
 | 可选参数 | 用途 |
 | --- | --- |
@@ -63,7 +63,7 @@ java -cp resources/regression/agent-memory-evaluation/artifacts/classes \
 
 ```bash
 java -cp resources/regression/agent-memory-evaluation/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.EvaluationReportMain \
+  com.nageoffer.ai.starlineagent.initializer.EvaluationReportMain \
   --baseline resources/regression/agent-memory-evaluation/artifacts/bit-evaluation/baseline \
   --candidate resources/regression/agent-memory-evaluation/artifacts/bit-evaluation/candidate \
   --output-dir resources/regression/agent-memory-evaluation/artifacts/bit-evaluation/comparison

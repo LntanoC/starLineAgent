@@ -1,8 +1,8 @@
 <p align="center">
-  <a href="https://github.com/nageoffer/ragent">
+  <a href="https://github.com/nageoffer/starlineagent">
     <picture>
-      <source srcset="assets/ragent-ai-banner.png">
-      <img src="assets/ragent-ai-banner.png" alt="Ragent AI">
+      <source srcset="assets/starlineagent-ai-banner.png">
+      <img src="assets/starlineagent-ai-banner.png" alt="StarlineAgent AI">
     </picture>
   </a>
 </p>
@@ -12,16 +12,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/nageoffer/ragent/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/nageoffer/ragent?style=flat-square&logo=github&color=e8b227" /></a>&nbsp;
-  <a href="https://github.com/nageoffer/ragent/network/members"><img alt="GitHub forks" src="https://img.shields.io/github/forks/nageoffer/ragent?style=flat-square&logo=github&color=2d6a8a" /></a>&nbsp;
-  <a href="https://github.com/nageoffer/ragent/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/nageoffer/ragent?style=flat-square&color=b56e7a" /></a>&nbsp;
+  <a href="https://github.com/nageoffer/starlineagent/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/nageoffer/starlineagent?style=flat-square&logo=github&color=e8b227" /></a>&nbsp;
+  <a href="https://github.com/nageoffer/starlineagent/network/members"><img alt="GitHub forks" src="https://img.shields.io/github/forks/nageoffer/starlineagent?style=flat-square&logo=github&color=2d6a8a" /></a>&nbsp;
+  <a href="https://github.com/nageoffer/starlineagent/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/nageoffer/starlineagent?style=flat-square&color=b56e7a" /></a>&nbsp;
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-4a9b8f?style=flat-square" /></a>
   <img src="https://img.shields.io/badge/Spring%20AI-2.0-6DB33F?style=flat-square&logo=springboot&logoColor=white" />
 </p>
 
-## 🚀 什么是 Ragent AI？
+## 🚀 什么是 StarlineAgent AI？
 
-Ragent 是一个面向 Agentic RAG 演进的生产级 Java AI 应用平台，覆盖从文档入库到智能问答的完整链路。
+StarlineAgent 是一个面向 Agentic RAG 演进的生产级 Java AI 应用平台，覆盖从文档入库到智能问答的完整链路。
 
 - **混合检索**：向量、关键词、知识图谱、联网搜索并行召回，支持去重、RRF 融合与 Rerank。
 - **问题理解**：支持查询词映射、问题重写与拆分、树形意图识别和多知识库路由。
@@ -32,39 +32,39 @@ Ragent 是一个面向 Agentic RAG 演进的生产级 Java AI 应用平台，覆
 
 生产落地智能体会踩的坑，这里都有对应方案，一套经过真实场景锤炼的工程实践，系统补全 RAG / Agent / MCP 等知识，面试写进简历聊得起来。
 
-![](assets/ragent-framework-v2.png)
+![](assets/starlineagent-framework-v2.png)
 
 ## 🧭 快速导航
 
 > 觉得不错？先点个 Star 收藏，所有链接都会在新标签页打开，不会离开本页 👇
 
 <p align="left">
-  <a href="https://github.com/nageoffer/ragent/stargazers">
+  <a href="https://github.com/nageoffer/starlineagent/stargazers">
     <img src="assets/star-me.svg" alt="Star this repo" />
   </a>
 </p>
 
 | &nbsp; | 链接 | 说明 |
 |:---:|:---|:---|
-| 📖 | <a href="https://nageoffer.com/ragent" target="_blank">官网文档</a> | Ragent AI 完整文档 |
-| 🚀 | <a href="https://nageoffer.com/ragent/demo/" target="_blank">在线体验</a> | 无需部署，直接体验 Ragent AI |
-| ⚡ | <a href="https://nageoffer.com/ragent/local-dev/" target="_blank">快速启动</a> | 本地搭建 Ragent AI 前后端项目 |
-| 📝 | <a href="https://nageoffer.com/ragent/interview/" target="_blank">简历怎么写</a> | 项目如何写到简历上 |
-| 💡 | <a href="https://nageoffer.com/ragent/why-springai-langchain4j/" target="_blank">为什么不用 Spring AI / LangChain4j</a> | 技术选型的思考 |
+| 📖 | <a href="https://nageoffer.com/starlineagent" target="_blank">官网文档</a> | StarlineAgent AI 完整文档 |
+| 🚀 | <a href="https://nageoffer.com/starlineagent/demo/" target="_blank">在线体验</a> | 无需部署，直接体验 StarlineAgent AI |
+| ⚡ | <a href="https://nageoffer.com/starlineagent/local-dev/" target="_blank">快速启动</a> | 本地搭建 StarlineAgent AI 前后端项目 |
+| 📝 | <a href="https://nageoffer.com/starlineagent/interview/" target="_blank">简历怎么写</a> | 项目如何写到简历上 |
+| 💡 | <a href="https://nageoffer.com/starlineagent/why-springai-langchain4j/" target="_blank">为什么不用 Spring AI / LangChain4j</a> | 技术选型的思考 |
 
 ## 🤝 贡献
 
-Ragent AI 仍在持续迭代中，欢迎参与共建，一起把项目打磨得更好。 感谢各位亦菲、彦祖们对 Ragent AI 的贡献：
+StarlineAgent AI 仍在持续迭代中，欢迎参与共建，一起把项目打磨得更好。 感谢各位亦菲、彦祖们对 StarlineAgent AI 的贡献：
 
 <p align="left">
-    <a href="https://github.com/nageoffer/ragent/graphs/contributors">
-        <img src="https://contrib.rocks/image?repo=nageoffer/ragent&columns=8" />
+    <a href="https://github.com/nageoffer/starlineagent/graphs/contributors">
+        <img src="https://contrib.rocks/image?repo=nageoffer/starlineagent&columns=8" />
     </a>
 </p>
 
 ## ❤️ 赞助与支持
 
-感谢以下伙伴对 Ragent AI 的支持！
+感谢以下伙伴对 StarlineAgent AI 的支持！
 
 <table>
   <tr>
@@ -72,7 +72,7 @@ Ragent AI 仍在持续迭代中，欢迎参与共建，一起把项目打磨得�
       <a href="https://moacode.org/register?ref=doorbyte"><img src="assets/moacode.svg" alt="moacode" width="200" /></a>
     </td>
     <td>
-      moacode 是一家稳定、高效的 API 中转服务商，提供 Claude、GPT、Codex、Claude Code 等多种模型调用服务。Ragent AI 用户可<a href="https://moacode.org/register?ref=doorbyte">通过此链接</a>注册，并在充值时填写 <code>MAGE</code> 优惠码，享受 9 折优惠。
+      moacode 是一家稳定、高效的 API 中转服务商，提供 Claude、GPT、Codex、Claude Code 等多种模型调用服务。StarlineAgent AI 用户可<a href="https://moacode.org/register?ref=doorbyte">通过此链接</a>注册，并在充值时填写 <code>MAGE</code> 优惠码，享受 9 折优惠。
     </td>
   </tr>
 </table>
@@ -100,7 +100,7 @@ AI 这波浪潮，Java 程序员已经躲不过去了。
 
 **说白了，学 AI 项目的核心原因就三个：**
 
-1. **简历差异化**。从 RAG 知识问答到 ReAct 多轮推理、MCP 工具调用和 Skills 技能应用，Ragent V2 覆盖完整实战链路。把实际完成的功能、解决的问题和验证结果写进简历，体现你的 AI 应用开发能力。
+1. **简历差异化**。从 RAG 知识问答到 ReAct 多轮推理、MCP 工具调用和 Skills 技能应用，StarlineAgent V2 覆盖完整实战链路。把实际完成的功能、解决的问题和验证结果写进简历，体现你的 AI 应用开发能力。
 2. **面试有东西聊**。Workflow 与 Agent 如何选型、ReAct 如何决策和调用工具、Skills 如何按需加载、上下文如何压缩、长期记忆如何跨会话保留，以及写操作的人工确认、Langfuse 对推理、工具调用和 Token 的追踪，都能结合源码与设计取舍展开聊。
 3. **实际工作用得上**。从有依据的知识问答，到调用外部系统、执行多步任务并确认关键操作，混合检索、MCP、上下文管理、模型容错和链路追踪，都是构建可调试、可扩展、运行有保障的 AI 应用所需的能力。
 
@@ -110,9 +110,9 @@ AI 这波浪潮，Java 程序员已经躲不过去了。
 
 还有些同学报了训练营，发现清一色是 Python。语言不熟、生态不通，学完感觉收获有限，回到 Java 这边还是不知道怎么下手。就算用 Spring AI 或者 LangChain4j，版本迭代太快，低版本功能缺，高版本升级约等于重写，也是一肚子苦水。
 
-基于这些问题，我决定做一个 Agentic RAG 实战项目，名字叫 **Ragent**。
+基于这些问题，我决定做一个 Agentic RAG 实战项目，名字叫 **StarlineAgent**。
 
-这个项目覆盖 RAG 全链路和 Agent 智能体两条主线，同时涉及 MCP/Skills 集成。更重要的是，它不是我看了几篇文章拼凑出来的玩具——我在公司**实际落地过 Agentic RAG 系统**，解决过信息孤岛、知识检索、效率提升这些真实的业务问题。所以 Ragent 的复杂度，就是企业级项目该有的复杂度。
+这个项目覆盖 RAG 全链路和 Agent 智能体两条主线，同时涉及 MCP/Skills 集成。更重要的是，它不是我看了几篇文章拼凑出来的玩具——我在公司**实际落地过 Agentic RAG 系统**，解决过信息孤岛、知识检索、效率提升这些真实的业务问题。所以 StarlineAgent 的复杂度，就是企业级项目该有的复杂度。
 
 学完之后，你可以放心大胆地跟面试官讲：**企业里就是这么做的**。
 
@@ -175,7 +175,7 @@ RAG / Agent 项目的效果既取决于模型，也取决于工程化能力。�
 
 </details>
 
-## 🏗️ Ragent 核心设计
+## 🏗️ StarlineAgent 核心设计
 
 采用前后端分离的模块化单体架构，后端按职责分为七个 Maven 模块：
 
@@ -191,7 +191,7 @@ RAG / Agent 项目的效果既取决于模型，也取决于工程化能力。�
 
 这个分层不是为了炫技，而是把业务编排、AI 供应商差异和通用基础设施隔离开。切换模型、向量库或对象存储时，核心问答流程不需要跟着重写。
 
-![](assets/ragent-module-layering-v3.png)
+![](assets/starlineagent-module-layering-v3.png)
 
 一次提问在服务里怎么走，v1 和 v2 是两套路子。
 
@@ -202,7 +202,7 @@ MCP 客户端只在 `agent` 模块中装配，使用 AgentScope 连接和发现�
 
 > 下图是 v2 的核心流程。实际项目代码中的逻辑比图上更复杂，落地过程中还涉及很多细节和优化。
 
-![](assets/ragent-chain-v4.png)
+![](assets/starlineagent-chain-v4.png)
 
 两套并存，不是谁替代谁。问答类知识助手需求走 v1 更快也更可控，要规划、要动手操作的场景才交给 v2。
 
@@ -281,7 +281,7 @@ AI 写代码很强，但掌舵的还是程序员。能不能接着扩展、改�
 
 ### 6. 完整控制台
 
-Ragent 提供覆盖**普通用户与管理员用户**的 React 控制台，不只是聊天页面，也把检索证据和运维入口暴露出来。
+StarlineAgent 提供覆盖**普通用户与管理员用户**的 React 控制台，不只是聊天页面，也把检索证据和运维入口暴露出来。
 
 系统通过多轮 AI 辅助设计优化，在保证功能完整性的同时，提供更加现代化和友好的交互体验。
 
@@ -350,9 +350,9 @@ v1 管理后台侧重 RAG 配置和运行管理，覆盖模型、知识库、数
 
 ### 7. 和市面上项目的区别
 
-Ragent 定位于 **Java AI 应用的源码级工程参考**，重点是完整链路、生产保障和二次开发能力。
+StarlineAgent 定位于 **Java AI 应用的源码级工程参考**，重点是完整链路、生产保障和二次开发能力。
 
-| 对比维度 | 常见 RAG 教程 / Demo | Ragent                                                 |
+| 对比维度 | 常见 RAG 教程 / Demo | StarlineAgent                                                 |
 |:---|:-----------------|:-------------------------------------------------------|
 | 项目定位 | 跑通检索与生成          | 完整 Java Agentic RAG 应用                             |
 | 检索 | 单路向量 TopK        | 向量 / 关键词 / 图谱 / 联网召回，RRF 融合与 Rerank     |
@@ -370,14 +370,14 @@ Ragent 定位于 **Java AI 应用的源码级工程参考**，重点是完整链
 
 ## ❓ 常见问题答疑
 
-一句话：学完 Ragent，你既能跟面试官聊 RAG/Agent 的技术深度，也能证明自己的 Java 工程化水平。
+一句话：学完 StarlineAgent，你既能跟面试官聊 RAG/Agent 的技术深度，也能证明自己的 Java 工程化水平。
 
 <details>
 <summary><b>能学到什么 / 适合谁？</b>（点击展开）</summary>
 
 ### 1. 能够学到什么？
 
-Ragent 不只是教你调 API，而是让你理解一个 Agentic RAG 系统从 0 到 1 落地的全过程。粗略来说，你能收获这些：
+StarlineAgent 不只是教你调 API，而是让你理解一个 Agentic RAG 系统从 0 到 1 落地的全过程。粗略来说，你能收获这些：
 
 - **RAG 全链路工程能力**：文档解析、分块策略、Embedding 向量化、意图识别、问题重写与拆分、多路检索、重排序、Prompt 组装、流式生成，每个环节怎么做、为什么这么做。
 - **Agent 智能体实战**：ReAct 执行引擎、MCP 工具调用、技能体系、三层上下文记忆、人工确认，这些是 AI 应用区别于传统 CRUD 系统的核心能力。
@@ -389,15 +389,15 @@ Ragent 不只是教你调 API，而是让你理解一个 Agentic RAG 系统从 0
 
 **校招同学：**
 
-- **Java 后端方向的在校生**：简历上已经有了商城、外卖等常规项目，需要一个有区分度的项目来拉开差距。Ragent 能让你在面试中聊 AI + 工程化，而不是千篇一律的 CRUD。
-- **想转 AI 应用方向的同学**：对大模型感兴趣，但不想从 Python 和算法入手。Ragent 基于 Java 技术栈，学习曲线平滑，不需要额外切换语言生态。
+- **Java 后端方向的在校生**：简历上已经有了商城、外卖等常规项目，需要一个有区分度的项目来拉开差距。StarlineAgent 能让你在面试中聊 AI + 工程化，而不是千篇一律的 CRUD。
+- **想转 AI 应用方向的同学**：对大模型感兴趣，但不想从 Python 和算法入手。StarlineAgent 基于 Java 技术栈，学习曲线平滑，不需要额外切换语言生态。
 - **准备实习/秋招/春招的同学**：大厂校招越来越看重候选人对新技术的敏感度，简历上有 AI 项目经验，能直接证明你的学习能力和技术视野。
 
 **社招同学：**
 
-- **1-3 年经验的 Java 开发**：日常写业务代码，想往 AI 方向转型但不知道从哪下手。Ragent 的技术栈你都熟悉，学的是 AI 应用层的东西，上手快、能落地。
-- **3-5 年经验的后端开发**：技术能力不差，但面试被问到 AI 相关问题答不上来，少了一个谈薪筹码。通过 Ragent 补上 RAG、Agent、MCP 这些知识点，面试时能聊得有深度。
-- **想跳槽到 AI 团队的开发者**：越来越多的 JD 要求有 AI 相关经验，Ragent 能帮你快速建立 RAG 系统的全局认知，面试时不再只是纸上谈兵。
+- **1-3 年经验的 Java 开发**：日常写业务代码，想往 AI 方向转型但不知道从哪下手。StarlineAgent 的技术栈你都熟悉，学的是 AI 应用层的东西，上手快、能落地。
+- **3-5 年经验的后端开发**：技术能力不差，但面试被问到 AI 相关问题答不上来，少了一个谈薪筹码。通过 StarlineAgent 补上 RAG、Agent、MCP 这些知识点，面试时能聊得有深度。
+- **想跳槽到 AI 团队的开发者**：越来越多的 JD 要求有 AI 相关经验，StarlineAgent 能帮你快速建立 RAG 系统的全局认知，面试时不再只是纸上谈兵。
 
 </details>
 
@@ -411,9 +411,9 @@ Ragent 不只是教你调 API，而是让你理解一个 Agentic RAG 系统从 0
 
 之前做拿个 offer 社群时，第一个业务系统 12306 选择了开源，收获了
 <a href="https://github.com/nageoffer/12306"><img src="https://img.shields.io/github/stars/nageoffer/12306?style=flat-square&logo=github&label=GitHub" style="vertical-align: middle;" /></a>
-<a href="https://gitee.com/nageoffer/12306/stargazers"><img src="https://gitee.com/nageoffer/12306/badge/star.svg?theme=dark" style="vertical-align: middle;" /></a>，也得到了很多同学的认可和信任。这次 Ragent 作为社群在 AI 领域的第一个项目，同样选择开源——既然代码质量经得起检验，就没必要藏着掖着。
+<a href="https://gitee.com/nageoffer/12306/stargazers"><img src="https://gitee.com/nageoffer/12306/badge/star.svg?theme=dark" style="vertical-align: middle;" /></a>，也得到了很多同学的认可和信任。这次 StarlineAgent 作为社群在 AI 领域的第一个项目，同样选择开源——既然代码质量经得起检验，就没必要藏着掖着。
 
-市面上不少项目只敢放几张截图、讲几个概念，真正敢把代码全部摊开的并不多。Ragent 敢这么做，是因为前面讲的那些能力——多路检索、意图识别、模型容错、全链路追踪——不是 PPT 里的架构图，是你能跑起来、能断点调试、能逐行阅读的真实代码。
+市面上不少项目只敢放几张截图、讲几个概念，真正敢把代码全部摊开的并不多。StarlineAgent 敢这么做，是因为前面讲的那些能力——多路检索、意图识别、模型容错、全链路追踪——不是 PPT 里的架构图，是你能跑起来、能断点调试、能逐行阅读的真实代码。
 
 开源对你来说意味着什么：
 
@@ -425,11 +425,11 @@ Ragent 不只是教你调 API，而是让你理解一个 Agentic RAG 系统从 0
 </details>
 
 <p align="center">
-  <a href="https://www.star-history.com/?repos=nageoffer%2Fragent&type=date&legend=top-left">
+  <a href="https://www.star-history.com/?repos=nageoffer%2Fstarlineagent&type=date&legend=top-left">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=nageoffer/ragent&type=date&theme=dark&legend=top-left" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=nageoffer/ragent&type=date&legend=top-left" />
-      <img alt="Star History Chart" src="https://api.star-history.com/image?repos=nageoffer/ragent&type=date&legend=top-left" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=nageoffer/starlineagent&type=date&theme=dark&legend=top-left" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=nageoffer/starlineagent&type=date&legend=top-left" />
+      <img alt="Star History Chart" src="https://api.star-history.com/image?repos=nageoffer/starlineagent&type=date&legend=top-left" />
     </picture>
   </a>
 </p>

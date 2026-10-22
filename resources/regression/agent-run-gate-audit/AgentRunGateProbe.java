@@ -1,6 +1,6 @@
-import com.nageoffer.ai.ragent.agent.config.AgentProperties;
-import com.nageoffer.ai.ragent.agent.service.handler.AgentRunGate;
-import com.nageoffer.ai.ragent.framework.exception.ClientException;
+import com.nageoffer.ai.starlineagent.agent.config.AgentProperties;
+import com.nageoffer.ai.starlineagent.agent.service.handler.AgentRunGate;
+import com.nageoffer.ai.starlineagent.framework.exception.ClientException;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -23,7 +23,7 @@ public class AgentRunGateProbe {
             AgentProperties properties = new AgentProperties();
             AgentRunGate a = new AgentRunGate(first, properties);
             AgentRunGate b = new AgentRunGate(second, properties);
-            first.getBucket("ragent:agent:running:u").set("legacy|conversation", Duration.ofMinutes(30));
+            first.getBucket("starlineagent:agent:running:u").set("legacy|conversation", Duration.ofMinutes(30));
             for (int i = 0; i < 5; i++) {
                 releases.add((i % 2 == 0 ? a : b).acquire("u", String.valueOf(100 + i), "c" + i));
             }
@@ -36,7 +36,7 @@ public class AgentRunGateProbe {
             rejected("same-thread duplicate deletion uses a distinct owner",
                     () -> b.acquireConversation("u", "idle-delete"));
             deleteWhileFull.run();
-            waitFor(() -> !second.getLock("ragent:agent:run-lock:u:c5").isLocked());
+            waitFor(() -> !second.getLock("starlineagent:agent:run-lock:u:c5").isLocked());
             check("quota rejection releases speculative conversation lock", true);
             Runnable other = a.acquire("other-user", "202", "c0");
             check("user identity isolates identical conversation ids", true);
@@ -45,31 +45,31 @@ public class AgentRunGateProbe {
             // More than two watchdog leases: active operations must still hold their locks.
             Thread.sleep(2200);
             check("watchdog renews conversation and permit while running",
-                    second.getLock("ragent:agent:run-lock:u:c0").isLocked()
-                    && second.getLock("ragent:agent:run-permit:u:0").isLocked());
+                    second.getLock("starlineagent:agent:run-lock:u:c0").isLocked()
+                    && second.getLock("starlineagent:agent:run-permit:u:0").isLocked());
             Runnable released = releases.remove(0);
             Thread callback = new Thread(released);
             callback.start();
             callback.join();
             released.run();
-            waitFor(() -> !second.getLock("ragent:agent:run-lock:u:c0").isLocked());
+            waitFor(() -> !second.getLock("starlineagent:agent:run-lock:u:c0").isLocked());
             Runnable replacement = a.acquire("u", "203", "c0");
             check("cross-thread repeated release returns a permit", true);
             released.run();
             Thread.sleep(1200);
             check("late prior release preserves next run's locks and renewal",
-                    first.getLock("ragent:agent:run-lock:u:c0").isHeldByThread(203)
-                    && first.getLock("ragent:agent:run-permit:u:0").isHeldByThread(203));
+                    first.getLock("starlineagent:agent:run-lock:u:c0").isHeldByThread(203)
+                    && first.getLock("starlineagent:agent:run-permit:u:0").isHeldByThread(203));
             replacement.run();
             for (Runnable release : releases) release.run();
             releases.clear();
-            waitFor(() -> !second.getLock("ragent:agent:run-permit:u:0").isLocked()
-                    && !second.getLock("ragent:agent:run-permit:u:4").isLocked());
+            waitFor(() -> !second.getLock("starlineagent:agent:run-permit:u:0").isLocked()
+                    && !second.getLock("starlineagent:agent:run-permit:u:4").isLocked());
 
             Runnable deleting = a.acquireConversation("u", "deleting");
             check("deletion holds only the shared conversation lock",
-                    second.getLock("ragent:agent:run-lock:u:deleting").isLocked()
-                    && !second.getLock("ragent:agent:run-permit:u:0").isLocked());
+                    second.getLock("starlineagent:agent:run-lock:u:deleting").isLocked()
+                    && !second.getLock("starlineagent:agent:run-permit:u:0").isLocked());
             rejected("deletion prevents a new run on another client",
                     () -> b.acquire("u", "209", "deleting"));
             rejected("deletion prevents same-thread run reentry",
@@ -80,7 +80,7 @@ public class AgentRunGateProbe {
             Runnable afterDelete = b.acquire("u", "211", "deleting");
             deleting.run();
             check("late deletion release cannot unlock a subsequent run",
-                    second.getLock("ragent:agent:run-lock:u:deleting").isHeldByThread(211));
+                    second.getLock("starlineagent:agent:run-lock:u:deleting").isHeldByThread(211));
             afterDelete.run();
 
             ExecutorService pool = Executors.newFixedThreadPool(10);
@@ -116,8 +116,8 @@ public class AgentRunGateProbe {
             single.run();
             a.acquire("crash-user", "207", "orphan");
             first.shutdown();
-            waitFor(() -> !second.getLock("ragent:agent:run-lock:crash-user:orphan").isLocked()
-                    && !second.getLock("ragent:agent:run-permit:crash-user:0").isLocked());
+            waitFor(() -> !second.getLock("starlineagent:agent:run-lock:crash-user:orphan").isLocked()
+                    && !second.getLock("starlineagent:agent:run-permit:crash-user:0").isLocked());
             Runnable recovered = b.acquire("crash-user", "208", "orphan");
             check("stopping owning client reclaims both locks within watchdog lease", true);
             recovered.run();

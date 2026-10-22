@@ -4,12 +4,12 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.nio.file.Path;
 import java.util.*;
 
-import static com.nageoffer.ai.ragent.initializer.LongTermMemoryMain.*;
+import static com.nageoffer.ai.starlineagent.initializer.LongTermMemoryMain.*;
 
 /**
  * 撤回屏幕偏好后，在新会话中补测记忆召回

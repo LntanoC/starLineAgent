@@ -24,7 +24,7 @@ bit-selection/
 ├── prompts/                    # 人设提示词正文
 ├── agent-profile.properties    # 人设声明，指向 prompts/ 下的正文
 ├── cleanup.sql                 # 平台库清理白名单
-├── biz-data/                   # 业务库 ragent_bit 的演示数据
+├── biz-data/                   # 业务库 starlineagent_bit 的演示数据
 └── biz-cleanup.sql             # 业务库数据清空脚本
 ```
 
@@ -33,8 +33,8 @@ bit-selection/
 完整初始化用 `InitializeMain`，确认词是 `RESET-BIT-SELECTION`：
 
 ```bash
-java -cp /tmp/ragent-initializer-classes \
-  com.nageoffer.ai.ragent.initializer.InitializeMain \
+java -cp /tmp/starlineagent-initializer-classes \
+  com.nageoffer.ai.starlineagent.initializer.InitializeMain \
   --agent-type-dir resources/initializer/bit-selection \
   --confirm RESET-BIT-SELECTION
 ```
@@ -43,7 +43,7 @@ java -cp /tmp/ragent-initializer-classes \
 
 ## 二、文档来源
 
-**政策、说明书、故障排查类**：判定口径与流程结构沿用独立仓库 `ragenteval` 的 `knowledge_base`，但正文按 Apple 产品重写。原稿以另一个品牌的品类（扫地机、门锁、空气净化器）为素材，换成 Apple 之后配网走 iOS、耗材换成耳塞与表带、错误提示换成 Apple 的文字提示，原稿的正文没有可直接复用的部分。
+**政策、说明书、故障排查类**：判定口径与流程结构沿用独立仓库 `starlineagenteval` 的 `knowledge_base`，但正文按 Apple 产品重写。原稿以另一个品牌的品类（扫地机、门锁、空气净化器）为素材，换成 Apple 之后配网走 iOS、耗材换成耳塞与表带、错误提示换成 Apple 的文字提示，原稿的正文没有可直接复用的部分。
 
 **商品详情**：参数取自 Apple 中国官网 2026-09-13 的技术规格页快照，照抄的是规格事实；一句话定位、适合谁、怎么挑三处全部自撰，不使用官方营销文案。
 
@@ -132,11 +132,11 @@ verification.biz-spu-count / biz-sku-count / biz-order-count / biz-coupon-count
 再做一次离线校验，它会检查校验和、知识库声明、文档非空、意图树引用，以及技能声明的工具是否落在已启用的 MCP 意图节点上：
 
 ```bash
-rm -rf /tmp/ragent-initializer-classes && mkdir -p /tmp/ragent-initializer-classes
-javac -encoding UTF-8 -d /tmp/ragent-initializer-classes \
+rm -rf /tmp/starlineagent-initializer-classes && mkdir -p /tmp/starlineagent-initializer-classes
+javac -encoding UTF-8 -d /tmp/starlineagent-initializer-classes \
   resources/initializer/common/*.java resources/initializer/bit-selection/*.java
-java -cp /tmp/ragent-initializer-classes \
-  com.nageoffer.ai.ragent.initializer.ValidateDatasetMain \
+java -cp /tmp/starlineagent-initializer-classes \
+  com.nageoffer.ai.starlineagent.initializer.ValidateDatasetMain \
   --agent-type-dir resources/initializer/bit-selection
 ```
 
@@ -144,7 +144,7 @@ java -cp /tmp/ragent-initializer-classes \
 
 ## 七、业务库
 
-`biz-data/` 与 `biz-cleanup.sql` 面向业务库 `ragent_bit`，由 `BizDataInitMain` 灌入。该库的**表结构归 mcp-server 启动期创建**，本数据集只负责数据，清空脚本也只清数据不动结构。
+`biz-data/` 与 `biz-cleanup.sql` 面向业务库 `starlineagent_bit`，由 `BizDataInitMain` 灌入。该库的**表结构归 mcp-server 启动期创建**，本数据集只负责数据，清空脚本也只清数据不动结构。
 
 因此执行 `BizDataInitMain` 之前，mcp-server 至少要成功启动过一次。连接身份取自 `initializer.properties` 里的 `application.mcp-config`，指向 mcp-server 的 `application.yml`；两边各写一遍迟早对不上，对不上的表现是「灌完数据一条也查不到」。
 

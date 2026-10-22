@@ -40,20 +40,20 @@ bash resources/regression/agent-long-term-memory/run.sh --self-test
 账号默认 `admin`，密码通过环境变量提供。以下命令只检查基线，不发聊天请求：
 
 ```bash
-RAGENT_MEMORY_PASSWORD=admin bash resources/regression/agent-long-term-memory/run.sh --inspect
+STARLINEAGENT_MEMORY_PASSWORD=admin bash resources/regression/agent-long-term-memory/run.sh --inspect
 ```
 
 服务可用时运行 7 轮：
 
 ```bash
-RAGENT_MEMORY_PASSWORD=admin bash resources/regression/agent-long-term-memory/run.sh --run
+STARLINEAGENT_MEMORY_PASSWORD=admin bash resources/regression/agent-long-term-memory/run.sh --run
 ```
 
 运行独立的四轮自然聊天测评：
 
 ```bash
 bash resources/regression/agent-long-term-memory/run.sh --natural-plan
-RAGENT_MEMORY_PASSWORD=admin bash resources/regression/agent-long-term-memory/run.sh --run-natural
+STARLINEAGENT_MEMORY_PASSWORD=admin bash resources/regression/agent-long-term-memory/run.sh --run-natural
 ```
 
 每次创建独立 `artifacts/<时间>-<随机值>/`。先保存原有记忆、待抽取消息、提示词和源码指纹；若已存在手机屏幕偏好、积压超过 5 条、存在在飞抽取或存量接近容量下限，停止执行。存量过滤较宽，碰到有关手机屏幕的其他记忆也可能停止，需人工看基线。

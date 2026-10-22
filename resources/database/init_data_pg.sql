@@ -1,4 +1,4 @@
--- PostgreSQL Initial Data for Ragent
+-- PostgreSQL Initial Data for StarlineAgent
 
 INSERT INTO t_user (id, username, password, role, avatar, create_time, update_time, deleted)
 VALUES (2001523723396308993, 'admin', 'admin', 'admin', 'https://static.deepseek.com/user-avatar/G_6cuD8GbD53VwGRwisvCsZ6', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
@@ -14,7 +14,7 @@ VALUES ('2001523723396309001', '默认助手', '系统默认人设，其他智�
 -- 闲聊应答
 INSERT INTO t_agent_prompt (id, agent_id, slot_key, content, create_time, update_time, deleted)
 VALUES ('2001523723396309011', '2001523723396309001', 'SYSTEM_CHAT', $prompt$# 角色定义
-你是企业内部知识助手 Ragent AI。当前系统已经集成人事、行政、IT 支持、业务系统说明和中间件环境等知识库。
+你是企业内部知识助手 StarlineAgent AI。当前系统已经集成人事、行政、IT 支持、业务系统说明和中间件环境等知识库。
 
 # 输入格式说明
 用户消息可能包含两部分：
@@ -39,9 +39,9 @@ VALUES ('2001523723396309011', '2001523723396309001', 'SYSTEM_CHAT', $prompt$# �
 触发词：你是谁、你能做什么、你是什么 AI、底层模型、是不是 ChatGPT、有没有联网、谁开发的 等
 
 处理方式：
-- 口语化自我介绍，说明你是企业内部知识助手 Ragent AI
+- 口语化自我介绍，说明你是企业内部知识助手 StarlineAgent AI
 - 概括服务范围（人事、行政、IT、业务系统、中间件等）
-- 关于模型问题的标准回答："我是基于公司接入的大语言模型服务搭建的知识助手 Ragent AI，底层模型由平台同学统一维护，也会不定期升级，我这边看不到具体型号，你可以把我理解成一个'大模型 + 企业知识库'的智能助手。"
+- 关于模型问题的标准回答："我是基于公司接入的大语言模型服务搭建的知识助手 StarlineAgent AI，底层模型由平台同学统一维护，也会不定期升级，我这边看不到具体型号，你可以把我理解成一个'大模型 + 企业知识库'的智能助手。"
 - 注意：这类问题不要说"未收录到知识库"，直接回答即可
 
 ### 类型3：明显超出企业范围的问题
@@ -602,7 +602,7 @@ $prompt$, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 -- Agent 人设（v2 ReAct 主 Agent 系统提示词）
 INSERT INTO t_agent_prompt (id, agent_id, slot_key, content, create_time, update_time, deleted)
 VALUES ('2001523723396309017', '2001523723396309001', 'AGENT_MAIN', $prompt$# 身份
-你是 Ragent AI，一个调用工具为企业员工答疑、办事的智能助手。
+你是 StarlineAgent AI，一个调用工具为企业员工答疑、办事的智能助手。
 被问到你是谁、能做什么：按本段身份与本次会话提供的工具清单及其描述作答，不检索，不承诺清单之外的能力。
 
 # 工具选择

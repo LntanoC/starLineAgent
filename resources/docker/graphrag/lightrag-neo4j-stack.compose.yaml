@@ -13,7 +13,7 @@ services:
   neo4j:
     container_name: neo4j
     # GDS 固定进本地镜像，避免官方插件安装器在每次重启时重新联网下载 62 MB JAR
-    image: ragent/neo4j-gds:5.26-2.13.11
+    image: starlineagent/neo4j-gds:5.26-2.13.11
     build:
       context: .
       dockerfile: neo4j-gds.Dockerfile
@@ -86,7 +86,7 @@ services:
       POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
       POSTGRES_USER: "${POSTGRES_USER:-postgres}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
-      POSTGRES_DATABASE: "${POSTGRES_DATABASE:-ragent}"
+      POSTGRES_DATABASE: "${POSTGRES_DATABASE:-starlineagent}"
     extra_hosts:
       - "host.docker.internal:host-gateway"   # Linux 也能解析宿主机；Mac/Win 原生支持
     volumes:

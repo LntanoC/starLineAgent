@@ -1,13 +1,13 @@
 server:
   port: 9090
   servlet:
-    context-path: /api/ragent
+    context-path: /api/starlineagent
 
 spring:
   config:
     import: optional:classpath:starline-application.yaml
   application:
-    name: ragent${unique-name:}-service
+    name: starlineagent${unique-name:}-service
 
   servlet:
     multipart:
@@ -19,14 +19,14 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     username: postgres
     password: postgres
-    url: jdbc:postgresql://127.0.0.1:5432/ragent?client_encoding=UTF8
+    url: jdbc:postgresql://127.0.0.1:5432/starlineagent?client_encoding=UTF8
     hikari:
       connection-timeout: 5000
       idle-timeout: 600000
       max-lifetime: 1800000
       maximum-pool-size: 10
       minimum-idle: 5
-      pool-name: RagentHikariPool
+      pool-name: StarlineAgentHikariPool
 
   data:
     redis:
@@ -34,14 +34,14 @@ spring:
       port: 6379
       password: 123456
 
-ragent:
+starlineagent:
   engine:
     type: agent  # 执行架构档位，可选 workflow（v1 编排管线）/ agent（v2 ReAct 架构，RAG 管线降级为主 Agent 的一个 Tool）
   demo-mode: false
   eval:
     enabled: true
 
-# Agent 执行架构（ragent.engine.type=agent 时生效）；单模型无 fallback，供应商可用性由 provider 侧保障
+# Agent 执行架构（starlineagent.engine.type=agent 时生效）；单模型无 fallback，供应商可用性由 provider 侧保障
 agent:
   mcp:
     servers:
@@ -63,8 +63,8 @@ agent:
     enabled: false  # 开启前先起 resources/docker/langfuse 那套服务
     capture-content: true  # 记录提示词与工具出入参；纯骨架改 false
     endpoint: http://localhost:3000/api/public/otel/v1/traces
-    public-key: pk-lf-ragent-local     # 与 compose 里的 LANGFUSE_INIT_PROJECT_PUBLIC_KEY 一致
-    secret-key: sk-lf-ragent-local     # 与 compose 里的 LANGFUSE_INIT_PROJECT_SECRET_KEY 一致
+    public-key: pk-lf-starlineagent-local     # 与 compose 里的 LANGFUSE_INIT_PROJECT_PUBLIC_KEY 一致
+    secret-key: sk-lf-starlineagent-local     # 与 compose 里的 LANGFUSE_INIT_PROJECT_SECRET_KEY 一致
     max-field-chars: 32768
     max-attribute-chars: 131072 # 超限退成带 preview 的合法 JSON
     service-version:  # 留空取 build-info 版本；要盖 pom 版本才填
@@ -73,8 +73,8 @@ agent:
 rag:
   storage:
     type: s3  # 可选 s3（rustfs / minio）/ oss（阿里云）
-    kb-bucket: ragent-sources        # 全局知识库桶（私有），所有知识库文档按 collectionName 目录隔离；OSS 桶名全局唯一，生产需按部署覆盖
-    asset-bucket: ragent-assets # 多模态资产桶（公共读），PDF 抽出的图片等供浏览器匿名直连预览
+    kb-bucket: starlineagent-sources        # 全局知识库桶（私有），所有知识库文档按 collectionName 目录隔离；OSS 桶名全局唯一，生产需按部署覆盖
+    asset-bucket: starlineagent-assets # 多模态资产桶（公共读），PDF 抽出的图片等供浏览器匿名直连预览
     s3:
       endpoint: http://localhost:9000
       access-key: rustfsadmin
@@ -87,7 +87,7 @@ rag:
       access-key: ${OSS_ACCESS_KEY:}
       secret-key: ${OSS_SECRET_KEY:}
       region: cn-hangzhou
-      public-url:  # 虚拟主机式基址（含 bucket 子域），如 https://ragent-assets.oss-cn-hangzhou.aliyuncs.com；留空由 endpoint 推导
+      public-url:  # 虚拟主机式基址（含 bucket 子域），如 https://starlineagent-assets.oss-cn-hangzhou.aliyuncs.com；留空由 endpoint 推导
 
   vector:
     type: pg  # 可选 milvus / pg
@@ -337,7 +337,7 @@ sa-token:
 rocketmq:
   name-server: 127.0.0.1:9876
   producer:
-    group: ragent-producer${unique-name:}_pg
+    group: starlineagent-producer${unique-name:}_pg
     send-message-timeout: 2000
 
 milvus:

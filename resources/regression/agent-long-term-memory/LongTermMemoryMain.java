@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.nio.file.*;
 import java.security.MessageDigest;
@@ -183,7 +183,7 @@ public final class LongTermMemoryMain {
     static ZonedDateTime now() { return ZonedDateTime.now(ZoneId.of("Asia/Shanghai")); }
     static Map<String, String> fingerprints() throws Exception {
         Map<String, String> result = new LinkedHashMap<>();
-        Path dir = Path.of("agent/src/main/java/com/nageoffer/ai/ragent/agent/memory");
+        Path dir = Path.of("agent/src/main/java/com/nageoffer/ai/starlineagent/agent/memory");
         for (String name : List.of("AgentMemoryJudge.java","AgentMemoryPipeline.java","AgentMemoryRepository.java","AgentUserMemoryMiddleware.java","AgentMemoryProperties.java")) result.put(name, HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(dir.resolve(name)))));
         return result;
     }

@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -176,12 +176,12 @@ final class ConcurrencyProbe {
         int permits = config.getInt("agent.max-concurrent-runs-per-user", 5);
         for (String user : users) {
             for (int slot = 0; slot < permits; slot++) {
-                keys.add("ragent:agent:run-permit:" + user + ":" + slot);
+                keys.add("starlineagent:agent:run-permit:" + user + ":" + slot);
             }
         }
         for (String task : tasks) {
-            keys.add("ragent:stream:owner:" + task);
-            keys.add("ragent:stream:cancel:" + task);
+            keys.add("starlineagent:stream:owner:" + task);
+            keys.add("starlineagent:stream:cancel:" + task);
         }
         List<String> command = new ArrayList<>(List.of("EVAL", REDIS_READ_SCRIPT, String.valueOf(keys.size())));
         command.addAll(keys);
@@ -450,7 +450,7 @@ final class ConcurrencyProbe {
         String configuredPath = config.get("application.config-resolved", "");
         if (configuredPath.isBlank()) return Map.of();
         Set<String> selected = Set.of("agent.trace.enabled", "rag.keyword.type", "rag.graph.type",
-                "rag.vector.type", "rag.storage.type", "ragent.engine.type", "agent.memory.long-term-enabled",
+                "rag.vector.type", "rag.storage.type", "starlineagent.engine.type", "agent.memory.long-term-enabled",
                 "agent.memory.summary-enabled", "agent.memory.context-window-chars");
         Map<String, String> result = new LinkedHashMap<>();
         List<Integer> indents = new ArrayList<>();

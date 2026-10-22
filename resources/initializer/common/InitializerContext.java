@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -189,7 +189,7 @@ final class InitializerContext implements AutoCloseable {
             try {
                 http.close();
             } catch (RuntimeException ex) {
-                throw new IOException("退出 Ragent 登录失败", ex);
+                throw new IOException("退出 StarlineAgent 登录失败", ex);
             }
         });
         result.add(jdbc);

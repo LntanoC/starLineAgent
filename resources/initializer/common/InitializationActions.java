@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,10 +28,10 @@ import java.util.stream.Stream;
 /** Reusable operations invoked by the small Main entry points. */
 final class InitializationActions {
 
-    private static final String INITIALIZER_LOCK_KEY = "ragent:initializer:lock";
+    private static final String INITIALIZER_LOCK_KEY = "starlineagent:initializer:lock";
 
     private static final String BIZ_SCHEMA_MISSING =
-            "业务库表结构不存在，请先启动一次 mcp-server（它负责建表），或检查 ragent.bit.datasource.url";
+            "业务库表结构不存在，请先启动一次 mcp-server（它负责建表），或检查 starlineagent.bit.datasource.url";
 
     private InitializationActions() {
     }
@@ -56,7 +56,7 @@ final class InitializationActions {
                 "演示问题数量与配置不一致，expected=" + expectedQuestions
                         + ", actual=" + context.dataset().questions().size());
 
-        System.out.println("[preflight] 登录 RagentAI");
+        System.out.println("[preflight] 登录 StarlineAgentAI");
         context.loginAsAdmin();
         Map<String, Object> currentUser = SimpleJson.object(context.http().get("/user/me"));
         require("admin".equalsIgnoreCase(SimpleJson.string(currentUser, "role")), "当前用户不是 Admin");
@@ -113,7 +113,7 @@ final class InitializationActions {
                 context.bizJdbc().executeScript(bizCleanupSql);
             }
 
-            System.out.println("[cleanup] 精确清理 Ragent 缓存和已结束任务 Key");
+            System.out.println("[cleanup] 精确清理 StarlineAgent 缓存和已结束任务 Key");
             clearRedis(context);
             System.out.println("[cleanup] 完成");
         } finally {
@@ -809,10 +809,10 @@ final class InitializationActions {
                 + "(SELECT COUNT(*) FROM t_ingestion_task WHERE lower(status)='running' "
                 + "AND update_time >= NOW() - INTERVAL '" + interval + "')";
         long runningRows = context.jdbc().queryLong(sql);
-        int activeRedis = context.redis().scan("ragent:agent:running:*").size()
-                + context.redis().scan("ragent:agent:run-lock:*").size()
-                + context.redis().scan("ragent:agent:run-permit:*").size()
-                + context.redis().scan("ragent:stream:owner:*").size();
+        int activeRedis = context.redis().scan("starlineagent:agent:running:*").size()
+                + context.redis().scan("starlineagent:agent:run-lock:*").size()
+                + context.redis().scan("starlineagent:agent:run-permit:*").size()
+                + context.redis().scan("starlineagent:stream:owner:*").size();
         require(runningRows == 0 && activeRedis == 0,
                 "检测到运行中的任务，拒绝初始化: db=" + runningRows + ", redis=" + activeRedis);
     }

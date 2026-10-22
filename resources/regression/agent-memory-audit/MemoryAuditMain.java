@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,7 +54,7 @@ public final class MemoryAuditMain {
                 env.put("databaseTime", jdbc.queryRows("SELECT CURRENT_TIMESTAMP::text"));
                 env.put("profiles", jdbc.queryRows("SELECT id, name, active::text, builtin::text FROM t_agent_profile WHERE deleted = 0 AND (active = 1 OR builtin = 1)"));
                 try (RedisRespClient redis = new RedisRespClient(config)) {
-                    Object cached = redis.command("GET", "ragent:agent:resolved-prompts:v2");
+                    Object cached = redis.command("GET", "starlineagent:agent:resolved-prompts:v2");
                     if (cached != null) {
                         Map<String,Object> prompts = SimpleJson.object(SimpleJson.parse(cached.toString()));
                         Map<String,Object> selected = new LinkedHashMap<>();

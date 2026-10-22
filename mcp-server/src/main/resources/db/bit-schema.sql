@@ -1,4 +1,4 @@
--- 比特严选业务库 ragent_bit 的表结构
+-- 比特严选业务库 starlineagent_bit 的表结构
 --
 -- 属主是 mcp-server，启动期自建；initializer 只负责灌数据，不持有建表脚本
 --

@@ -4,12 +4,12 @@ server:
 
 spring:
   application:
-    name: ragent-mcp-server
+    name: starlineagent-mcp-server
 
-ragent:
+starlineagent:
   bit:
     datasource:
-      url: jdbc:postgresql://127.0.0.1:5432/ragent_bit?client_encoding=UTF8
+      url: jdbc:postgresql://127.0.0.1:5432/starlineagent_bit?client_encoding=UTF8
       username: postgres
       password: postgres
     pending-order:

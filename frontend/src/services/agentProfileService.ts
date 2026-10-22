@@ -1,6 +1,6 @@
 import { api } from "@/services/api";
 
-/** 执行架构档位，取自后端 ragent.engine.type，前端只读 */
+/** 执行架构档位，取自后端 starlineagent.engine.type，前端只读 */
 export type OrchestrationMode = "WORKFLOW" | "AGENT";
 
 /** 槽位分栏，与后端 AgentPromptSlot.Group 一致 */
@@ -16,7 +16,7 @@ export interface AgentProfile {
   active: boolean;
   /** 自身已填写、且当前架构会读取的槽位数，其余槽位回落内置 */
   effectiveSlots: number;
-  /** 已填写但当前架构读不到的槽位数，切换 ragent.engine.type 后才生效 */
+  /** 已填写但当前架构读不到的槽位数，切换 starlineagent.engine.type 后才生效 */
   inactiveSlots: number;
   createTime?: string | null;
   updateTime?: string | null;

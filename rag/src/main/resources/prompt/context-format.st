@@ -2,7 +2,7 @@
 {snippet_section}{doc_blocks}
 
 --- section: kb-doc-block ---
-<content data-ragent-doc-id="{doc_id}">
+<content data-starlineagent-doc-id="{doc_id}">
 {chunks}
 </content>
 

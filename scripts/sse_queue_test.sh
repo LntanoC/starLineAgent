@@ -15,7 +15,7 @@ DIM='\033[2m'
 RESET='\033[0m'
 
 # ==================== 配置参数 ====================
-BASE_URL="${BASE_URL:-http://localhost:9090/api/ragent}"
+BASE_URL="${BASE_URL:-http://localhost:9090/api/starlineagent}"
 QUESTION="${QUESTION:-你是谁？你是ChatGPT么？}"
 CONCURRENCY="${CONCURRENCY:-3}"
 TOKEN="${TOKEN:-03c34afe1127412b9c7050f495966b28}"
@@ -198,7 +198,7 @@ for i in $(seq 1 "${CONCURRENCY}"); do
       --data-urlencode "deepThinking=false" \
       "${BASE_URL}/rag/v3/chat" 2>/dev/null | \
       perl -ne 'use Time::HiRes qw(gettimeofday); use POSIX qw(strftime); chomp; my ($s,$us)=gettimeofday; my $ts=strftime("%Y-%m-%d %H:%M:%S", localtime($s)); printf "[%s.%03d] %s\n", $ts, $us/1000, $_;' \
-      > "${LOG_DIR}/ragent_chat_${i}.log"
+      > "${LOG_DIR}/starlineagent_chat_${i}.log"
 
     EXIT_CODE=$?
     if [[ $EXIT_CODE -eq 0 ]]; then
@@ -280,13 +280,13 @@ echo ""
 # ==================== 文件列表 ====================
 echo -e "${BLUE}📁 Generated log files:${RESET}"
 for i in $(seq 1 "${CONCURRENCY}"); do
-  LOG_FILE="${LOG_DIR}/ragent_chat_${i}.log"
+  LOG_FILE="${LOG_DIR}/starlineagent_chat_${i}.log"
   if [[ -f "${LOG_FILE}" ]]; then
     SIZE=$(du -h "${LOG_FILE}" | cut -f1)
     LINES=$(wc -l < "${LOG_FILE}")
-    echo -e "   ${GREEN}✓${RESET} ${GRAY}ragent_chat_${i}.log${RESET} ${DIM}(${SIZE}, ${LINES} lines)${RESET}"
+    echo -e "   ${GREEN}✓${RESET} ${GRAY}starlineagent_chat_${i}.log${RESET} ${DIM}(${SIZE}, ${LINES} lines)${RESET}"
   else
-    echo -e "   ${RED}✗${RESET} ${GRAY}ragent_chat_${i}.log${RESET} ${RED}[Missing]${RESET}"
+    echo -e "   ${RED}✗${RESET} ${GRAY}starlineagent_chat_${i}.log${RESET} ${RED}[Missing]${RESET}"
   fi
 done
 

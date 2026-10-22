@@ -2,7 +2,7 @@
 
 [返回回归与测评总览](../README.md)
 
-验证已启动 Ragent 服务的工具结果裁剪、会话摘要和长期记忆。复用 `resources/initializer/common` 的配置、HTTP 与 JDBC 客户端，使用 Java 17 CLI，不启动 Spring。
+验证已启动 StarlineAgent 服务的工具结果裁剪、会话摘要和长期记忆。复用 `resources/initializer/common` 的配置、HTTP 与 JDBC 客户端，使用 Java 17 CLI，不启动 Spring。
 
 本套件的编译缓存与运行日志放在 `artifacts/`，由仓库根 `.gitignore` 忽略。CLI 报告输出到控制台，需要留存时重定向到 `artifacts/<本次运行目录>/`。
 
@@ -116,8 +116,8 @@
 ### 前置条件
 
 - JDK 17，`java` 与 `javac` 都在 PATH；
-- RagentAI、PostgreSQL 已启动，服务读的是 `bootstrap/src/main/resources/application.yaml`；
-- `ragent.engine.type=agent`——`workflow` 档位走的是 RAG 编排管线，根本没有 Agent 记忆；
+- StarlineAgentAI、PostgreSQL 已启动，服务读的是 `bootstrap/src/main/resources/application.yaml`；
+- `starlineagent.engine.type=agent`——`workflow` 档位走的是 RAG 编排管线，根本没有 Agent 记忆；
 - **`enterprise-knowledge-base` 模板已经初始化过**。中间 6 轮撑量问题取自该模板，库里没内容就检索
   不到东西，上下文涨不起来，清理永远不触发，整场跑完只会得到一堆 UNCOVERED；
 - 账号 `admin/admin` 可登录，在 `regression.properties` 里改。
@@ -135,7 +135,7 @@ javac -encoding UTF-8 \
   resources/regression/agent-memory/*.java
 
 java -cp resources/regression/agent-memory/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.AgentMemoryRegressionMain \
+  com.nageoffer.ai.starlineagent.initializer.AgentMemoryRegressionMain \
   --suite-dir resources/regression/agent-memory
 ```
 
@@ -336,7 +336,7 @@ tool_result 的总量跟着掉；压缩又在 t04 就落了地、之后一直摁
 
 ```bash
 java -cp resources/regression/agent-memory/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.AgentMemoryProbeMain \
+  com.nageoffer.ai.starlineagent.initializer.AgentMemoryProbeMain \
   --suite-dir resources/regression/agent-memory \
   --session <会话ID>
 ```
@@ -369,7 +369,7 @@ java -cp resources/regression/agent-memory/artifacts/classes \
 
 ```bash
 java -cp resources/regression/agent-memory/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.AgentMemoryMechanismMain \
+  com.nageoffer.ai.starlineagent.initializer.AgentMemoryMechanismMain \
   --suite-dir resources/regression/agent-memory \
   --case all
 ```
@@ -442,13 +442,13 @@ agent:
 application.config=<绝对路径>/bootstrap/src/main/resources/application.yaml
 auth.username=admin
 auth.password=admin
-server.base-url=http://127.0.0.1:9091/api/ragent
+server.base-url=http://127.0.0.1:9091/api/starlineagent
 agent.memory.context-window-chars=8000
 ```
 
 ```bash
 java -cp resources/regression/agent-memory/artifacts/classes \
-  com.nageoffer.ai.ragent.initializer.AgentMemoryMechanismMain \
+  com.nageoffer.ai.starlineagent.initializer.AgentMemoryMechanismMain \
   --suite-dir resources/regression/agent-memory \
   --config resources/regression/agent-memory/artifacts/regression-9091.properties --case R5
 ```
@@ -583,4 +583,4 @@ UNCOVERED**——把 `memoryConsolidator.plan` 注释掉靠的就是它变红，
 回归台读新配置键时，`resources/initializer/common/ApplicationYamlConfig.load` 必须同步把键搬过来。
 只改一头不会报错，只会读到默认值——P1 踩过一次：`summary.*` 四个键没搬，校准表有一半是编的。
 
-排查回归台自身报错时加环境变量 `RAGENT_REGRESSION_DEBUG=true`，会打印完整堆栈。
+排查回归台自身报错时加环境变量 `STARLINEAGENT_REGRESSION_DEBUG=true`，会打印完整堆栈。

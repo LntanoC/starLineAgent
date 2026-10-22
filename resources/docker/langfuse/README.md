@@ -8,7 +8,7 @@
 docker compose -f langfuse-stack-v4.compose.yaml up -d
 ```
 
-六个容器全部 healthy 后，浏览器打开 <http://localhost:3000>，用 `admin@ragent.dev` / `admintrace` 登录，项目 `ragent-service` 已经建好。
+六个容器全部 healthy 后，浏览器打开 <http://localhost:3000>，用 `admin@starlineagent.dev` / `admintrace` 登录，项目 `starlineagent-service` 已经建好。
 
 ## 组件与端口
 
@@ -40,8 +40,8 @@ lsof -i :9090 -i :9099 -i :5432 -i :6379 -i :9000 -i :9001
 
 ```bash
 AGENT_TRACE_ENABLED=true \
-RAGENT_ENGINE_TYPE=agent \
-java -jar bootstrap/target/ragent.jar
+STARLINEAGENT_ENGINE_TYPE=agent \
+java -jar bootstrap/target/starlineagent.jar
 ```
 
 此时 Input / Output 会随 trace 一起上报，无需再额外配置内容开关。环境变量在 Spring 的松散绑定里优先于配置文件，IDE Run Configuration 也遵循同一规则。
@@ -51,8 +51,8 @@ java -jar bootstrap/target/ragent.jar
 ```bash
 AGENT_TRACE_ENABLED=true \
 AGENT_TRACE_CAPTURE_CONTENT=false \
-RAGENT_ENGINE_TYPE=agent \
-java -jar bootstrap/target/ragent.jar
+STARLINEAGENT_ENGINE_TYPE=agent \
+java -jar bootstrap/target/starlineagent.jar
 ```
 
 四层节点仍会成树，只是 Input / Output 不记录业务内容。
@@ -60,17 +60,17 @@ java -jar bootstrap/target/ragent.jar
 问一个会调工具的问题，Trace 立刻出现在 LangFuse 的 Tracing 页，树形是这样：
 
 ```
-invoke_agent ragent          根节点带本轮问题与最终回答
-├─ reasoning                 ragent.react.round_index=1
+invoke_agent starlineagent          根节点带本轮问题与最终回答
+├─ reasoning                 starlineagent.react.round_index=1
 │  └─ chat                   模型输入输出
 ├─ tool_batch                按 callIndex 排序的批次清单与结果
 │  ├─ execute_tool A         A 自己的入参、结果、状态与真实耗时
 │  └─ execute_tool B         B 自己的那一份
-└─ reasoning                 ragent.react.round_index=2
+└─ reasoning                 starlineagent.react.round_index=2
    └─ chat
 ```
 
-轮次、callId、batchId 都在属性里而不在名字里，所以 `reasoning` / `tool_batch` 这两个名字是固定的，可以直接按名字聚合耗时。同名工具并行时靠 `gen_ai.tool.call.id` 与 `ragent.tool.call_index` 区分。按 `langfuse.session.id` 过滤即按会话过滤，它就是库里的 conversationId。
+轮次、callId、batchId 都在属性里而不在名字里，所以 `reasoning` / `tool_batch` 这两个名字是固定的，可以直接按名字聚合耗时。同名工具并行时靠 `gen_ai.tool.call.id` 与 `starlineagent.tool.call_index` 区分。按 `langfuse.session.id` 过滤即按会话过滤，它就是库里的 conversationId。
 
 内容开关只对**新产生的** trace 生效，改完不会回填已有的那些。
 

@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -173,7 +173,7 @@ final class JdbcClient implements Closeable {
         properties.setProperty("password", config.get(prefix + ".password", ""));
         properties.setProperty("connectTimeout",
                 String.valueOf(config.getInt(prefix + ".connect-timeout-seconds", 5)));
-        properties.setProperty("ApplicationName", "ragent-initializer");
+        properties.setProperty("ApplicationName", "starlineagent-initializer");
         return DriverManager.getConnection(config.require(prefix + ".jdbc-url"), properties);
     }
 
@@ -183,7 +183,7 @@ final class JdbcClient implements Closeable {
         }
         Path driverJar = locateDriverJar();
         if (driverJar == null) {
-            throw new SQLException("未找到 PostgreSQL JDBC 驱动。请先构建 RagentAI，"
+            throw new SQLException("未找到 PostgreSQL JDBC 驱动。请先构建 StarlineAgentAI，"
                     + "或通过 database.jdbc-driver-path 指定 postgresql-*.jar");
         }
         driverClassLoader = new URLClassLoader(new URL[]{driverJar.toUri().toURL()},
@@ -252,7 +252,7 @@ final class JdbcClient implements Closeable {
                 JarEntry entry = entries.nextElement();
                 String name = entry.getName();
                 if (name.startsWith("BOOT-INF/lib/") && isPostgresDriverJar(Path.of(name).getFileName().toString())) {
-                    extractedDriver = Files.createTempFile("ragent-postgresql-driver-", ".jar");
+                    extractedDriver = Files.createTempFile("starlineagent-postgresql-driver-", ".jar");
                     try (InputStream input = jar.getInputStream(entry)) {
                         Files.copy(input, extractedDriver, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                     }

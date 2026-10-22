@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.io.IOException;
 import java.net.URI;
@@ -25,7 +25,7 @@ final class ApplicationYamlConfig {
 
     static Properties load(Path file) throws IOException {
         if (!Files.isRegularFile(file)) {
-            throw new IllegalArgumentException("RagentAI application.yaml 不存在: " + file);
+            throw new IllegalArgumentException("StarlineAgentAI application.yaml 不存在: " + file);
         }
         Map<String, String> yaml = readScalarValues(file);
         Properties result = new Properties();
@@ -53,7 +53,7 @@ final class ApplicationYamlConfig {
 
         result.setProperty("execution.expected-vector-type", value(yaml, "rag.vector.type", ""));
         result.setProperty("execution.expected-storage-type", value(yaml, "rag.storage.type", ""));
-        result.setProperty("execution.engine-type", value(yaml, "ragent.engine.type", ""));
+        result.setProperty("execution.engine-type", value(yaml, "starlineagent.engine.type", ""));
         result.setProperty("agent.chat.provider", value(yaml, "agent.chat.provider", ""));
         result.setProperty("agent.chat.model", value(yaml, "agent.chat.model", ""));
 
@@ -69,7 +69,7 @@ final class ApplicationYamlConfig {
     }
 
     /**
-     * 只取 mcp-server 那份 yml 里的 ragent.bit 一段
+     * 只取 mcp-server 那份 yml 里的 starlineagent.bit 一段
      * <p>
      * 业务库的表结构归 mcp-server 建，库的身份自然也以它那份配置为准，两边各写一遍迟早对不上。
      * 这里不复用 load：那份 yml 里没有 spring.datasource 也没有 redis，整份读会先炸在与业务库无关的必填项上
@@ -80,7 +80,7 @@ final class ApplicationYamlConfig {
         }
         Map<String, String> yaml = readScalarValues(file);
         Properties result = new Properties();
-        applyDatasource(yaml, file, result, "ragent.bit.datasource", "biz-database");
+        applyDatasource(yaml, file, result, "starlineagent.bit.datasource", "biz-database");
         return result;
     }
 

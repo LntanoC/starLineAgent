@@ -19,7 +19,7 @@ services:
     environment: &langfuse-worker-env
       NEXTAUTH_URL: http://localhost:3000
       DATABASE_URL: postgresql://postgres:langfuse@postgres:5432/postgres
-      SALT: ragent-langfuse-local-salt
+      SALT: starlineagent-langfuse-local-salt
       # openssl rand -hex 32，必须是 64 位 hex
       ENCRYPTION_KEY: 9cc413bc319488878c22c7558ae3853bfc54b350e5baa2db404b660ac15bd2ef
       # 本机排查栈不往上游回传使用统计
@@ -64,15 +64,15 @@ services:
       - "3000:3000"
     environment:
       <<: *langfuse-worker-env
-      NEXTAUTH_SECRET: ragent-langfuse-local-nextauth-secret
+      NEXTAUTH_SECRET: starlineagent-langfuse-local-nextauth-secret
       # 首次启动自动建组织、项目、账号与固定密钥，起栈即可用，不必登 UI 复制密钥
-      LANGFUSE_INIT_ORG_ID: ragent-local-org
-      LANGFUSE_INIT_ORG_NAME: ragent
-      LANGFUSE_INIT_PROJECT_ID: ragent-local
-      LANGFUSE_INIT_PROJECT_NAME: ragent-service
-      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: pk-lf-ragent-local
-      LANGFUSE_INIT_PROJECT_SECRET_KEY: sk-lf-ragent-local
-      LANGFUSE_INIT_USER_EMAIL: admin@ragent.dev
+      LANGFUSE_INIT_ORG_ID: starlineagent-local-org
+      LANGFUSE_INIT_ORG_NAME: starlineagent
+      LANGFUSE_INIT_PROJECT_ID: starlineagent-local
+      LANGFUSE_INIT_PROJECT_NAME: starlineagent-service
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: pk-lf-starlineagent-local
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: sk-lf-starlineagent-local
+      LANGFUSE_INIT_USER_EMAIL: admin@starlineagent.dev
       LANGFUSE_INIT_USER_NAME: admin
       LANGFUSE_INIT_USER_PASSWORD: admintrace
       # Web 启动峰值高于 Worker，单独覆盖共享环境里的堆上限

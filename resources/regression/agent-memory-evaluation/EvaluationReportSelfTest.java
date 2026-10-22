@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -18,7 +18,7 @@ public final class EvaluationReportSelfTest {
     private EvaluationReportSelfTest() { }
 
     public static void main(String[] args) throws Exception {
-        Path directory = Files.createTempDirectory("ragent-memory-report-selftest-");
+        Path directory = Files.createTempDirectory("starlineagent-memory-report-selftest-");
         Map<String, Object> base = metadata("state");
         Map<String, Object> first = turn("1", true, 100, 90, true);
         Map<String, Object> second = turn("2", true, 900, 0, true);

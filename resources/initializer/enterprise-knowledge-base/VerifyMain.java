@@ -1,5 +1,5 @@
 /* Licensed to the Apache Software Foundation (ASF) under the Apache License, Version 2.0. */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 public final class VerifyMain {
     private VerifyMain() {

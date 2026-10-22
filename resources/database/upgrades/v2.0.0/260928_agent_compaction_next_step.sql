@@ -4,7 +4,7 @@
 -- 七节结构与小节标题不变，validate 数的 `## ` 行数不受影响。
 -- 仅覆盖内置智能体，整段覆盖同一份定稿，可重复执行；用户复制的智能体不受影响。
 -- 不按内容做幂等守卫：这段提示词改过多版，任何特征串都可能撞上中间版本。
--- 执行后清理 Redis key：ragent:agent:resolved-prompts:v2，或重新保存人设。
+-- 执行后清理 Redis key：starlineagent:agent:resolved-prompts:v2，或重新保存人设。
 -- 否则缓存最多 1 小时后过期，重启进程不会清除。
 
 UPDATE t_agent_prompt

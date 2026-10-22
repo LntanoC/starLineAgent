@@ -24,7 +24,7 @@
 --   GROUP BY m.user_id
 --   ORDER BY skipped_messages DESC;
 -- 三段提示词仅覆盖内置智能体，可重复执行；用户复制的智能体不受影响。
--- 执行后清理 Redis key：ragent:agent:resolved-prompts:v2，或重新保存人设。
+-- 执行后清理 Redis key：starlineagent:agent:resolved-prompts:v2，或重新保存人设。
 -- 否则缓存最多 1 小时后过期，重启进程不会清除。
 
 -- 一、长期记忆按用户顺序处理，支持清空全部记忆

@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 /** Common lifecycle and exit handling for every Main entry point. */
 final class MainSupport {
@@ -17,7 +17,7 @@ final class MainSupport {
             action.execute(context);
         } catch (Exception ex) {
             System.err.println("[initializer] FAILED: " + ex.getMessage());
-            if (Boolean.parseBoolean(System.getenv().getOrDefault("RAGENT_INITIALIZER_DEBUG", "false"))) {
+            if (Boolean.parseBoolean(System.getenv().getOrDefault("STARLINEAGENT_INITIALIZER_DEBUG", "false"))) {
                 ex.printStackTrace(System.err);
             }
             System.exit(1);

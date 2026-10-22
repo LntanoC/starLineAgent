@@ -18,8 +18,8 @@ if [[ "${1:-}" == "--replay" ]]; then
   fi
   target_dir="$suite_dir/artifacts/$(date +%Y%m%d-%H%M%S)-replay"
   replay_status=0
-  (cd -- "$repo_dir" && RAGENT_COMPACTION_REPLAY_SOURCE="$source_dir" RAGENT_COMPACTION_REPLAY_TARGET="$target_dir" \
-    RAGENT_COMPACTION_REPLAY_SUITE="$suite_dir" RAGENT_COMPACTION_REPLAY_REPEAT="$repeat" \
+  (cd -- "$repo_dir" && STARLINEAGENT_COMPACTION_REPLAY_SOURCE="$source_dir" STARLINEAGENT_COMPACTION_REPLAY_TARGET="$target_dir" \
+    STARLINEAGENT_COMPACTION_REPLAY_SUITE="$suite_dir" STARLINEAGENT_COMPACTION_REPLAY_REPEAT="$repeat" \
     mvn -q -pl agent -am test -Dtest=AgentCompactionReplayLiveTest -Dsurefire.failIfNoSpecifiedTests=false) \
     || replay_status=$?
   if [[ ! -f "$target_dir/facts.json" ]]; then
@@ -35,9 +35,9 @@ javac -encoding UTF-8 -d "$classes_dir" \
   "$suite_dir"/*.java
 cd -- "$repo_dir"
 if [[ "${1:-}" == "--self-test" ]]; then
-  exec java -cp "$classes_dir" com.nageoffer.ai.ragent.initializer.CompactionChecksSelfTest "$suite_dir"
+  exec java -cp "$classes_dir" com.nageoffer.ai.starlineagent.initializer.CompactionChecksSelfTest "$suite_dir"
 fi
-main=(java -cp "$classes_dir" com.nageoffer.ai.ragent.initializer.CompactionRegressionMain --suite-dir "$suite_dir" "$@")
+main=(java -cp "$classes_dir" com.nageoffer.ai.starlineagent.initializer.CompactionRegressionMain --suite-dir "$suite_dir" "$@")
 if [[ -n "$replay_status" ]]; then
   # 有会话没重放完时报告照出，但退出码不能是 0
   "${main[@]}" || exit $?

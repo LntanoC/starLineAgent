@@ -1,7 +1,7 @@
 -- v2.0.0 261003 内置智能体的上下文摘要、长期记忆抽取与合并提示词定稿
 -- 前置脚本：260928_agent_compaction_next_step.sql
 -- 仅覆盖内置智能体，整段覆盖、可重复执行；用户复制的智能体不受影响
--- 执行后清理 Redis key ragent:agent:resolved-prompts:v2，或重新保存人设；重启进程不会清缓存
+-- 执行后清理 Redis key starlineagent:agent:resolved-prompts:v2，或重新保存人设；重启进程不会清缓存
 
 UPDATE t_agent_prompt
 SET content     = $prompt$# 任务

@@ -4,11 +4,11 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
-import com.nageoffer.ai.ragent.initializer.AgentStateProbe.Snapshot;
-import com.nageoffer.ai.ragent.initializer.AgentStateProbe.ToolResult;
-import com.nageoffer.ai.ragent.initializer.AgentStateProbe.Usage;
+import com.nageoffer.ai.starlineagent.initializer.AgentStateProbe.Snapshot;
+import com.nageoffer.ai.starlineagent.initializer.AgentStateProbe.ToolResult;
+import com.nageoffer.ai.starlineagent.initializer.AgentStateProbe.Usage;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

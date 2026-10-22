@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-package com.nageoffer.ai.ragent.initializer;
+package com.nageoffer.ai.starlineagent.initializer;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -72,7 +72,7 @@ public final class CompactionRegressionMain {
             System.exit(failed ? 1 : 0);
         } catch (Exception ex) {
             System.err.println("[compaction] FAILED: " + describe(ex));
-            if (Boolean.parseBoolean(System.getenv().getOrDefault("RAGENT_REGRESSION_DEBUG", "false"))) {
+            if (Boolean.parseBoolean(System.getenv().getOrDefault("STARLINEAGENT_REGRESSION_DEBUG", "false"))) {
                 ex.printStackTrace(System.err);
             }
             System.exit(1);
