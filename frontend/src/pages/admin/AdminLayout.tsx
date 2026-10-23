@@ -26,6 +26,7 @@ import {
   Users,
   FolderKanban,
   Workflow,
+  Globe2,
   type LucideIcon
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
@@ -157,6 +158,11 @@ const menuGroups: MenuGroup[] = [
         label: "审计日志",
         icon: ShieldCheck
       },
+      {
+        path: "/admin/starline-sources",
+        label: "星序来源清单",
+        icon: Globe2
+      },
     ]
   },
   {
@@ -192,6 +198,7 @@ const breadcrumbMap: Record<string, string> = {
   ingestion: "数据通道",
   traces: "链路追踪",
   "change-logs": "审计日志",
+  "starline-sources": "星序来源清单",
   "sample-questions": "示例问题",
   mappings: "关键词映射",
   settings: "系统设置",

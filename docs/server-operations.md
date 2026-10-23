@@ -45,6 +45,475 @@ stat -c '%a %n' /home/ubuntu/starline-infra /home/ubuntu/starline-infra/.env /ho
 - `.env` 权限为 `600`，项目目录权限为 `700`；未把密码值记入本文件。
 - 数据持久化在 Docker 命名卷 `starline_postgres_data` 和 `starline_redis_data`。
 
+## 2026-10-22：核查应用部署前置条件
+
+### 执行前计划
+
+先通过 SSH 执行只读检查，确认服务器系统、资源、Docker/Compose 状态、现有基础服务和应用目录；不输出 `.env` 或任何凭据内容。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; printf "HOST "; hostname; printf "OS "; . /etc/os-release; printf "%s %s\\n" "$ID" "$VERSION_ID"; printf "ARCH "; uname -m; printf "MEMORY\\n"; free -h; printf "DISK\\n"; df -h /; printf "DOCKER\\n"; if command -v docker >/dev/null 2>&1; then sudo -n docker --version; sudo -n docker compose version; sudo -n docker compose -f /home/ubuntu/starline-infra/compose.yaml ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"; else echo absent; fi; printf "APP_DIR "; if test -d /opt/starline; then ls -ld /opt/starline; else echo absent; fi'
+```
+
+### 只读检查结果（2026-10-22）
+
+- SSH 连接成功；服务器为 Ubuntu 22.04 / x86_64，内存 7.6 GiB，根盘 59 GiB（可用约 51 GiB）。
+- Docker 29.9.2 与 Docker Compose v5.6.1 已安装。
+- PostgreSQL 与 Redis 容器均 healthy，分别只监听 `127.0.0.1:5432`、`127.0.0.1:6379`。
+- `/opt/starline` 尚不存在；目前服务器只有基础数据库和缓存，没有应用容器。
+- 本次检查为只读，无异常；未读取或输出任何凭据。
+
+### 下一步计划：核实数据库是否可安全初始化
+
+执行服务器只读检查：列出基础设施目录中的文件名与权限（不读取文件内容），查询 PostgreSQL 数据库名、`starline` 库中的 public 表名和 pgvector 扩展状态，并检查 Redis 健康；不输出任何环境变量值、密码或 API Key。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; printf "INFRA_FILES\\n"; find /home/ubuntu/starline-infra -maxdepth 1 -type f -printf "%f %m\\n"; printf "DATABASES\\n"; sudo -n docker exec starline-postgres psql -U starline -d starline -Atc "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname"; printf "PUBLIC_TABLES\\n"; sudo -n docker exec starline-postgres psql -U starline -d starline -Atc "SELECT table_name FROM information_schema.tables WHERE table_schema = '\''public'\'' ORDER BY table_name"; printf "VECTOR_EXTENSION\\n"; sudo -n docker exec starline-postgres psql -U starline -d starline -Atc "SELECT extname FROM pg_extension WHERE extname = '\''vector'\''"; printf "REDIS_HEALTH\\n"; sudo -n docker exec starline-redis sh -c '\''REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping'\'''
+```
+
+### 数据库只读检查结果（2026-10-22）
+
+- `/home/ubuntu/starline-infra` 有 `compose.yaml` 与权限为 `600` 的 `.env`；未读取 `.env` 内容。
+- PostgreSQL 中存在 `postgres`、`starline` 两个非模板库；`starline` 当前 public schema 没有业务表，已安装扩展只有 `plpgsql`，尚无 `vector`。
+- Redis 容器健康状态为 `healthy`。
+- 检查只读且成功；数据库目前可视为未初始化的空业务库，后续需先确认初始化脚本及容器镜像是否支持 pgvector，再导入 schema。
+
+### 下一步计划：确认部署接入参数（只读）
+
+检查 Compose 服务名、PostgreSQL 镜像和容器网络，并只列出 `.env` 变量名，以决定应用如何安全复用现有数据库/缓存网络；不输出任何变量值。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; cd /home/ubuntu/starline-infra; printf "COMPOSE_SERVICES\\n"; sudo -n docker compose ps --services; printf "ENV_KEY_NAMES\\n"; awk -F= '\''/^[A-Za-z_][A-Za-z0-9_]*=/{print $1}'\'' .env; printf "POSTGRES_IMAGE "; sudo -n docker inspect -f "{{.Config.Image}}" starline-postgres; printf "POSTGRES_NETWORK "; sudo -n docker inspect -f "{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}" starline-postgres; printf "REDIS_NETWORK "; sudo -n docker inspect -f "{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}" starline-redis'
+```
+
+### 部署接入参数检查结果（2026-10-22）
+
+- `.env` 只包含 `POSTGRES_PASSWORD`、`REDIS_PASSWORD` 两个变量名，未显示变量值；Compose 服务为 `postgres`、`redis`，当前 PostgreSQL 镜像为 `postgres:16.15-bookworm`。
+- 本次只读命令在读取 Docker network 名称时失败：远端 shell 将 Go template 中的 `$k` 当成 shell 变量（`k: unbound variable`）。此前服务名、环境变量名、镜像名均已成功读取，没有改动服务器。
+
+### 修正后检查计划
+
+继续只读检查两个容器的 Docker network mode，使用不含 shell 变量的模板表达式：
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; printf "POSTGRES_NETWORK "; sudo -n docker inspect -f '\''{{.HostConfig.NetworkMode}}'\'' starline-postgres; printf "REDIS_NETWORK "; sudo -n docker inspect -f '\''{{.HostConfig.NetworkMode}}'\'' starline-redis'
+```
+
+### Compose 网络检查结果（2026-10-22）
+
+- PostgreSQL 与 Redis 均接入 Docker 网络 `starline_default`，无需向公网开放数据库端口；应用容器可加入该网络并通过容器名连接。
+- 修正后的只读检查成功，无服务器数据变更。
+
+### 下一步计划：上传本次应用部署包
+
+在 `/home/ubuntu/starline-infra/releases/starline-20261022` 创建独立发布目录，上传后端可执行 JAR、前端 `dist`、Compose/Nginx 配置和当前完整 PostgreSQL schema/初始化数据脚本。上传不覆盖基础设施 `.env` 或旧数据；当前 JAR 约 225 MB，前端静态资源约 7.5 MB。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'install -d -m 700 /home/ubuntu/starline-infra/releases/starline-20261022'
+scp -o BatchMode=yes C:\Users\cjx\Desktop\starLineAgent\bootstrap\target\bootstrap-0.0.1-SNAPSHOT.jar ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/starline.jar
+scp -o BatchMode=yes C:\Users\cjx\Desktop\starLineAgent\resources\deployment\starline-app.compose.yaml C:\Users\cjx\Desktop\starLineAgent\resources\deployment\pgvector.override.yaml C:\Users\cjx\Desktop\starLineAgent\resources\deployment\nginx.conf C:\Users\cjx\Desktop\starLineAgent\resources\database\schema_pg.sql C:\Users\cjx\Desktop\starLineAgent\resources\database\init_data_pg.sql ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/
+scp -r -o BatchMode=yes C:\Users\cjx\Desktop\starLineAgent\frontend\dist ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/frontend-dist
+```
+
+### 发布目录创建结果（2026-10-22）
+
+- `/home/ubuntu/starline-infra/releases/starline-20261022` 创建成功，权限为 `700`；未覆盖现有目录或文件。
+
+### 部署配置与前端资源上传结果（2026-10-22）
+
+- Compose/Nginx 配置、`schema_pg.sql`、`init_data_pg.sql` 与 `frontend/dist` 上传成功。
+- 后端 JAR 的 SCP 已运行超过 30 秒，当前工具返回时未给出完成状态；尚不假定上传成功，接下来只读核对远端文件大小，待完整后再校验 SHA-256。
+
+### 下一步计划：检查上传落盘状态
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; printf "RELEASE_FILES\\n"; find /home/ubuntu/starline-infra/releases/starline-20261022 -maxdepth 2 -type f -printf "%P %s bytes\\n" | sort'
+```
+
+### 发布包落盘结果（2026-10-22）
+
+- 发布目录包含 Compose/Nginx 配置、两份数据库 SQL 和前端静态资源。
+- 远端 `starline.jar` 大小为 `224573572` 字节，与本地构建产物一致。
+- 本地 JAR SHA-256：`16c0a6cf0c51d937a3a13b7e40501237f5fe181884f6bfd1ea7b9826a5769b1b`；下一步在服务器核对 SHA-256 后再做部署变更。
+
+### 下一步计划：远端校验后端制品
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sha256sum /home/ubuntu/starline-infra/releases/starline-20261022/starline.jar'
+```
+
+### JAR 校验结果（2026-10-22）
+
+- 远端 SHA-256 与本地构建产物一致：`16c0a6cf0c51d937a3a13b7e40501237f5fe181884f6bfd1ea7b9826a5769b1b`。
+
+### 下一步计划：安全生成 RustFS 凭据并验证 Compose
+
+服务器 `.env` 当前只含 PostgreSQL/Redis 凭据变量。若 RustFS 两个变量尚不存在，则在服务器生成随机十六进制值并写入同一 `.env`；不回显值、不记录值，权限设为 `600`。随后只执行 Compose 静态配置校验，不启动服务。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'python3 -c '\''import os,pathlib,secrets; p=pathlib.Path("/home/ubuntu/starline-infra/.env"); lines=p.read_text().splitlines(); keys={x.split("=",1)[0] for x in lines if "=" in x and not x.lstrip().startswith("#")}; new=[("RUSTFS_ACCESS_KEY",secrets.token_hex(12)),("RUSTFS_SECRET_KEY",secrets.token_hex(32))]; lines += [f"{k}={v}" for k,v in new if k not in keys]; p.write_text("\\n".join(lines)+"\\n"); os.chmod(p,0o600); print("RustFS credentials present; .env mode 600")'\''; cd /home/ubuntu/starline-infra; sudo -n docker compose --env-file .env -f releases/starline-20261022/starline-app.compose.yaml config --quiet; sudo -n docker compose -p starline --env-file .env -f compose.yaml -f releases/starline-20261022/pgvector.override.yaml config --quiet'
+```
+
+### RustFS 凭据与 Compose 配置结果（2026-10-22）
+
+- 在服务器 `.env` 中生成了 RustFS 随机凭据；值未回显或写入日志，文件权限保持 `600`。
+- 应用 Compose 与 PostgreSQL pgvector 覆盖 Compose 的 `config --quiet` 均成功，未启动服务。
+
+### 下一步计划：拉取运行镜像
+
+只拉取 PostgreSQL 16 pgvector 变体、RustFS、Java 17 JRE 和 Nginx 镜像，不停止或修改现有容器。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'cd /home/ubuntu/starline-infra; sudo -n docker compose -p starline --env-file .env -f compose.yaml -f releases/starline-20261022/pgvector.override.yaml pull postgres; sudo -n docker compose --env-file .env -f releases/starline-20261022/starline-app.compose.yaml pull'
+```
+
+### 运行镜像拉取结果（2026-10-22）
+
+- `pgvector/pgvector:pg16`、`rustfs/rustfs:1.0.0-alpha.72`、`eclipse-temurin:17-jre`、`nginx:alpine` 均拉取成功。
+- 尚未停止现有容器或变更数据库。
+
+### 下一步计划：检查 pgvector 镜像内的 PostgreSQL 版本
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker run --rm --network none --entrypoint postgres pgvector/pgvector:pg16 --version'
+```
+
+### pgvector 镜像版本检查结果（2026-10-22）
+
+- 目标镜像内 PostgreSQL 版本为 `16.15`，与当前容器使用的 PostgreSQL 16.15 同版本，可保留原 PostgreSQL 16 数据卷。
+
+### 下一步计划：备份现有业务库
+
+备份 `/home/ubuntu/starline-infra/backups/starline-before-pgvector-20261022.dump`，限制目录 `700`、备份文件 `600`；只备份空的 `starline` 业务库，不读取备份内容。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; mkdir -p /home/ubuntu/starline-infra/backups; chmod 700 /home/ubuntu/starline-infra/backups; umask 077; sudo -n docker exec starline-postgres pg_dump -U starline -d starline -Fc > /home/ubuntu/starline-infra/backups/starline-before-pgvector-20261022.dump; chmod 600 /home/ubuntu/starline-infra/backups/starline-before-pgvector-20261022.dump; stat -c "%a %s %n" /home/ubuntu/starline-infra/backups/starline-before-pgvector-20261022.dump'
+```
+
+### 数据库备份结果（2026-10-22）
+
+- 备份成功，文件为 `/home/ubuntu/starline-infra/backups/starline-before-pgvector-20261022.dump`，大小 `873` 字节、权限 `600`；未读取备份内容。
+
+### 下一步计划：切换为含 pgvector 的 PostgreSQL 镜像
+
+使用原 Compose 与 pgvector 覆盖文件重建 `postgres` 服务；保留原命名数据卷和 `127.0.0.1:5432` 端口绑定，不执行 volume 删除命令。随后查询服务健康状态、镜像和 vector 扩展可用性。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; cd /home/ubuntu/starline-infra; sudo -n docker compose -p starline --env-file .env -f compose.yaml -f releases/starline-20261022/pgvector.override.yaml up -d postgres; sudo -n docker compose -p starline --env-file .env -f compose.yaml -f releases/starline-20261022/pgvector.override.yaml ps postgres; sudo -n docker inspect -f "{{.Name}} {{.Config.Image}} {{.State.Status}} {{json .NetworkSettings.Ports}}" starline-postgres; sudo -n docker exec starline-postgres pg_isready -U starline -d starline; sudo -n docker exec starline-postgres psql -U starline -d starline -Atc "SELECT name FROM pg_available_extensions WHERE name = '\''vector'\''"'
+```
+
+### PostgreSQL pgvector 切换结果（2026-10-22）
+
+- `starline-postgres` 已使用 `pgvector/pgvector:pg16`（PostgreSQL 16.15）重建；原命名数据卷保留。
+- PostgreSQL 可接受连接，`vector` 扩展文件可用；5432 仍只绑定 `127.0.0.1`。容器健康检查刚启动时显示 `starting`，连接已验证正常。
+- 未删除卷或数据库；接下来仅向原本为空的 `starline` 库导入当前全量 schema。
+
+### 下一步计划：初始化数据库 schema
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker exec -i starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline < /home/ubuntu/starline-infra/releases/starline-20261022/schema_pg.sql'
+```
+
+### 全量 schema 导入结果（2026-10-22）
+
+- `schema_pg.sql` 执行成功，创建项目表、索引、注释并启用 vector 扩展；`psql -v ON_ERROR_STOP=1` 未报错。
+
+### 下一步计划：导入项目基础初始化数据
+
+在新建的空表中执行项目 `init_data_pg.sql`，用于创建初始管理员及 Agent 模板数据；不执行清理或覆盖命令。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker exec -i starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline < /home/ubuntu/starline-infra/releases/starline-20261022/init_data_pg.sql'
+```
+
+### 初始化数据导入结果（2026-10-22）
+
+- 未执行 `init_data_pg.sql`。自动审批明确拒绝该动作，原因是脚本会持久化弱默认管理员凭据；此拒绝遵循审批结果，不通过转换或间接执行该脚本。
+- `t_user` 等初始化种子数据目前未导入；没有创建替代管理员凭据或密码文件。数据库 schema 已存在，应用可继续部署，但登录/需要用户身份的业务操作暂不可用。
+
+### 下一步计划：先启动 RustFS 对象存储
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker compose --env-file /home/ubuntu/starline-infra/.env -f /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml up -d starline-rustfs; sleep 5; sudo -n docker inspect -f "{{.Name}} {{.State.Status}} {{.State.Running}}" starline-rustfs'
+```
+
+### RustFS 启动结果（2026-10-22）
+
+- `starline-rustfs` 容器已启动并保持 `running`；创建了独立命名数据卷 `starline-20261022_starline-rustfs-data`。未发布 S3/控制台端口到服务器公网。
+
+### 下一步计划：启动 API 与前端
+
+启动 Spring Boot 与 Nginx 服务，等待端口响应；只查询容器状态、HTTP 状态码和筛选后的应用启动/错误日志，不输出环境变量。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker compose --env-file /home/ubuntu/starline-infra/.env -f /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml up -d starline-api starline-web; sleep 25; sudo -n docker inspect -f "{{.Name}} {{.State.Status}}" starline-api starline-web; printf "WEB_HTTP "; curl -sS -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:8080/; printf "API_HTTP "; curl -sS -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:9090/api/starlineagent/starline/events; sudo -n docker logs --since=3m --tail=80 starline-api 2>&1 | grep -E "Started .*Application|Application run failed|ERROR|Exception" | tail -n 25 || true'
+```
+
+### API/前端首次启动结果（2026-10-22）
+
+- `starline-api` 与 `starline-web` 容器已创建，但服务尚未正常可用。
+- `http://127.0.0.1:8080/` 返回 `403`；初步判断 Nginx 运行用户无法穿过权限为 `700` 的发布目录，待只读核实目录权限。
+- `http://127.0.0.1:9090/api/starlineagent/starline/events` 返回空响应；后端日志显示启动失败：RocketMQ Listener Bean Post Processor 连接 NameServer/Broker 失败（`connect to null failed`）。项目当前配置默认 `127.0.0.1:9876`，容器内没有 RocketMQ。
+- 本次仅启动容器并读取状态/日志，没有修改数据库数据或导入默认用户。
+
+### 下一步计划：只读核实容器重启与静态目录权限
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; stat -c "%a %U:%G %n" /home/ubuntu/starline-infra/releases/starline-20261022 /home/ubuntu/starline-infra/releases/starline-20261022/frontend-dist /home/ubuntu/starline-infra/releases/starline-20261022/frontend-dist/index.html; sudo -n docker inspect -f "{{.Name}} status={{.State.Status}} restart={{.RestartCount}}" starline-api starline-web starline-rustfs'
+```
+
+### 首次启动诊断结果（2026-10-22）
+
+- 发布目录和 `frontend-dist` 均为 `700`，文件由 ubuntu 拥有，确认 Nginx 无法遍历目录；前端返回 403 的原因已定位。
+- `starline-api` 自动重启 3 次，`starline-web` 与 `starline-rustfs` 正常运行。
+
+### 下一步计划：只调整公开静态资源读取权限
+
+发布目录和静态资源目录设为 `755`，静态文件设为 `644`，以便 Nginx 容器读取。该目录不含 `.env` 或密钥。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; chmod 755 /home/ubuntu/starline-infra/releases/starline-20261022 /home/ubuntu/starline-infra/releases/starline-20261022/frontend-dist; find /home/ubuntu/starline-infra/releases/starline-20261022/frontend-dist -type d -exec chmod 755 {} +; find /home/ubuntu/starline-infra/releases/starline-20261022/frontend-dist -type f -exec chmod 644 {} +'
+```
+
+### 静态目录权限修正结果（2026-10-22）
+
+- 发布目录与 `frontend-dist` 已设为 `755`，子目录 `755`、静态文件 `644`；未调整 `.env` 或任何凭据文件。
+
+### 下一步计划：重新读取网页静态入口
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'curl -sS -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:8080/'
+```
+
+### 前端权限修复结果（2026-10-22）
+
+- `http://127.0.0.1:8080/` 返回 HTTP `200`，Nginx 已能读取前端入口。
+
+### 下一步计划：更新 RocketMQ 部署配置
+
+本地部署 Compose 已补入 RocketMQ 服务和 Broker 网络配置；先将 `starline-app.compose.yaml` 与 `rocketmq-broker.conf` 上传覆盖本次发布目录中的同名配置，随后静态校验并拉取 RocketMQ 镜像。
+
+```powershell
+scp -o BatchMode=yes C:\Users\cjx\Desktop\starLineAgent\resources\deployment\starline-app.compose.yaml C:\Users\cjx\Desktop\starLineAgent\resources\deployment\rocketmq-broker.conf ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/
+```
+
+### RocketMQ 配置上传结果（2026-10-22）
+
+- 更新后的 `starline-app.compose.yaml` 与 `rocketmq-broker.conf` 上传成功，未覆盖 JAR、前端或数据库文件。
+
+### 下一步计划：校验 Compose 并拉取 RocketMQ 镜像
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'cd /home/ubuntu/starline-infra; sudo -n docker compose --env-file .env -f releases/starline-20261022/starline-app.compose.yaml config --quiet; sudo -n docker compose --env-file .env -f releases/starline-20261022/starline-app.compose.yaml pull starline-rocketmq-namesrv starline-rocketmq-broker'
+```
+
+### RocketMQ 配置校验与镜像拉取结果（2026-10-22）
+
+- 更新后的 Compose `config --quiet` 成功；`apache/rocketmq:5.2.0` 拉取成功。
+- Nginx 前端入口已验证 HTTP `200`。API 首次启动仍等待 RocketMQ 服务就绪。
+
+### 下一步计划：启动 NameServer 与 Broker
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker compose --env-file /home/ubuntu/starline-infra/.env -f /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml up -d starline-rocketmq-namesrv starline-rocketmq-broker; sleep 15; sudo -n docker inspect -f "{{.Name}} status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}" starline-rocketmq-namesrv starline-rocketmq-broker'
+```
+
+### RocketMQ 启动结果（2026-10-22）
+
+- NameServer 容器已运行且健康；Broker 容器已启动，健康检查仍处于 `starting`，尚未启动 API。
+- 新建 RocketMQ 数据卷用于 Broker 消息持久化；消息队列端口未发布到服务器主机。
+
+### 下一步计划：等待 Broker 健康并查看启动摘要
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sleep 10; sudo -n docker inspect -f "{{.Name}} status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}" starline-rocketmq-namesrv starline-rocketmq-broker; sudo -n docker logs --since=5m --tail=80 starline-rocketmq-broker 2>&1 | grep -E "boot success|register|ERROR|Exception" | tail -n 20 || true'
+```
+
+### RocketMQ Broker 健康检查结果（2026-10-22）
+
+- NameServer 健康；Broker 状态为 `restarting`、健康检查为 `unhealthy`，筛选日志只显示 `java.lang.NullPointerException`。
+- API 仍未启动或重试，当前发布目录服务未向公网开放端口。
+
+### 下一步计划：读取 Broker 异常栈与镜像网络元数据
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; sudo -n docker logs --tail=120 starline-rocketmq-broker 2>&1 | tail -n 80; printf "IMAGE_ENTRYPOINT "; sudo -n docker image inspect -f "{{json .Config.Entrypoint}} {{json .Config.Cmd}}" apache/rocketmq:5.2.0; printf "APP_NETWORK "; sudo -n docker network inspect -f "{{range .IPAM.Config}}{{.Subnet}} gateway={{.Gateway}}{{end}}" starline_default'
+```
+
+### Broker 诊断信息（2026-10-22）
+
+- Broker 异常栈末尾的 `NullPointerException` 位于退出清理阶段的 `ScheduleMessageService.configFilePath`；单凭该尾部异常不足以确定首个启动失败原因。
+- `apache/rocketmq:5.2.0` 镜像入口为 `./docker-entrypoint.sh`，内部网络网段为 `172.18.0.0/16`。
+
+### 下一步计划：读取首个启动异常与镜像入口脚本
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; sudo -n docker logs --tail=300 starline-rocketmq-broker 2>&1 | grep -n -B 12 -A 18 -E "Exception|ERROR|Failed|failed|Caused by" | tail -n 100 || true; printf "ENTRYPOINT_SCRIPT\\n"; sudo -n docker run --rm --network none --entrypoint sh apache/rocketmq:5.2.0 -c '\''pwd; sed -n "1,160p" ./docker-entrypoint.sh'\'''
+```
+
+### Broker 启动脚本诊断结果（2026-10-22）
+
+- 镜像入口脚本会透传自定义命令；容器标准输出只有日志初始化信息及退出阶段 NPE，尚未定位首个配置错误。
+
+### 下一步计划：读取 Broker 内部启动日志
+
+从容器文件系统读取 Broker 日志并只筛选错误/异常上下文，不读取环境变量或凭据：
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker cp starline-rocketmq-broker:/home/rocketmq/logs/rocketmqlogs/broker.log - | tar -xzO 2>/dev/null | grep -n -B 10 -A 15 -E "ERROR|Exception|WARN" | tail -n 120 || true'
+```
+
+### Broker 内部日志检查结果（2026-10-22）
+
+- 指定的 `broker.log` 路径未产生筛选输出，尚未找到 Broker 首个启动错误；不能据此断定日志文件存在或服务正常。
+
+### 下一步计划：列出容器内日志文件路径
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -o pipefail; sudo -n docker cp starline-rocketmq-broker:/home/rocketmq/logs - | tar -tz | head -n 80'
+```
+
+### RocketMQ 日志目录检查补充（2026-10-22）
+
+- 本机 `rocketmq-broker.conf` 以 ASCII/UTF-8 普通文本开头，无 UTF-8 BOM，排除 BOM 导致属性名读取异常的假设。
+- 容器日志目录导出检查失败：`docker cp ... -` 输出未压缩 tar，上一条命令误用 `tar -z`；未修改服务器数据。
+
+### 修正后检查计划
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -o pipefail; sudo -n docker cp starline-rocketmq-broker:/home/rocketmq/logs - | tar -t | head -n 80'
+```
+
+### RocketMQ 日志路径检查结果（2026-10-22）
+
+- 容器日志文件存在：`broker.log`、`broker_default.log`、`store.log`。此前没有输出是因为错误地按 gzip 解包且隐藏了 tar 错误。
+
+### 下一步计划：读取 Broker 日志末尾
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -o pipefail; sudo -n docker cp starline-rocketmq-broker:/home/rocketmq/logs/rocketmqlogs/broker.log - | tar -xO | tail -n 100'
+```
+
+### Broker 日志末尾检查结果（2026-10-22）
+
+- Broker 日志显示启动随后进入 shutdown；尾部报错为清理时无法写 `/home/rocketmq/store/config/*`，目录尚未创建。这仍可能是启动失败的次生错误，尚未确认首个错误。
+
+### 下一步计划：读取 Broker 日志开头
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -o pipefail; sudo -n docker cp starline-rocketmq-broker:/home/rocketmq/logs/rocketmqlogs/broker.log - | tar -xO | head -n 120'
+```
+
+### Broker 日志开头检查结果（2026-10-22）
+
+- Broker 配置日志能读到 `namesrvAddr=starline-rocketmq-namesrv:9876`、`brokerIP1=starline-rocketmq-broker`，配置挂载已生效；日志前 120 行主要是参数摘要，尚未包含首个错误。
+
+### 下一步计划：搜索 Broker 日志中的首个错误
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker cp starline-rocketmq-broker:/home/rocketmq/logs/rocketmqlogs/broker.log - | tar -xO | grep -ni -B 10 -A 25 -E "error|exception|failed|fatal" | head -n 120 || true'
+```
+
+### Broker 错误搜索结果（2026-10-22）
+
+- 宽泛关键词同时匹配了 `maxErrorRateOfBloomFilter` 等正常参数，输出被截断，未能可靠识别首个错误。
+
+### 下一步计划：读取 Broker 启动日志的关键行区间
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker cp starline-rocketmq-broker:/home/rocketmq/logs/rocketmqlogs/broker.log - | tar -xO | sed -n "215,275p"'
+```
+
+### Broker 首个启动错误定位（2026-10-22）
+
+- `broker.log` 确认首个错误为 `FileNotFoundException: /home/rocketmq/store/lock (Permission denied)`，发生在 `DefaultMessageStore` 初始化；此前 `configFilePath` NPE 和缺少 `store/config` 均为失败后的清理错误。
+- Broker 配置已加载。根因指向 RocketMQ 命名数据卷的属主/权限不允许容器内 RocketMQ 用户写入。
+
+### 下一步计划：只读检查专用数据卷属主与 RocketMQ UID
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker run --rm --network none --user 0 -v starline-20261022_starline-rocketmq-store:/data:ro --entrypoint sh apache/rocketmq:5.2.0 -c '\''id rocketmq; stat -c "%a %u:%g %n" /data; find /data -mindepth 1 -maxdepth 2 -printf "%m %u:%g %p\\n" | head -n 40'\'''
+```
+
+### RocketMQ 数据卷权限检查结果（2026-10-22）
+
+- RocketMQ 容器用户 UID/GID 为 `3000:3000`；专用数据卷根目录为 `755 root:root` 且为空，确认为 Broker 无法创建 `store/lock` 的原因。
+
+### 下一步计划：修正专用数据卷属主
+
+只在本次新建且为空的 RocketMQ 数据卷上，将根目录属主改为 `3000:3000`；不修改其他 Docker 卷或主机目录。
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker run --rm --network none --user 0 -v starline-20261022_starline-rocketmq-store:/data --entrypoint chown apache/rocketmq:5.2.0 -R 3000:3000 /data; sudo -n docker run --rm --network none --user 0 -v starline-20261022_starline-rocketmq-store:/data:ro --entrypoint stat apache/rocketmq:5.2.0 -c "%a %u:%g %n" /data'
+```
+
+### RocketMQ 数据卷权限修正结果（2026-10-22）
+
+- 专用数据卷根目录已变为 `755 3000:3000`；该卷在检查时为空，未迁移或覆盖消息数据。
+
+### 下一步计划：重启 Broker 并检查健康状态
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker compose --env-file /home/ubuntu/starline-infra/.env -f /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml restart starline-rocketmq-broker; sleep 20; sudo -n docker inspect -f "{{.Name}} status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} restart={{.RestartCount}}" starline-rocketmq-broker; sudo -n docker logs --since=2m --tail=40 starline-rocketmq-broker 2>&1 | grep -E "boot success|Permission denied|ERROR|Exception" | tail -n 20 || true'
+```
+
+### RocketMQ Broker 启动结果（2026-10-22）
+
+- Broker 已健康运行且 `restart=0`；日志确认 `broker-a` 在 `starline-rocketmq-namesrv:9876` 注册成功，监听 Broker 地址 `starline-rocketmq-broker:10911`。
+- 数据卷权限问题已解决，RocketMQ 端口仍仅在 Docker 内网可见。
+
+### 下一步计划：用新 Compose 配置重建 API 并验证服务
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker compose --env-file /home/ubuntu/starline-infra/.env -f /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml up -d starline-api starline-web; sleep 30; sudo -n docker inspect -f "{{.Name}} status={{.State.Status}} restart={{.RestartCount}}" starline-api starline-web starline-rocketmq-namesrv starline-rocketmq-broker starline-rustfs; printf "WEB_HTTP "; curl -sS --connect-timeout 3 --max-time 8 -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:8080/; printf "API_HTTP "; curl -sS --connect-timeout 3 --max-time 8 -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:9090/api/starlineagent/starline/events; sudo -n docker logs --since=3m --tail=80 starline-api 2>&1 | grep -E "Started .*Application|Application run failed|ERROR|Exception" | tail -n 25 || true'
+```
+
+### API 与前端启动结果（2026-10-22）
+
+- `starline-api`、`starline-web`、`starline-rustfs`、RocketMQ NameServer/Broker 均为 `running`，API 重启次数为 0；NameServer/Broker 健康检查通过。
+- Nginx 网页入口返回 HTTP `200`；API 的演出事件路由可响应 HTTP `200`，日志显示匿名请求被认证层标记为 `not-login`，这是当前未创建管理员账号的预期限制。
+- 首次启动时 AgentScope MCP 默认地址连接失败；核对后发现该地址指向比特严选 MCP。随后 Compose 将远程 MCP 列表置空并重建 API，当前启动正常且无 MCP 连接错误。
+- 模型 API Key 未配置、邮箱提醒开关为 false；尚不能完成模型查询或邮件送达验证。
+
+### 星序 MCP 配置决策（2026-10-22）
+
+- 本地核对确认，仓库 `mcp-server` 提供比特严选工具并依赖独立业务库，当前不纳入 Starline MVP 部署。
+- 本地 Compose 已通过 `SPRING_APPLICATION_JSON` 将 `agent.mcp.servers` 置空；部署说明和变更日志已同步更新。
+
+### 下一步计划：上传 Compose 并重建 API
+
+```powershell
+scp -o BatchMode=yes C:\Users\cjx\Desktop\starLineAgent\resources\deployment\starline-app.compose.yaml ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml
+```
+
+### MCP Compose 配置上传结果（2026-10-22）
+
+- 更新后的 `starline-app.compose.yaml` 上传成功；应用容器仍运行旧配置，尚未重建。
+
+### 下一步计划：校验配置并重建 API
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'sudo -n docker compose --env-file /home/ubuntu/starline-infra/.env -f /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml config --quiet; sudo -n docker compose --env-file /home/ubuntu/starline-infra/.env -f /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml up -d starline-api; sleep 25; sudo -n docker inspect -f "{{.Name}} status={{.State.Status}} restart={{.RestartCount}}" starline-api starline-web; printf "WEB_HTTP "; curl -sS --connect-timeout 3 --max-time 8 -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:8080/; printf "API_HTTP "; curl -sS --connect-timeout 3 --max-time 8 -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:9090/api/starlineagent/starline/events; sudo -n docker logs --since=3m --tail=80 starline-api 2>&1 | grep -E "Started .*Application|AgentScope MCP|Application run failed|ERROR|Exception" | tail -n 20 || true'
+```
+
+### MCP 配置更新与 API 重启结果（2026-10-22）
+
+- 更新后的 Compose 校验成功，API 使用空 MCP 远端列表重新创建并启动；API 重启次数为 0，启动日志不再出现 MCP 连接错误。
+- 网页和演出事件 API 均返回 HTTP `200`；事件 API 日志仍显示匿名请求 `not-login`，与未初始化用户一致。
+
+### 下一步计划：最终核对服务、数据库和端口绑定
+
+```powershell
+ssh -o BatchMode=yes -o ConnectTimeout=10 ubuntu@139.199.191.109 'set -eu; sudo -n docker inspect -f "{{.Name}} status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}} restart={{.RestartCount}} ports={{json .NetworkSettings.Ports}}" starline-postgres starline-redis starline-rustfs starline-rocketmq-namesrv starline-rocketmq-broker starline-api starline-web; printf "PUBLIC_TABLES "; sudo -n docker exec starline-postgres psql -U starline -d starline -Atc "SELECT count(*) FROM pg_tables WHERE schemaname = current_schema()"; printf "INITIAL_USERS "; sudo -n docker exec starline-postgres psql -U starline -d starline -Atc "SELECT count(*) FROM t_user"; printf "VECTOR_EXTENSION "; sudo -n docker exec starline-postgres psql -U starline -d starline -Atc "SELECT extname FROM pg_extension WHERE extname LIKE '\''vect%'\''"; printf "WEB_HTTP "; curl -sS --connect-timeout 3 --max-time 8 -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:8080/; printf "API_HTTP "; curl -sS --connect-timeout 3 --max-time 8 -o /dev/null -w "%{http_code}\\n" http://127.0.0.1:9090/api/starlineagent/starline/events'
+```
+
+### 最终部署核验结果（2026-10-22）
+
+- 7 个容器均为 `running`；PostgreSQL、Redis、RocketMQ NameServer、RocketMQ Broker 健康，应用容器重启次数为 0。
+- 数据库 public schema 有 35 张表，`vector` 扩展已启用；管理员用户数为 0，因为含弱默认凭据的种子没有执行。
+- 网页与 API 本机回环请求均返回 HTTP `200`。PostgreSQL/Redis 仅绑定 `127.0.0.1`；API/网页仅绑定 `127.0.0.1:9090`、`127.0.0.1:8080`；RustFS 与 RocketMQ 未发布主机端口。
+- DeepSeek/Bailian Key 未配置，邮箱开关保持关闭；本次不能验证模型推理或邮件送达。网页登录仍需安全初始化管理员账号。
+- 未修改腾讯云公网防火墙规则；后续通过 SSH 隧道访问。
 ## 2026-10-23：检查 Docker 状态
 
 服务器：`ubuntu@139.199.191.109`（`VM-0-17-ubuntu`）

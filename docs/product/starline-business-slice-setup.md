@@ -11,7 +11,7 @@
 
 ## 数据库
 
-首次部署执行 resources/database/migrations/V001__starline_event_reminders.sql。该脚本可重复执行。
+首次部署按顺序执行 resources/database/migrations/V001__starline_event_reminders.sql 与 V002__starline_platform_sources.sql。两个脚本均可重复执行。
 
 ## 邮件配置
 
@@ -35,3 +35,18 @@
 - DELETE /api/starlineagent/starline/events/{id}/reminder：取消仍处于待发送状态的提醒
 
 所有接口按当前登录用户隔离数据。
+
+## 官方来源平台清单评审
+
+管理员可在 /admin/starline-sources 登记平台级候选域名和调研结论，分别记录产品与研发评审。只有两项评审均通过的来源才会进入可供后续查询适配器使用的已审批清单。任一调研字段修改后需重新评审。
+
+- 页面可访问性、活动/场次字段与开票时间/状态字段可得性
+- 字段稳定性、官方身份依据、更新频率
+- 访问或授权边界
+
+评审 API（当前应用 context path 为 /api/starlineagent）：
+
+- GET /api/starlineagent/starline/admin/platform-sources
+- POST /api/starlineagent/starline/admin/platform-sources
+- PUT /api/starlineagent/starline/admin/platform-sources/{id}
+- POST /api/starlineagent/starline/admin/platform-sources/{id}/reviews
