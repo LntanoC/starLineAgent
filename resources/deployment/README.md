@@ -18,7 +18,7 @@ npm run build
 
 1. 先备份现有 `starline` 数据库，再用 `pgvector/pgvector:pg16` 覆盖原 PostgreSQL 16 镜像；保留原 Docker 数据卷。数据库只绑定回环地址，不改变公网规则。
 2. 在服务器 `.env` 中生成并设置 `RUSTFS_ACCESS_KEY`、`RUSTFS_SECRET_KEY`；保留现有 `POSTGRES_PASSWORD`、`REDIS_PASSWORD`。文件权限设为 `600`。`DEEPSEEK_API_KEY`、`BAILIAN_API_KEY` 与邮箱 SMTP 参数可通过后续运维配置，不要写入 Git。
-3. 在空的 `starline` 数据库执行 `schema_pg.sql`。`init_data_pg.sql` 含弱默认管理员凭据，本部署流程不会导入该种子；须先为管理员选定安全的初始化凭据流程，再初始化账号。
+3. 在空的 starline 数据库执行 schema_pg.sql，再执行 init_data_pg.sql 初始化星序助手人设与提示词。该数据脚本不创建管理员账号；管理员需通过单独的安全流程初始化。
 4. 启动 Compose 中的 RustFS 与 RocketMQ；等 NameServer、Broker 健康后，再启动 API 和 Nginx。
 5. 检查容器状态与本地回环端口 `8080`、`9090`。SMTP 未配置时 `STARLINE_EMAIL_ENABLED` 保持 `false`；未配置 DeepSeek/Bailian Key 时 Agent 的模型调用不可用。未创建管理员账号前，登录和需要身份认证的业务操作不可用。
 

@@ -830,3 +830,269 @@ scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKey
 
 - 14:15 的同步结果成功；该次登记命令把 SCP 目标写成最终配置路径，而脚本实际先下载到 resources/docker/server/.sync-<随机标识>/，再移动到配置目录。服务器读取范围、文件内容和最终同步结果不受影响。
 - 已修正同步脚本，后续预登记会写出实际暂存目录路径。
+
+
+## 2026-10-23 15:28 CST：再次重置 Portainer 管理员密码（执行前登记）
+
+### 目的
+用户再次请求恢复 Portainer 登录；先确认当前容器和数据卷，再用官方重置工具更新 admin 密码。保留现有 Portainer 容器与 portainer_data 数据卷。密码仅回传给用户，不写入日志。
+
+### 执行前登记的只读检查命令
+本地通过 SSH 执行：
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "date '+%F %T %Z'; sudo -n docker ps -a --filter name=portainer --format 'table {{.Names}}	{{.Image}}	{{.Status}}'; sudo -n docker inspect portainer --format 'Name={{.Name}} Image={{.Config.Image}} State={{.State.Status}} Mounts={{range .Mounts}}{{.Type}}:{{.Name}}:{{.Source}}->{{.Destination}};{{end}}'; sudo -n docker image inspect portainer/helper-reset-password --format 'HelperImagePresent={{.Id}}'"
+```
+
+服务器端对应的只读命令：
+```bash
+sudo -n docker ps -a --filter name=portainer --format 'table {{.Names}}	{{.Image}}	{{.Status}}'
+sudo -n docker inspect portainer --format 'Name={{.Name}} Image={{.Config.Image}} State={{.State.Status}} Mounts={{range .Mounts}}{{.Type}}:{{.Name}}:{{.Source}}->{{.Destination}};{{end}}'
+sudo -n docker image inspect portainer/helper-reset-password --format 'HelperImagePresent={{.Id}}'
+```
+
+### 执行前登记的重置命令
+确认 portainer 正在运行、/data 使用现有 portainer_data 卷且官方 helper 镜像可用后执行：
+```bash
+sudo -n docker stop portainer
+sudo -n docker run --rm -v portainer_data:/data portainer/helper-reset-password
+sudo -n docker start portainer
+sleep 2
+sudo -n docker ps --filter name=portainer --format 'table {{.Names}}	{{.Status}}'
+```
+helper 失败时仍尝试启动原 Portainer 容器；不删除容器或数据卷。待检查及重置后补记执行时间、结果和异常。
+
+
+### 执行结果
+
+只读核验时间：2026-10-23 15:29:05 CST。
+
+- 原 portainer 容器运行中，镜像为 portainer/portainer-ce:latest；/data 仍挂载到既有 portainer_data 命名卷。
+- 官方 portainer/helper-reset-password 镜像已存在。
+
+密码重置时间：2026-10-23 15:29:21 CST。
+
+- helper 成功更新 admin 用户密码；随后重新启动原 portainer 容器，状态检查为 Up。
+- 未删除或替换容器、数据卷；新密码只在本次对话中提供，没有写入任何项目记录。
+- 异常：无。
+
+
+## 2026-10-23 15:36 CST：查找星序 Docker 初始化配置（执行前登记）
+
+### 目的
+只读定位服务器上星序实际使用的 Compose、数据库初始化/迁移 SQL、Nginx 和 RocketMQ 配置文件；不读取 .env、密钥或应用数据，不修改服务器文件、容器或网络。
+
+### 本地 SSH 命令
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; date -Is; find /home/ubuntu/starline-infra -maxdepth 5 -type f | grep -E '(compose\.yaml|schema_pg\.sql|init_data_pg\.sql|V[0-9]+__.*\.sql|nginx\.conf|rocketmq-broker\.conf|README\.md)' | sort; printf '\nDocker Compose projects:\n'; sudo -n docker compose ls --all"
+```
+
+### 服务器上拟执行的只读命令
+```bash
+date -Is
+find /home/ubuntu/starline-infra -maxdepth 5 -type f | grep -E '(compose\.yaml|schema_pg\.sql|init_data_pg\.sql|V[0-9]+__.*\.sql|nginx\.conf|rocketmq-broker\.conf|README\.md)' | sort
+sudo -n docker compose ls --all
+```
+
+待执行后补记找到的文件路径与 Compose 项目。
+
+
+### 执行结果
+
+执行时间：2026-10-23 15:36:49 CST。
+
+- Compose 项目 starline 正在运行，配置文件为 /home/ubuntu/starline-infra/compose.yaml 和 /home/ubuntu/starline-infra/releases/starline-20261022/pgvector.override.yaml。
+- Compose 项目 starline-20261022 正在运行，配置文件为 /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml。
+- 同一发布目录找到 schema_pg.sql、init_data_pg.sql、nginx.conf 与 rocketmq-broker.conf。
+- 本次仅查询文件路径与 Compose 项目清单；未读取 .env、数据库内容或凭据，未修改文件或服务。异常：无。
+
+
+## 2026-10-23 15:45 CST：同步星序发布配置及数据库初始化 SQL（执行前登记）
+
+### 目的与范围
+
+只读从服务器发布目录下载 starline-20261022 的六份 Compose 附属配置与数据库 SQL 到本地暂存目录，再整理到 resources/docker/server/releases/starline-20261022/。不读取或复制 .env、JAR、frontend-dist、数据库内容或任何凭据；不执行服务器端 Docker 命令，不改变服务器状态。
+
+### 本地 SCP 命令（执行前登记）
+
+```powershell
+scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" "ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/pgvector.override.yaml" "C:\Users\cjx\Desktop\starLineAgent\resources\docker\server\.sync-release-starline-20261022\pgvector.override.yaml"
+scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" "ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml" "C:\Users\cjx\Desktop\starLineAgent\resources\docker\server\.sync-release-starline-20261022\starline-app.compose.yaml"
+scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" "ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/rocketmq-broker.conf" "C:\Users\cjx\Desktop\starLineAgent\resources\docker\server\.sync-release-starline-20261022\rocketmq-broker.conf"
+scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" "ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/nginx.conf" "C:\Users\cjx\Desktop\starLineAgent\resources\docker\server\.sync-release-starline-20261022\nginx.conf"
+scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" "ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/schema_pg.sql" "C:\Users\cjx\Desktop\starLineAgent\resources\docker\server\.sync-release-starline-20261022\schema_pg.sql"
+scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" "ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/init_data_pg.sql" "C:\Users\cjx\Desktop\starLineAgent\resources\docker\server\.sync-release-starline-20261022\init_data_pg.sql"
+```
+
+全部文件下载且大小非零后才移入版本目录；失败则不替换已有发布文件。执行后补记文件数量、大小、结果和异常。
+
+
+
+### 执行结果
+
+执行时间：2026-10-23 15:45 CST。
+
+- 通过 SCP 从 /home/ubuntu/starline-infra/releases/starline-20261022/ 成功下载六份文件到 resources/docker/server/releases/starline-20261022/：pgvector.override.yaml（57 字节）、starline-app.compose.yaml（3863 字节）、rocketmq-broker.conf（228 字节）、nginx.conf（629 字节）、schema_pg.sql（58137 字节）、init_data_pg.sql（45871 字节）。
+- 新建版本归档目录；项目现有 resources/database/schema_pg.sql（59262 字节）和 init_data_pg.sql 未覆盖。部署版 schema 与当前项目文件大小不同，分别保留。
+- 未复制 .env、JAR、frontend-dist、数据库内容或凭据；未修改服务器。异常：无。
+
+
+## 2026-10-23：排查 Portainer 无法访问（执行前登记）
+
+### 目的与范围
+
+只读检查服务器 Docker 服务、Portainer 容器状态与端口映射、最近错误日志、宿主机 HTTP/HTTPS 响应及磁盘/内存；不重启服务、不修改配置、不读取环境变量或凭据。
+
+### 计划执行的服务器命令
+
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "sudo -n systemctl is-active docker; sudo -n docker ps -a --filter name=portainer --format '{{.Names}} {{.Status}} {{.Ports}}'; sudo -n docker inspect -f '{{.Name}} status={{.State.Status}} running={{.State.Running}} restarts={{.RestartCount}} error={{.State.Error}} ports={{json .NetworkSettings.Ports}} image={{.Config.Image}}' portainer; sudo -n docker logs --since=30m --tail=100 portainer 2>&1 | grep -Ei 'level=(error|fatal)|error|fatal|panic|failed' | tail -n 25; curl -k -sS --max-time 5 -o /dev/null -w 'HTTPS 9443 HTTP %{http_code}\\n' https://127.0.0.1:9443/api/status; curl -sS --max-time 5 -o /dev/null -w 'HTTP 9000 HTTP %{http_code}\\n' http://127.0.0.1:9000/api/status; free -h; df -h /"
+```
+
+执行后补记状态、响应码和排查结论；日志如包含敏感信息不复制到记录。
+
+### 执行结果
+
+执行时间：2026-10-23 CST。
+
+- Docker 服务状态为 active；Portainer 容器运行约 2 小时，重启次数为 0，镜像为 portainer/portainer-ce:latest。
+- Portainer 发布端口为 9443；服务器本机访问 https://127.0.0.1:9443/api/status 返回 HTTP 200。9000 端口未监听，连接被拒绝。
+- 近期筛选日志未发现 error/fatal/panic/failed 条目。
+- 本机可用内存约 5.1 GiB，根分区可用约 47 GiB。
+- 从本机公网访问 https://139.199.191.109:9443/api/status 在 5 秒内超时。结合服务器端 9443 正常，初步判断外部访问被腾讯云安全组/防火墙或上游网络规则阻断；用户先前截图中的规则未见 9443 入站规则。
+- 全程只读，未重启或修改服务、容器、配置；未读取密钥或环境变量。异常：公网 9443 探测超时。
+
+## 2026-10-23：确认公网前端 HTTP 入口（执行前登记）
+
+### 目的与范围
+
+只读确认服务器 TCP 80 是否已被进程占用、UFW 状态以及当前应用 Compose 文件权限；据此决定能否让星序 Web 容器使用已配置的 HTTP 80 入站规则。不会修改配置或服务。
+
+### 计划执行的服务器命令
+
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "sudo -n ss -ltnp 'sport = :80'; sudo -n ufw status; stat -c '%U:%G %a %n' /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml; curl -sS --connect-timeout 3 --max-time 5 -o /dev/null -w 'host HTTP 80 %{http_code}\\n' http://127.0.0.1/"
+```
+
+执行后补记端口占用、UFW 状态、文件权限和 HTTP 响应结果。
+
+### 执行结果
+
+执行时间：2026-10-23 CST。
+
+- 服务器 TCP 80 当前无监听进程；UFW 状态为 inactive；应用 Compose 文件归 ubuntu 用户所有且可写；服务器本机访问 127.0.0.1:80 连接拒绝，确认端口可用于 Web 发布。
+- 腾讯云安全组此前截图已存在来源为全部 IPv4 的 HTTP(80) 入站规则；部署后将从本机再验证公网 HTTP 响应。
+- 此检查只读，未修改服务器。
+
+## 2026-10-23：将星序前端临时开放至公网 HTTP（执行前登记）
+
+### 目的与范围
+
+把 starline-web 从仅监听服务器回环地址的 127.0.0.1:8080 改为监听宿主机 TCP 80，复用已有 HTTP(80) 安全组规则，以公网 IP 临时访问前端。API 9090 仍只绑定回环地址；数据库、Redis、RustFS、RocketMQ 和 Portainer 不改动。
+
+### 计划执行的部署命令
+
+```powershell
+scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" "C:\Users\cjx\Desktop\starLineAgent\resources\docker\server\releases\starline-20261022\starline-app.compose.yaml" "ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml.public-web-tmp"
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; cp -p /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml.bak-20261023-public-web; mv /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml.public-web-tmp /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml; docker compose --env-file /home/ubuntu/starline-infra/.env -f /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml -p starline-20261022 up -d starline-web; sleep 3; sudo -n docker inspect -f '{{.Name}} status={{.State.Status}} ports={{json .NetworkSettings.Ports}}' starline-web; curl -sS --connect-timeout 3 --max-time 5 -o /dev/null -w 'frontend local HTTP %{http_code}\\n' http://127.0.0.1/"
+```
+
+执行后补记容器状态、端口绑定和公网访问验证；失败时保留备份并回滚，不删除任何数据卷。
+
+### 部署前追加的路径保护检查（执行前登记）
+
+为避免覆盖同名暂存或备份文件，先只读检查以下两个目标路径均不存在，再执行 SCP 与部署：
+
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "test ! -e /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml.public-web-tmp && test ! -e /home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml.bak-20261023-public-web && echo target-paths-free"
+```
+
+### 执行结果
+
+执行时间：2026-10-23 CST。
+
+- 服务器暂存/备份目标路径检查均为空；将原 Compose 文件备份为 `/home/ubuntu/starline-infra/releases/starline-20261022/starline-app.compose.yaml.bak-20261023-public-web`，并部署项目内同步后的版本。
+- 仅重新创建 `starline-web`；容器状态为 running，端口映射为 `0.0.0.0:80->80/tcp` 与 `[::]:80->80/tcp`。服务器本机 HTTP 根路径返回 200。
+- 从本机公网访问 `http://139.199.191.109/` 与 `http://139.199.191.109/starline/reminders` 均返回 HTTP 200。
+- 复用此前已有的腾讯云 HTTP(80) 入站规则；未改安全组。API 9090、PostgreSQL、Redis、RustFS、RocketMQ 与 Portainer 未修改。
+- 当前使用公网 IP + HTTP，未启用 TLS；用于临时演示。正式对外使用需规划域名、备案（如适用）和 HTTPS。未读取或记录任何密钥。异常：无。
+
+## 2026-10-23：初始化星序 PostgreSQL 表结构（执行前登记）
+
+### 目的与范围
+
+在服务器 `starline` 数据库中导入项目发布目录的 PostgreSQL 表结构脚本 `schema_pg.sql`。执行前检查脚本路径、当前数据库及 public schema 中已有表数量；仅当 public schema 尚无业务表时执行。导入后核对表数量与 `public.t_user`。不导入含弱默认管理员凭据的 `init_data_pg.sql`，不删除或重建数据库、容器或数据卷，不读取或记录密码。
+
+### 计划执行的服务器命令
+
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; test -r /home/ubuntu/starline-infra/releases/starline-20261022/schema_pg.sql; sudo -n docker exec starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline -Atc \"SELECT current_database(), current_schema(), (SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'), to_regclass('public.t_user');\""
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; sudo -n docker exec -i starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline < /home/ubuntu/starline-infra/releases/starline-20261022/schema_pg.sql; sudo -n docker exec starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline -Atc \"SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'; SELECT to_regclass('public.t_user');\""
+```
+
+若预检发现 public schema 已有业务表，暂停执行导入并先核对现状，避免重复建表覆盖或产生部分失败。
+
+### 执行结果
+
+执行时间：2026-10-23 CST。
+
+- SSH 只读预检成功；服务器发布目录中的 `schema_pg.sql` 文件存在。
+- `starline` 数据库当前 database=`starline`、schema=`public`，已有 35 张 public 业务表，且 `public.t_user` 存在。
+- 因表结构已初始化，未执行建表脚本，避免重复 `CREATE TABLE` 报错；没有修改数据库、容器或数据卷。
+- 结果说明此前 DBeaver 的 SQL Editor 很可能连在 `postgres` 数据库或其他连接上，而不是星序使用的 `starline` 数据库；建议在 DBeaver 执行 `SELECT current_database();` 核对连接目标。
+
+## 2026-10-23：适配并执行星序 Agent 初始化数据（执行前登记）
+
+### 目的与范围
+
+将项目中的 `init_data_pg.sql` 适配为星序助手人设与提示词配置，保持项目根脚本和服务器发布副本一致；不创建默认管理员账号，不写入演出或来源假数据，不删除或重建数据库、容器或数据卷。先只读核对服务器当前 Agent 配置；若存在同名冲突或其他活动 Agent，不改变其状态并暂停导入。安全预检通过后备份服务器原 seed，部署新脚本，在 `starline` 数据库事务执行，并清理 Agent 提示词 Redis 缓存，最后核对 profile、prompt 槽位及管理员账号数量。任何日志不包含密钥、密码或数据库凭据。
+
+### 计划执行的服务器命令
+
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; sudo -n docker exec starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline -Atc \"SELECT 'profiles=' || count(*) FROM t_agent_profile WHERE deleted=0; SELECT 'active_others=' || count(*) FROM t_agent_profile WHERE deleted=0 AND active=1 AND id <> '2001523723396309001'; SELECT 'name_conflicts=' || count(*) FROM t_agent_profile WHERE deleted=0 AND name='星序助手' AND id <> '2001523723396309001'; SELECT 'seed_prompt_rows=' || count(*) FROM t_agent_prompt WHERE deleted=0 AND agent_id='2001523723396309001'; SELECT 'admin_rows=' || count(*) FROM t_user WHERE deleted=0 AND username='admin';\""
+scp -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" "C:\Users\cjx\Desktop\starLineAgent\resources\docker\server\releases\starline-20261022\init_data_pg.sql" ubuntu@139.199.191.109:/home/ubuntu/starline-infra/releases/starline-20261022/init_data_pg.sql.starline-seed-tmp-20261023
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; d=/home/ubuntu/starline-infra/releases/starline-20261022; test ! -e \$d/init_data_pg.sql.starline-seed-tmp-20261023; test ! -e \$d/init_data_pg.sql.bak-20261023-starline-seed; cp -p \$d/init_data_pg.sql \$d/init_data_pg.sql.bak-20261023-starline-seed; mv \$d/init_data_pg.sql.starline-seed-tmp-20261023 \$d/init_data_pg.sql; sha256sum \$d/init_data_pg.sql \$d/init_data_pg.sql.bak-20261023-starline-seed"
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; sudo -n docker exec -i starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline < /home/ubuntu/starline-infra/releases/starline-20261022/init_data_pg.sql"
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; sudo -n docker exec starline-redis sh -c 'REDISCLI_AUTH=\"\$REDIS_PASSWORD\" redis-cli DEL starlineagent:agent:resolved-prompts:v2'; sudo -n docker exec starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline -Atc \"SELECT 'profile=' || id || ':' || name || ':' || active FROM t_agent_profile WHERE id='2001523723396309001' AND deleted=0; SELECT 'prompt_slots=' || count(*) FROM t_agent_prompt WHERE agent_id='2001523723396309001' AND deleted=0; SELECT 'admin_rows=' || count(*) FROM t_user WHERE deleted=0 AND username='admin';\""
+```
+
+### 执行结果
+
+执行时间：2026-10-23 CST。
+
+- 只读预检通过：原有 Agent、星序助手同名记录、提示词和 admin 用户均为 0 条；没有其他活动 Agent。
+- 服务器原 seed 已备份至 `/home/ubuntu/starline-infra/releases/starline-20261022/init_data_pg.sql.bak-20261023-starline-seed`；服务器当前脚本 SHA256 为 `b988d73cf036c1f37d75bb03bd9541f3be500cdec341120c88ef52e5c1d3c6bb`，与项目发布副本一致。
+- 在 `starline` 数据库事务导入成功：新增 1 个活动内置 Agent「星序助手」及 10 个提示词槽位；未创建管理员账号，验证 `admin_rows=0`。
+- 执行提示词缓存键删除返回 `0`，表示该 Redis 键当时不存在；数据库核验结果正确，无需重启容器。
+- 未写入演出或信息源假数据；未更改表结构、容器或数据卷。异常：首次本地 PowerShell 命令字符串解析失败，SSH 未执行；改用 here-string 后预检成功。
+
+### 预检结果与下一步路径检查（追加登记）
+
+只读数据库预检返回 `profiles=0`、`active_others=0`、`name_conflicts=0`、`seed_prompt_rows=0`、`admin_rows=0`，可按本次范围初始化星序 Agent 提示词；管理员账号仍需单独安全创建。上传前再检查服务器当前 seed 存在，且暂存与备份目标路径均为空：
+
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "set -eu; d=/home/ubuntu/starline-infra/releases/starline-20261022; test -r \$d/init_data_pg.sql; test ! -e \$d/init_data_pg.sql.starline-seed-tmp-20261023; test ! -e \$d/init_data_pg.sql.bak-20261023-starline-seed; echo seed-readable-and-targets-free"
+```
+
+## 2026-10-23：创建管理员账号（执行前登记）
+
+### 目的与范围
+
+按用户选择创建用户名 `admin`、角色 `admin` 的首个管理员账号，并生成强随机口令，仅在 SSH 加密输入流中传给 PostgreSQL。项目当前登录实现将口令明文存入 `t_user` 并进行明文比对；因此不把口令写入命令记录、项目文件或服务器日志，用户只通过 SSH 隧道登录。执行前检查 `t_user` 中是否已有任何同名记录（包括软删除行）；若存在则停止，不覆盖、不重置。创建后只核验用户名、角色和未删除状态，不查询或输出口令。不得改动其他账户、应用容器或数据卷。
+
+### 计划执行的服务器命令
+
+```powershell
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "sudo -n docker exec starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline -At -F '|' -c \"SELECT id, role, deleted FROM t_user WHERE username='admin';\""
+# 仅当查询无返回行时执行；生成口令通过 SSH stdin 发送，不放入 SSH 参数或日志：
+# <generated INSERT SQL on stdin> | ssh ... "sudo -n docker exec -i starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline"
+ssh -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -i "$env:USERPROFILE/.ssh/id_ed25519" ubuntu@139.199.191.109 "sudo -n docker exec starline-postgres psql -v ON_ERROR_STOP=1 -U starline -d starline -At -F '|' -c \"SELECT username, role, deleted FROM t_user WHERE username='admin';\""
+```
+
+### 执行结果
+
+执行时间：2026-10-23 CST。
+
+- 只读预检未发现任何 `admin` 用户记录；通过事务新建用户名 `admin`、角色 `admin` 的管理员，生成 40 位强随机口令并通过 SSH stdin 发送。
+- 数据库核验返回 `admin|admin|0`，表示账号存在、角色为管理员且未删除。没有读取或记录密码；未重启应用、改动其他账号或数据卷。
+- 账号创建命令通过 SSH stdin 执行成功；用户需按选择通过 SSH 隧道登录。

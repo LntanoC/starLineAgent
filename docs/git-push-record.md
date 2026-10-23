@@ -43,3 +43,33 @@
 ### 推送状态
 
 准备推送至 origin/main。当前环境首次 fetch origin 时无法连接 github.com:443；推送时将再次尝试。
+
+## 2026-10-23：星序初始化数据适配与服务器配置归档
+
+### 本次拟提交范围
+
+本次提交包含 8 个已修改项目文件、6 个新增发布快照文件，以及本推送记录：
+
+已修改：
+- docs/change-log.md：更新 2026-10-23 变更概要。
+- docs/change-log/2026-10-23.md：记录 Docker 配置快照、前端公网入口、星序 Agent 初始化和管理员创建结果。
+- docs/server-operations.md：登记并记录服务器配置同步、前端部署、Agent 数据初始化及管理员创建操作；未记录密码或密钥。
+- resources/database/init_data_pg.sql：将企业助手种子改为星序助手和 10 个星序提示词，使用幂等 upsert，并移除弱默认管理员凭据。
+- resources/deployment/README.md：更新初始化顺序与管理员账号说明。
+- resources/deployment/starline-app.compose.yaml：将 Web 容器映射至 HTTP 80 端口。
+- resources/docker/server/README.md：说明服务器发布快照、初始化数据及临时公网访问方式。
+- resources/docker/server/starline-app.compose.yaml：同步 Web 端口映射。
+
+新增发布快照：
+- resources/docker/server/releases/starline-20261022/init_data_pg.sql：保存适配后的服务器发布种子 SQL，与项目根脚本一致。
+- resources/docker/server/releases/starline-20261022/nginx.conf：保存该发布版本的 Nginx 配置。
+- resources/docker/server/releases/starline-20261022/pgvector.override.yaml：保存 PostgreSQL pgvector Compose 覆盖配置。
+- resources/docker/server/releases/starline-20261022/rocketmq-broker.conf：保存 RocketMQ Broker 配置。
+- resources/docker/server/releases/starline-20261022/schema_pg.sql：保存服务器发布版本的 PostgreSQL schema。
+- resources/docker/server/releases/starline-20261022/starline-app.compose.yaml：保存服务器发布版本的应用 Compose 配置。
+
+本机工作记忆文件 `.workbuddy-ai/memory/` 按既有推送记录约定不纳入提交。
+
+### 推送状态
+
+准备推送至 `origin/main`。推送前已 fetch，当前本地 `main` 与 `origin/main` 同步；待提交改动通过 `git diff --check`，未发现密钥、口令或私钥文件。

@@ -1,0 +1,118 @@
+services:
+  starline-rustfs:
+    image: rustfs/rustfs:1.0.0-alpha.72
+    container_name: starline-rustfs
+    command:
+      - --address
+      - ':9000'
+      - --console-enable
+      - --access-key
+      - ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY must be set}
+      - --secret-key
+      - ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY must be set}
+      - /data
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY must be set}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY must be set}
+      RUSTFS_CONSOLE_ENABLE: 'true'
+    volumes:
+      - starline-rustfs-data:/data
+    restart: unless-stopped
+    networks:
+      - starline
+
+  starline-rocketmq-namesrv:
+    image: apache/rocketmq:5.2.0
+    container_name: starline-rocketmq-namesrv
+    command: ['sh', 'mqnamesrv']
+    environment:
+      JAVA_OPT_EXT: '-Xms256m -Xmx400m'
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', "grep -q 'The Name Server boot success' /home/rocketmq/logs/rocketmqlogs/namesrv.log || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - starline
+
+  starline-rocketmq-broker:
+    image: apache/rocketmq:5.2.0
+    container_name: starline-rocketmq-broker
+    command: ['sh', 'mqbroker', '-c', '/home/rocketmq/rocketmq-5.2.0/conf/broker.conf']
+    environment:
+      NAMESRV_ADDR: starline-rocketmq-namesrv:9876
+      JAVA_OPT_EXT: '-Xms512m -Xmx512m'
+    volumes:
+      - ./rocketmq-broker.conf:/home/rocketmq/rocketmq-5.2.0/conf/broker.conf:ro
+      - starline-rocketmq-store:/home/rocketmq/store
+    depends_on:
+      starline-rocketmq-namesrv:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', "grep -q 'boot success' /home/rocketmq/logs/rocketmqlogs/broker.log || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - starline
+
+  starline-api:
+    image: eclipse-temurin:17-jre
+    container_name: starline-api
+    command: ['java', '-jar', '/app/starline.jar']
+    volumes:
+      - ./starline.jar:/app/starline.jar:ro
+    environment:
+      TZ: Asia/Shanghai
+      SPRING_DATASOURCE_URL: 'jdbc:postgresql://starline-postgres:5432/starline?client_encoding=UTF8'
+      SPRING_DATASOURCE_USERNAME: starline
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      SPRING_DATA_REDIS_HOST: starline-redis
+      SPRING_DATA_REDIS_PORT: '6379'
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+      RAG_STORAGE_TYPE: s3
+      RAG_STORAGE_S3_ENDPOINT: http://starline-rustfs:9000
+      RAG_STORAGE_S3_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY must be set}
+      RAG_STORAGE_S3_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY must be set}
+      RAG_STORAGE_S3_REGION: us-east-1
+      RAG_STORAGE_S3_PATH_STYLE: 'true'
+      ROCKETMQ_NAME_SERVER: starline-rocketmq-namesrv:9876
+      SPRING_APPLICATION_JSON: '{"agent":{"mcp":{"servers":[]}}}'
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      BAILIAN_API_KEY: ${BAILIAN_API_KEY:-}
+      STARLINE_EMAIL_ENABLED: ${STARLINE_EMAIL_ENABLED:-false}
+    depends_on:
+      starline-rustfs:
+        condition: service_started
+      starline-rocketmq-namesrv:
+        condition: service_healthy
+      starline-rocketmq-broker:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:9090:9090'
+    restart: unless-stopped
+    networks:
+      - starline
+
+  starline-web:
+    image: nginx:alpine
+    container_name: starline-web
+    volumes:
+      - ./frontend-dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - '80:80'
+    restart: unless-stopped
+    networks:
+      - starline
+
+networks:
+  starline:
+    name: starline_default
+    external: true
+
+volumes:
+  starline-rustfs-data:
+  starline-rocketmq-store:

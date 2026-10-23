@@ -41,3 +41,16 @@ Copy-Item resources/docker/server/.env.example resources/docker/server/.env
 ## 重新部署前需要准备
 
 服务器当前发布目录还包含 starline.jar、frontend-dist/、.env。Compose 之外还要求 starline_default 网络由 starline Stack 创建。上述运行数据和凭据不包含在此快照中。部署时应先准备这些文件与变量，再通过 Portainer 的 Stacks 或 Docker Compose 启动。
+
+
+## 发布版本配置快照
+
+resources/docker/server/releases/starline-20261022/ 保存该发布版本的 Compose、Nginx/RocketMQ 配置及数据库 SQL。schema_pg.sql 保留服务器发布版结构；init_data_pg.sql 经项目适配后初始化星序助手人设和提示词。
+
+发布版 schema_pg.sql 与项目当前维护的 resources/database/schema_pg.sql 不同，分别保留，避免版本混淆。两处 init_data_pg.sql 保持同步：初始化星序助手人设和提示词，不写入固定默认管理员凭据；管理员账号需单独安全初始化。服务器 .env、应用 JAR、frontend-dist 和数据库内容不在归档中。
+
+
+## 临时公网访问
+
+`starline-web` 的 Compose 端口映射为 `80:80`，可通过服务器公网 IP 的 HTTP 80 端口访问前端；当前 Nginx 在容器内继续代理 `/api/` 到 API 服务。腾讯云安全组和主机防火墙需允许 TCP 80。应用 API 的宿主机 9090 仍绑定 `127.0.0.1`，数据库、Redis、RustFS、RocketMQ 和 Portainer 不应通过公网直接暴露。此 IP + HTTP 方式用于临时演示；正式使用应配置域名、备案（如适用）和 HTTPS。
+访问示例：http://<服务器公网 IP>/starline/reminders。
