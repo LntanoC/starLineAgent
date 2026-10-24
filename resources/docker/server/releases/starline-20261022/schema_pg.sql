@@ -29,62 +29,6 @@ COMMENT ON COLUMN t_user.create_time IS '创建时间';
 COMMENT ON COLUMN t_user.update_time IS '更新时间';
 COMMENT ON COLUMN t_user.deleted IS '是否删除 0：正常 1：删除';
 
-CREATE TABLE t_conversation (
-    id              VARCHAR(20) NOT NULL PRIMARY KEY,
-    conversation_id VARCHAR(20) NOT NULL,
-    user_id         VARCHAR(20) NOT NULL,
-    title           VARCHAR(128) NOT NULL,
-    last_time       TIMESTAMP,
-    create_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted         SMALLINT    DEFAULT 0,
-    CONSTRAINT uk_conversation_user UNIQUE (conversation_id, user_id)
-);
-CREATE INDEX idx_user_time ON t_conversation (user_id, last_time);
-COMMENT ON TABLE t_conversation IS '会话列表';
-COMMENT ON COLUMN t_conversation.id IS '主键ID';
-COMMENT ON COLUMN t_conversation.conversation_id IS '会话ID';
-COMMENT ON COLUMN t_conversation.user_id IS '用户ID';
-COMMENT ON COLUMN t_conversation.title IS '会话名称';
-COMMENT ON COLUMN t_conversation.last_time IS '最近消息时间';
-COMMENT ON COLUMN t_conversation.create_time IS '创建时间';
-COMMENT ON COLUMN t_conversation.update_time IS '更新时间';
-COMMENT ON COLUMN t_conversation.deleted IS '是否删除 0：正常 1：删除';
-
-CREATE TABLE t_conversation_summary (
-    id              VARCHAR(20)      NOT NULL PRIMARY KEY,
-    conversation_id VARCHAR(20) NOT NULL,
-    user_id         VARCHAR(20) NOT NULL,
-    last_message_id VARCHAR(20) NOT NULL,
-    content         TEXT        NOT NULL,
-    create_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted         SMALLINT    DEFAULT 0
-);
-CREATE INDEX idx_conv_user ON t_conversation_summary (conversation_id, user_id);
-COMMENT ON TABLE t_conversation_summary IS '会话摘要表（与消息表分离存储）';
-
-CREATE TABLE t_message (
-    id                VARCHAR(20)      NOT NULL PRIMARY KEY,
-    conversation_id   VARCHAR(20) NOT NULL,
-    user_id           VARCHAR(20) NOT NULL,
-    role              VARCHAR(16) NOT NULL,
-    content           TEXT        NOT NULL,
-    thinking_content  TEXT,
-    thinking_duration INTEGER,
-    sources              JSONB,
-    recommended_questions JSONB,
-    retrieved_chunks  JSONB,
-    reply_to_message_id VARCHAR(20),
-    message_status    VARCHAR(16) NOT NULL DEFAULT 'NORMAL',
-    create_time       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted           SMALLINT    DEFAULT 0
-);
-CREATE INDEX idx_conversation_user_time ON t_message (conversation_id, user_id, create_time);
-CREATE INDEX idx_conversation_summary ON t_message (conversation_id, user_id, create_time);
-COMMENT ON TABLE t_message IS '会话消息记录表';
-
 CREATE TABLE t_message_feedback (
     id              VARCHAR(20)       NOT NULL PRIMARY KEY,
     message_id      VARCHAR(20)       NOT NULL,
@@ -343,52 +287,6 @@ CREATE TABLE t_query_term_mapping (
 CREATE INDEX idx_domain ON t_query_term_mapping (domain);
 CREATE INDEX idx_source ON t_query_term_mapping (source_term);
 COMMENT ON TABLE t_query_term_mapping IS '关键词归一化映射表';
-
-CREATE TABLE t_rag_trace_run (
-    id              VARCHAR(20)           NOT NULL PRIMARY KEY,
-    trace_id        VARCHAR(64)      NOT NULL,
-    trace_name      VARCHAR(128),
-    entry_method    VARCHAR(256),
-    conversation_id VARCHAR(20),
-    task_id         VARCHAR(20),
-    user_id         VARCHAR(20),
-    status          VARCHAR(16)      NOT NULL DEFAULT 'RUNNING',
-    error_message   VARCHAR(1000),
-    start_time      TIMESTAMP(3),
-    end_time        TIMESTAMP(3),
-    duration_ms     BIGINT,
-    extra_data      TEXT,
-    create_time     TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    update_time     TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    deleted         SMALLINT         DEFAULT 0,
-    CONSTRAINT uk_run_id UNIQUE (trace_id)
-);
-CREATE INDEX idx_task_id ON t_rag_trace_run (task_id);
-CREATE INDEX idx_user_id_trace ON t_rag_trace_run (user_id);
-COMMENT ON TABLE t_rag_trace_run IS 'Trace 运行记录表';
-
-CREATE TABLE t_rag_trace_node (
-    id             VARCHAR(20)           NOT NULL PRIMARY KEY,
-    trace_id       VARCHAR(20)      NOT NULL,
-    node_id        VARCHAR(20)      NOT NULL,
-    parent_node_id VARCHAR(20),
-    depth          INTEGER          DEFAULT 0,
-    node_type      VARCHAR(16),
-    node_name      VARCHAR(128),
-    class_name     VARCHAR(256),
-    method_name    VARCHAR(128),
-    status         VARCHAR(16)      NOT NULL DEFAULT 'RUNNING',
-    error_message  VARCHAR(1000),
-    start_time     TIMESTAMP(3),
-    end_time       TIMESTAMP(3),
-    duration_ms    BIGINT,
-    extra_data     TEXT,
-    create_time    TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    update_time    TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    deleted        SMALLINT         DEFAULT 0,
-    CONSTRAINT uk_run_node UNIQUE (trace_id, node_id)
-);
-COMMENT ON TABLE t_rag_trace_node IS 'Trace 节点记录表';
 
 -- ============================================
 -- Agent Profile Tables
@@ -658,33 +556,6 @@ COMMENT ON COLUMN t_knowledge_vector.embedding IS '向量';
 -- Column Comments
 -- ============================================
 
--- t_conversation_summary
-COMMENT ON COLUMN t_conversation_summary.id IS '主键ID';
-COMMENT ON COLUMN t_conversation_summary.conversation_id IS '会话ID';
-COMMENT ON COLUMN t_conversation_summary.user_id IS '用户ID';
-COMMENT ON COLUMN t_conversation_summary.last_message_id IS '摘要最后消息ID';
-COMMENT ON COLUMN t_conversation_summary.content IS '会话摘要内容';
-COMMENT ON COLUMN t_conversation_summary.create_time IS '创建时间';
-COMMENT ON COLUMN t_conversation_summary.update_time IS '更新时间';
-COMMENT ON COLUMN t_conversation_summary.deleted IS '是否删除 0：正常 1：删除';
-
--- t_message
-COMMENT ON COLUMN t_message.id IS '主键ID';
-COMMENT ON COLUMN t_message.conversation_id IS '会话ID';
-COMMENT ON COLUMN t_message.user_id IS '用户ID';
-COMMENT ON COLUMN t_message.role IS '角色：user/assistant';
-COMMENT ON COLUMN t_message.content IS '消息内容';
-COMMENT ON COLUMN t_message.thinking_content IS '深度思考内容';
-COMMENT ON COLUMN t_message.thinking_duration IS '深度思考耗时（秒）';
-COMMENT ON COLUMN t_message.sources IS '回答来源';
-COMMENT ON COLUMN t_message.recommended_questions IS '推荐追问问题';
-COMMENT ON COLUMN t_message.retrieved_chunks IS '推荐问题 grounding 片段';
-COMMENT ON COLUMN t_message.reply_to_message_id IS '当前助手消息对应的用户消息ID';
-COMMENT ON COLUMN t_message.message_status IS '消息结束状态：NORMAL=正常完成，INTERRUPTED=用户中断，REJECTED=限流拒绝';
-COMMENT ON COLUMN t_message.create_time IS '创建时间';
-COMMENT ON COLUMN t_message.update_time IS '更新时间';
-COMMENT ON COLUMN t_message.deleted IS '是否删除 0：正常 1：删除';
-
 -- t_message_feedback
 COMMENT ON COLUMN t_message_feedback.id IS '主键ID';
 COMMENT ON COLUMN t_message_feedback.message_id IS '消息ID';
@@ -852,44 +723,6 @@ COMMENT ON COLUMN t_query_term_mapping.update_by IS '修改人';
 COMMENT ON COLUMN t_query_term_mapping.create_time IS '创建时间';
 COMMENT ON COLUMN t_query_term_mapping.update_time IS '修改时间';
 COMMENT ON COLUMN t_query_term_mapping.deleted IS '是否删除 0：正常 1：删除';
-
--- t_rag_trace_run
-COMMENT ON COLUMN t_rag_trace_run.id IS 'ID';
-COMMENT ON COLUMN t_rag_trace_run.trace_id IS '全局链路ID';
-COMMENT ON COLUMN t_rag_trace_run.trace_name IS '链路名称';
-COMMENT ON COLUMN t_rag_trace_run.entry_method IS '入口方法';
-COMMENT ON COLUMN t_rag_trace_run.conversation_id IS '会话ID';
-COMMENT ON COLUMN t_rag_trace_run.task_id IS '任务ID';
-COMMENT ON COLUMN t_rag_trace_run.user_id IS '用户ID';
-COMMENT ON COLUMN t_rag_trace_run.status IS 'RUNNING/SUCCESS/ERROR';
-COMMENT ON COLUMN t_rag_trace_run.error_message IS '错误信息';
-COMMENT ON COLUMN t_rag_trace_run.start_time IS '开始时间';
-COMMENT ON COLUMN t_rag_trace_run.end_time IS '结束时间';
-COMMENT ON COLUMN t_rag_trace_run.duration_ms IS '耗时毫秒';
-COMMENT ON COLUMN t_rag_trace_run.extra_data IS '扩展字段(JSON)';
-COMMENT ON COLUMN t_rag_trace_run.create_time IS '创建时间';
-COMMENT ON COLUMN t_rag_trace_run.update_time IS '更新时间';
-COMMENT ON COLUMN t_rag_trace_run.deleted IS '是否删除';
-
--- t_rag_trace_node
-COMMENT ON COLUMN t_rag_trace_node.id IS 'ID';
-COMMENT ON COLUMN t_rag_trace_node.trace_id IS '所属链路ID';
-COMMENT ON COLUMN t_rag_trace_node.node_id IS '节点ID';
-COMMENT ON COLUMN t_rag_trace_node.parent_node_id IS '父节点ID';
-COMMENT ON COLUMN t_rag_trace_node.depth IS '节点深度';
-COMMENT ON COLUMN t_rag_trace_node.node_type IS '节点类型';
-COMMENT ON COLUMN t_rag_trace_node.node_name IS '节点名称';
-COMMENT ON COLUMN t_rag_trace_node.class_name IS '类名';
-COMMENT ON COLUMN t_rag_trace_node.method_name IS '方法名';
-COMMENT ON COLUMN t_rag_trace_node.status IS 'RUNNING/SUCCESS/ERROR';
-COMMENT ON COLUMN t_rag_trace_node.error_message IS '错误信息';
-COMMENT ON COLUMN t_rag_trace_node.start_time IS '开始时间';
-COMMENT ON COLUMN t_rag_trace_node.end_time IS '结束时间';
-COMMENT ON COLUMN t_rag_trace_node.duration_ms IS '耗时毫秒';
-COMMENT ON COLUMN t_rag_trace_node.extra_data IS '扩展字段(JSON)';
-COMMENT ON COLUMN t_rag_trace_node.create_time IS '创建时间';
-COMMENT ON COLUMN t_rag_trace_node.update_time IS '更新时间';
-COMMENT ON COLUMN t_rag_trace_node.deleted IS '是否删除';
 
 -- t_ingestion_pipeline
 COMMENT ON COLUMN t_ingestion_pipeline.id IS 'ID';
@@ -1123,3 +956,120 @@ CREATE TABLE IF NOT EXISTS t_starline_source_review (
 
 CREATE INDEX IF NOT EXISTS idx_starline_source_review_source
     ON t_starline_source_review (source_id);
+
+
+-- Offline bad-case analysis
+CREATE TABLE IF NOT EXISTS t_bad_case (
+    id VARCHAR(20) NOT NULL PRIMARY KEY,
+    message_id VARCHAR(20) NOT NULL,
+    conversation_id VARCHAR(20) NOT NULL,
+    user_id VARCHAR(20) NOT NULL,
+    message_type VARCHAR(16) NOT NULL DEFAULT 'RAG',
+    run_id VARCHAR(64),
+    legacy_trace_id VARCHAR(64),
+    trace_matched_by_fallback SMALLINT NOT NULL DEFAULT 0,
+    trace_match_status VARCHAR(32) NOT NULL DEFAULT 'MISSING',
+    vote SMALLINT NOT NULL CHECK (vote = -1),
+    reason VARCHAR(255),
+    comment VARCHAR(1024),
+    user_question TEXT,
+    assistant_answer TEXT,
+    thinking_content TEXT,
+    message_status VARCHAR(32),
+    sources JSONB,
+    retrieved_chunks JSONB,
+    trace_nodes JSONB,
+    suspicions JSONB,
+    evidence_notes JSONB,
+    message_create_time TIMESTAMP,
+    root_cause VARCHAR(32),
+    root_cause_detail VARCHAR(1024),
+    fix_action VARCHAR(32),
+    fix_ref VARCHAR(128),
+    fix_note VARCHAR(1024),
+    review_status VARCHAR(16) NOT NULL DEFAULT 'PENDING'
+        CHECK (review_status IN ('PENDING','REVIEWED','IGNORED','FIXED')),
+    reviewer VARCHAR(64),
+    review_time TIMESTAMP,
+    revision BIGINT NOT NULL DEFAULT 0,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted SMALLINT NOT NULL DEFAULT 0,
+    CONSTRAINT uk_bad_case_src UNIQUE (message_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_bad_case_status ON t_bad_case (review_status, create_time);
+CREATE INDEX IF NOT EXISTS idx_bad_case_run ON t_bad_case (run_id);
+CREATE INDEX IF NOT EXISTS idx_bad_case_root ON t_bad_case (root_cause, create_time);
+CREATE INDEX IF NOT EXISTS idx_feedback_bad_case_scan ON t_message_feedback (update_time, id)
+    WHERE vote=-1 AND deleted=0;
+COMMENT ON TABLE t_bad_case IS '点踩离线分析台账；自动线索与人工判定分开，归档保留唯一键墓碑';
+COMMENT ON COLUMN t_bad_case.trace_match_status IS 'AGENT_AUDIT/AGENT_BLOCKS/MISSING; legacy rows may contain older values';
+COMMENT ON COLUMN t_bad_case.legacy_trace_id IS 'Historical trace identifier retained for old bad-case records; not used by current Agent runtime';
+COMMENT ON COLUMN t_bad_case.suspicions IS '规则产生的待核查线索，不是已确认根因';
+
+-- Starline self-hosted Agent audit. Additive and idempotent.
+BEGIN;
+SET LOCAL lock_timeout = '10s';
+CREATE TABLE IF NOT EXISTS t_agent_run (
+    id VARCHAR(20) PRIMARY KEY,
+    run_id VARCHAR(64) NOT NULL UNIQUE,
+    parent_run_id VARCHAR(64),
+    resume_message_id VARCHAR(20),
+    conversation_id VARCHAR(20) NOT NULL,
+    user_id VARCHAR(20) NOT NULL,
+    user_message_id VARCHAR(20),
+    assistant_message_id VARCHAR(20),
+    question TEXT,
+    answer TEXT,
+    run_status VARCHAR(24) NOT NULL DEFAULT 'RUNNING' CHECK (run_status IN ('RUNNING','NORMAL','INTERRUPTED','FAILED','AWAITING_CONFIRM')),
+    capture_status VARCHAR(16) NOT NULL DEFAULT 'COMPLETE' CHECK (capture_status IN ('COMPLETE','PARTIAL','DISABLED')),
+    round_count INTEGER NOT NULL DEFAULT 0,
+    model_call_count INTEGER NOT NULL DEFAULT 0,
+    tool_call_count INTEGER NOT NULL DEFAULT 0,
+    input_tokens BIGINT,
+    output_tokens BIGINT,
+    cached_tokens BIGINT,
+    duration_ms BIGINT,
+    error_message TEXT,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revision BIGINT NOT NULL DEFAULT 0,
+    deleted SMALLINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS t_agent_run_node (
+    id VARCHAR(20) PRIMARY KEY,
+    run_id VARCHAR(64) NOT NULL,
+    node_id VARCHAR(32) NOT NULL,
+    parent_node_id VARCHAR(32),
+    round_index INTEGER NOT NULL DEFAULT 0,
+    node_type VARCHAR(16) NOT NULL,
+    node_name VARCHAR(128),
+    status VARCHAR(24) NOT NULL,
+    sequence INTEGER NOT NULL DEFAULT 0,
+    batch_id VARCHAR(64),
+    tool_call_id VARCHAR(128),
+    duration_source VARCHAR(16),
+    input_payload JSONB,
+    output_payload JSONB,
+    input_tokens BIGINT,
+    output_tokens BIGINT,
+    cached_tokens BIGINT,
+    ttft_ms BIGINT,
+    started_at TIMESTAMP,
+    ended_at TIMESTAMP,
+    duration_ms BIGINT,
+    error_message TEXT,
+    revision BIGINT NOT NULL DEFAULT 0,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted SMALLINT NOT NULL DEFAULT 0,
+    CONSTRAINT uk_agent_run_node UNIQUE(run_id, node_id)
+);
+CREATE INDEX IF NOT EXISTS idx_agent_run_conversation ON t_agent_run(conversation_id, create_time DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_run_created ON t_agent_run(create_time DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_run_status ON t_agent_run(run_status, create_time DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_run_message ON t_agent_run(assistant_message_id) WHERE deleted=0;
+CREATE INDEX IF NOT EXISTS idx_agent_node_run ON t_agent_run_node(run_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_agent_node_type ON t_agent_run_node(node_type, status);
+COMMENT ON TABLE t_agent_run IS 'Agent execution audit, keyed by StreamTask taskId';
+COMMENT ON TABLE t_agent_run_node IS 'Actual model inputs and tool execution audit; admin only';
+COMMIT;

@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * 一次 run 内执行事实的唯一生成者：run 起点、批次号、组内序号、单工具真起止与返回结果、两条中断时刻都只在这里产生一次
  * <p>
- * trace、SSE、PG、前端一律读这里，不各自复算——同一个事实有两个算法，迟早会算出两个值
+ * 运行审计、SSE、PG、前端一律读这里，不各自复算——同一个事实有两个算法，迟早会算出两个值
  */
 @Slf4j
 public final class AgentToolExecutionFacts {
@@ -231,7 +231,7 @@ public final class AgentToolExecutionFacts {
     }
 
     /**
-     * 所有被提前收口的 span 统一读它：两条中断路径互斥，取先写入的那个
+     * 所有被提前收口的工具调用统一读它：两条中断路径互斥，取先写入的那个
      */
     public Long terminationAt() {
         long interrupted = interruptedAt.get();

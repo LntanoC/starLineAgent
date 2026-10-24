@@ -20,11 +20,7 @@ package com.nageoffer.ai.starlineagent.agent.admin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nageoffer.ai.starlineagent.admin.controller.DashboardController;
 import com.nageoffer.ai.starlineagent.admin.service.DashboardService;
-import com.nageoffer.ai.starlineagent.admin.service.impl.DashboardServiceImpl;
 import com.nageoffer.ai.starlineagent.framework.exception.ClientException;
-import com.nageoffer.ai.starlineagent.rag.dao.mapper.ConversationMapper;
-import com.nageoffer.ai.starlineagent.rag.dao.mapper.ConversationMessageMapper;
-import com.nageoffer.ai.starlineagent.rag.dao.mapper.RagTraceRunMapper;
 import com.nageoffer.ai.starlineagent.user.dao.mapper.UserMapper;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import org.junit.jupiter.api.Test;
@@ -182,18 +178,11 @@ class AgentDashboardServiceTest {
     }
 
     @Test
-    void bindsExactlyOneStatisticsServiceForEitherEngineAndDefaultsToWorkflow() {
-        var context = new ApplicationContextRunner()
-                .withUserConfiguration(AgentDashboardService.class, DashboardServiceImpl.class)
+    void bindsOnlyAgentStatisticsService() {
+        new ApplicationContextRunner()
+                .withUserConfiguration(AgentDashboardService.class)
                 .withBean(AgentDashboardReader.class, () -> reader)
-                .withBean(UserMapper.class, () -> mock(UserMapper.class))
-                .withBean(ConversationMapper.class, () -> mock(ConversationMapper.class))
-                .withBean(ConversationMessageMapper.class, () -> mock(ConversationMessageMapper.class))
-                .withBean(RagTraceRunMapper.class, () -> mock(RagTraceRunMapper.class));
-        context.run(ctx -> assertThat(ctx).hasSingleBean(DashboardService.class).hasSingleBean(DashboardServiceImpl.class));
-        context.withPropertyValues("starlineagent.engine.type=workflow")
-                .run(ctx -> assertThat(ctx).hasSingleBean(DashboardService.class).hasSingleBean(DashboardServiceImpl.class));
-        context.withPropertyValues("starlineagent.engine.type=agent")
+                .withPropertyValues("starlineagent.engine.type=agent")
                 .run(ctx -> assertThat(ctx).hasSingleBean(DashboardService.class).hasSingleBean(AgentDashboardService.class));
     }
 

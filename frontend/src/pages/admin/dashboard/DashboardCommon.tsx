@@ -1,7 +1,6 @@
 /**
  * 两个引擎分支共用的取数与读数件：页头、KPI 卡、流量卡。
  * 这里只收"同一份接口数据、同一种读法"的东西，排布一律不进——
- * Agent 与 Workflow 的栅格是两套，共用一条排布规则就会互相牵动
  */
 import {
   useCallback,
@@ -26,7 +25,6 @@ import {
   type DashboardPerformance,
   type DashboardTrends
 } from "@/services/dashboardService";
-import type { EngineType } from "@/stores/engineStore";
 
 
 // ==========================================================================
@@ -124,7 +122,7 @@ export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-  const [engine, setEngine] = useState<EngineType | null>(null);
+  const [engine, setEngine] = useState<"agent" | null>(null);
   const requestIdRef = useRef(0);
 
   const loadData = useCallback(async (windowValue: DashboardTimeWindow) => {
@@ -140,7 +138,7 @@ export const useDashboardData = () => {
         getDashboardPerformance(windowValue)
       ]);
       if (requestIdRef.current !== requestId) return;
-      if (!(["agent", "workflow"] as string[]).includes(overviewData.engine) || performanceData.engine !== overviewData.engine) {
+      if (overviewData.engine !== "agent" || performanceData.engine !== overviewData.engine) {
         throw new Error("统计接口的引擎标识不一致，请确认前后端版本一致");
       }
       setEngine(overviewData.engine);
@@ -149,20 +147,20 @@ export const useDashboardData = () => {
       setLastUpdated(overviewData.updatedAt);
 
       try {
-        const isAgent = overviewData.engine === "agent";
+
         // 两个引擎都支持 sessions/messages/activeusers，流量卡的三个标签页在两边都能画
         const [sessions, messages, activeUsers, firstEngineTrend, secondEngineTrend] =
           await Promise.all([
             getDashboardTrends("sessions", windowValue, granularity),
             getDashboardTrends("messages", windowValue, granularity),
             getDashboardTrends("activeusers", windowValue, granularity),
-            getDashboardTrends(isAgent ? "tools" : "avgLatency", windowValue, granularity),
-            getDashboardTrends(isAgent ? "replies" : "quality", windowValue, granularity)
+            getDashboardTrends("tools", windowValue, granularity),
+            getDashboardTrends("replies", windowValue, granularity)
           ]);
         if (requestIdRef.current !== requestId) return;
         setTrends({ sessions, messages, activeUsers,
-          latency: isAgent ? null : firstEngineTrend, quality: isAgent ? null : secondEngineTrend,
-          tools: isAgent ? firstEngineTrend : null, replies: isAgent ? secondEngineTrend : null });
+          latency: null, quality: null,
+          tools: firstEngineTrend, replies: secondEngineTrend });
       } catch (trendErr) {
         if (requestIdRef.current !== requestId) return;
         console.error(trendErr);
@@ -235,7 +233,7 @@ export const DashboardHeader = ({
                            onRefresh,
                            onTimeWindowChange
                          }: {
-  engine: EngineType | null;
+  engine: "agent" | null;
   timeWindow: DashboardTimeWindow;
   lastUpdated: number | null;
   loading?: boolean;
@@ -252,11 +250,11 @@ export const DashboardHeader = ({
       <div className="min-w-0">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
           <h1 className="text-[22px] font-[650] leading-7 tracking-[-0.01em] text-[#101828]">
-            {engine === "workflow" ? "Workflow 运行概览" : engine === "agent" ? "Agent 运行概览" : "运行概览"}
+            Agent 运行概览
           </h1>
           {/* 标签只说"这些数字是谁的"，不带状态语义，所以走主色浅底而不是任何一档状态色 */}
           <span className="rounded-md bg-[#EEF2FF] px-2 py-0.5 text-xs font-medium leading-5 text-[#405FE8]">
-            {engine ? (engine === "agent" ? "Agent · 自主执行" : "Workflow · RAG 编排") : loading ? "正在读取引擎" : "引擎信息不可用"}
+            {engine ? "Agent · 自主执行" : loading ? "正在读取引擎" : "引擎信息不可用"}
           </span>
         </div>
       </div>
@@ -458,7 +456,6 @@ export const mapSeries = (
 
 /**
  * 消息流量趋势：全页唯一的主图，三个标签页换的是同一张图的度量。
- * Agent 分支下发「当前周期 + 上周期」两条序列，Workflow 只有一条，两种形状都要能画。
  */
 export const TrafficCard = ({
                        trends,
@@ -598,7 +595,6 @@ export const TrafficCard = ({
             <div className="dashboard-traffic-plot">{renderPlot("h-full", true)}</div>
         ) : (
             /*
-              Workflow 分支：那一列的余量由列末的洞察卡吃，图不参与分配，
               所以这边图高照旧写死 140——主图跟着屏幕长会把下面两张趋势图挤出首屏
             */
             renderPlot("h-[140px]", false)

@@ -1,5 +1,8 @@
 import * as React from "react";
+import { ThumbsDown } from "lucide-react";
+import { toast } from "sonner";
 
+import { DislikeReasonDialog } from "@/components/common/DislikeReasonDialog";
 import { AgentMarkdownRenderer } from "@/components/agent/AgentMarkdownRenderer";
 import {
   buildTimelineRows,
@@ -7,6 +10,7 @@ import {
   type TraceChannel,
   type TraceRow
 } from "@/lib/agentTimeline";
+import { submitAgentMessageFeedback } from "@/services/agentService";
 import { useAgentChatStore } from "@/stores/agentChatStore";
 import type { AgentBlockUI, AgentConfirmCall, AgentTurn } from "@/types/agent";
 
@@ -106,6 +110,22 @@ export function AgentTurnItem({ turn, note }: AgentTurnItemProps) {
   // 一问多答按段累加：确认前那段与续跑那段合起来才是这一轮从提问到收尾的真实耗时
   const totalMs = turn.assistants.reduce((sum, assistant) => sum + (assistant.elapsedMs ?? 0), 0);
   const elapsed = streaming ? "" : formatDuration(totalMs || undefined);
+  const feedbackMessageIds = new Set(
+    turn.assistants
+      .filter(
+        (assistant) =>
+          assistant.status === "done" &&
+          assistant.messageStatus === "NORMAL" &&
+          !assistant.id.startsWith("assistant-")
+      )
+      .map((assistant) => assistant.id)
+  );
+  const lastAnswerRowByMessageId = new Map<string, string>();
+  for (const row of rows) {
+    if (row.channel === "answer" && row.messageId) {
+      lastAnswerRowByMessageId.set(row.messageId, row.key);
+    }
+  }
 
   return (
     <section className="agent-turn">
@@ -118,13 +138,32 @@ export function AgentTurnItem({ turn, note }: AgentTurnItemProps) {
         </span>
       </header>
       {rows.map((row, i) => (
-        <TraceRowItem key={row.key} row={row} showTs={i > 0} />
+        <TraceRowItem
+          key={row.key}
+          row={row}
+          showTs={i > 0}
+          canFeedback={Boolean(
+            row.channel === "answer" &&
+              row.messageId &&
+              feedbackMessageIds.has(row.messageId) &&
+              lastAnswerRowByMessageId.get(row.messageId) === row.key
+          )}
+        />
       ))}
+
     </section>
   );
 }
 
-function TraceRowItem({ row, showTs }: { row: TraceRow; showTs: boolean }) {
+function TraceRowItem({
+  row,
+  showTs,
+  canFeedback
+}: {
+  row: TraceRow;
+  showTs: boolean;
+  canFeedback: boolean;
+}) {
   const toolState =
     row.channel === "tool"
       ? row.batchWaiting
@@ -181,13 +220,13 @@ function TraceRowItem({ row, showTs }: { row: TraceRow; showTs: boolean }) {
           ) : null}
           {showTs ? <span className="agent-row-ts">{row.ts}</span> : null}
         </div>
-        <RowBody row={row} />
+        <RowBody row={row} canFeedback={canFeedback} />
       </div>
     </div>
   );
 }
 
-function RowBody({ row }: { row: TraceRow }) {
+function RowBody({ row, canFeedback }: { row: TraceRow; canFeedback: boolean }) {
   // 批头只是一行交代 底下各工具行自己有正文
   if (row.channel === "batch") {
     return null;
@@ -205,10 +244,42 @@ function RowBody({ row }: { row: TraceRow }) {
     return (
       <div className="agent-answer-form">
         <AgentMarkdownRenderer content={row.text ?? ""} />
+        {canFeedback && row.messageId ? <AgentDislikeButton messageId={row.messageId} /> : null}
       </div>
     );
   }
   return <div className="agent-row-text">{row.text}</div>;
+}
+
+function AgentDislikeButton({ messageId }: { messageId: string }) {
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitted, setSubmitted] = React.useState(false);
+  const [reasonOpen, setReasonOpen] = React.useState(false);
+
+  const handleSubmit = async (reason?: string, comment?: string) => {
+    if (submitting || submitted) return;
+    setSubmitting(true);
+    try {
+      await submitAgentMessageFeedback(messageId, reason, comment);
+      setSubmitted(true);
+      toast.success("点踩反馈已记录");
+    } catch (error) {
+      toast.error((error as Error).message || "反馈提交失败，请重试");
+      throw error;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  return <>
+    <button type="button"
+      className="mt-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[color:var(--agent-muted)] transition-colors hover:bg-[color:var(--agent-grid)] hover:text-[color:var(--agent-ink)] disabled:cursor-not-allowed disabled:opacity-60"
+      onClick={() => setReasonOpen(true)} disabled={submitting || submitted}
+      aria-label={submitted ? "已记录点踩反馈" : "点踩"} title={submitted ? "已记录点踩反馈" : "点踩"}>
+      <ThumbsDown className="h-3.5 w-3.5" />
+      <span>{submitting ? "提交中…" : submitted ? "已记录" : "点踩"}</span>
+    </button>
+    <DislikeReasonDialog open={reasonOpen} onOpenChange={setReasonOpen} onSubmit={handleSubmit} />
+  </>;
 }
 
 /**

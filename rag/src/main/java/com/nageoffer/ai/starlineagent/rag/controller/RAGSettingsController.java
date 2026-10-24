@@ -22,13 +22,10 @@ import com.nageoffer.ai.starlineagent.framework.web.Results;
 import com.nageoffer.ai.starlineagent.infra.config.AIModelProperties;
 import com.nageoffer.ai.starlineagent.rag.config.GraphProperties;
 import com.nageoffer.ai.starlineagent.rag.config.KeywordProperties;
-import com.nageoffer.ai.starlineagent.rag.config.MemoryProperties;
 import com.nageoffer.ai.starlineagent.rag.config.OrchestrationProperties;
 import com.nageoffer.ai.starlineagent.rag.config.RAGConfigProperties;
 import com.nageoffer.ai.starlineagent.rag.config.RAGDefaultProperties;
-import com.nageoffer.ai.starlineagent.rag.config.RAGRateLimitProperties;
 import com.nageoffer.ai.starlineagent.rag.config.RagStorageProperties;
-import com.nageoffer.ai.starlineagent.rag.config.RagTraceProperties;
 import com.nageoffer.ai.starlineagent.rag.config.SearchChannelProperties;
 import com.nageoffer.ai.starlineagent.rag.controller.vo.SystemSettingsVO;
 import com.nageoffer.ai.starlineagent.rag.controller.vo.SystemSettingsVO.AISettings;
@@ -59,10 +56,7 @@ public class RAGSettingsController {
     private final GraphProperties graphProperties;
     private final RAGDefaultProperties ragDefaultProperties;
     private final RAGConfigProperties ragConfigProperties;
-    private final RagTraceProperties ragTraceProperties;
     private final SearchChannelProperties searchChannelProperties;
-    private final RAGRateLimitProperties ragRateLimitProperties;
-    private final MemoryProperties memoryProperties;
     private final AIModelProperties aiModelProperties;
 
     @Value("${rag.vector.type:milvus}")
@@ -141,25 +135,8 @@ public class RAGSettingsController {
                         .rerank(ragConfigProperties.getRerankEnabled())
                         .citation(ragConfigProperties.getCitationEnabled())
                         .contextEnrich(ragConfigProperties.getContextEnrichEnabled())
-                        .trace(ragTraceProperties.isEnabled())
                         .build())
                 .search(toSearchSettings(searchChannelProperties))
-                .rateLimit(SystemSettingsVO.RateLimitSettings.builder()
-                        .global(SystemSettingsVO.GlobalRateLimit.builder()
-                                .enabled(ragRateLimitProperties.getGlobalEnabled())
-                                .maxConcurrent(ragRateLimitProperties.getGlobalMaxConcurrent())
-                                .maxWaitSeconds(ragRateLimitProperties.getGlobalMaxWaitSeconds())
-                                .leaseSeconds(ragRateLimitProperties.getGlobalLeaseSeconds())
-                                .pollIntervalMs(ragRateLimitProperties.getGlobalPollIntervalMs())
-                                .build())
-                        .build())
-                .memory(SystemSettingsVO.MemorySettings.builder()
-                        .historyKeepTurns(memoryProperties.getHistoryKeepTurns())
-                        .summaryEnabled(memoryProperties.getSummaryEnabled())
-                        .summaryStartTurns(memoryProperties.getSummaryStartTurns())
-                        .summaryMaxChars(memoryProperties.getSummaryMaxChars())
-                        .titleMaxLength(memoryProperties.getTitleMaxLength())
-                        .build())
                 .build();
     }
 

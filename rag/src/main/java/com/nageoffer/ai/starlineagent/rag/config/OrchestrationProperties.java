@@ -31,11 +31,14 @@ import org.springframework.context.annotation.Configuration;
 public class OrchestrationProperties {
 
     /**
-     * 档位取值，可选 workflow（默认）/ agent，大小写不敏感
+     * 唯一运行入口为 agent；旧 workflow 已下线
      */
-    private String type = "workflow";
+    private String type = "agent";
 
     public OrchestrationMode getMode() {
-        return OrchestrationMode.of(type);
+        if (!"agent".equalsIgnoreCase(type == null ? "" : type.trim())) {
+            throw new IllegalStateException("starlineagent.engine.type 只支持 agent，workflow 已下线");
+        }
+        return OrchestrationMode.AGENT;
     }
 }

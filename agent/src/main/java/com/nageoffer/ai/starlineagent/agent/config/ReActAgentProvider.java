@@ -18,6 +18,7 @@
 package com.nageoffer.ai.starlineagent.agent.config;
 
 import cn.hutool.core.util.StrUtil;
+import com.nageoffer.ai.starlineagent.agent.audit.AgentAuditMiddleware;
 import com.nageoffer.ai.starlineagent.agent.confirm.AgentConfirmDenialMiddleware;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentContextCompactionMiddleware;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentUserMemoryMiddleware;
@@ -26,15 +27,12 @@ import com.nageoffer.ai.starlineagent.agent.state.PgAgentStateStore;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolBatchMiddleware;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolCatalog;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolCatalog.ResolvedCatalog;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentTraceEnrichmentMiddleware;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.AgentPromptResolver;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.AgentPromptSlot;
 import io.agentscope.core.ReActAgent;
-import io.agentscope.core.tracing.OtelTracingMiddleware;
 import io.agentscope.extensions.model.openai.OpenAIChatModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -62,8 +60,7 @@ public class ReActAgentProvider {
     private final AgentConfirmDenialMiddleware confirmDenialMiddleware;
     private final AgentSkillMaskingMiddleware skillMaskingMiddleware;
     private final AgentToolBatchMiddleware toolBatchMiddleware;
-    private final ObjectProvider<OtelTracingMiddleware> otelTracingMiddleware;
-    private final ObjectProvider<AgentTraceEnrichmentMiddleware> traceEnrichmentMiddleware;
+    private final AgentAuditMiddleware auditMiddleware;
 
     /**
      * 以人设内容和工具目录签名判断重建时机：控制台修改后无需重启，下一次会话生效
@@ -108,10 +105,7 @@ public class ReActAgentProvider {
                 // 强制停止可能留下无结果的工具调用，下一问先补错误结果再继续
                 .enablePendingToolRecovery(true)
                 .stateStore(agentStateStore);
-        // 追踪包在最外层：span 要盖住记忆与压缩才量得到耗时
-        otelTracingMiddleware.ifAvailable(builder::middleware);
-        traceEnrichmentMiddleware.ifAvailable(builder::middleware);
-        return builder
+        return builder.middleware(auditMiddleware)
                 // 外层先执行：记忆块插在人设与会话之间，压缩的 offset 比对自然吸收它
                 .middleware(userMemoryMiddleware)
                 .middleware(contextCompactionMiddleware)

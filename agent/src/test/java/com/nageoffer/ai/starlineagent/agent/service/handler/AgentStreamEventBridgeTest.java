@@ -757,7 +757,7 @@ class AgentStreamEventBridgeTest {
 
     private AgentStreamEventBridge newBridge(ResolvedCatalog catalog) {
         return AgentStreamEventBridge.builder()
-                .runHandle(new AgentRunHandle(TASK_ID, sender, taskManager, facts, null))
+                .runHandle(new AgentRunHandle(TASK_ID, sender, taskManager, facts))
                 .conversationService(conversationService)
                 .catalog(catalog)
                 .conversationId(CONVERSATION_ID)

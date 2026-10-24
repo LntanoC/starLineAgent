@@ -18,17 +18,8 @@
 package com.nageoffer.ai.starlineagent.agent.service.handler;
 
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolExecutionFacts;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentRunTracer;
-import com.nageoffer.ai.starlineagent.agent.trace.CollectingSpanExporter;
-import com.nageoffer.ai.starlineagent.agent.trace.StarlineAttributes;
 import com.nageoffer.ai.starlineagent.framework.web.SseEmitterSender;
 import com.nageoffer.ai.starlineagent.framework.web.StreamTaskManager;
-import io.agentscope.core.agent.RuntimeContext;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.sdk.trace.SdkTracerProvider;
-import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -62,27 +53,14 @@ class AgentRunHandleTest {
     private SseEmitterSender sender;
     private StreamTaskManager taskManager;
     private AgentToolExecutionFacts facts;
-    private RuntimeContext runtimeContext;
     private AgentRunHandle handle;
-    private List<SpanData> exported;
-    private SdkTracerProvider tracerProvider;
 
     @BeforeEach
     void setUp() {
         sender = mock(SseEmitterSender.class);
         taskManager = mock(StreamTaskManager.class);
         facts = new AgentToolExecutionFacts(TASK_ID, Clock.systemDefaultZone());
-        runtimeContext = RuntimeContext.builder().userId("u-1001").sessionId("c-2002").build();
-        handle = new AgentRunHandle(TASK_ID, sender, taskManager, facts, runtimeContext);
-        exported = Collections.synchronizedList(new ArrayList<>());
-        tracerProvider = SdkTracerProvider.builder()
-                .addSpanProcessor(SimpleSpanProcessor.builder(new CollectingSpanExporter(exported)).build())
-                .build();
-    }
-
-    @AfterEach
-    void tearDown() {
-        tracerProvider.close();
+        handle = new AgentRunHandle(TASK_ID, sender, taskManager, facts);
     }
 
     @Test
@@ -388,46 +366,6 @@ class AgentRunHandleTest {
         assertThat(facts.terminationAt()).isEqualTo(facts.interruptedAt());
     }
 
-    /**
-     * 根 span 在框架 onComplete 后就 end 了，结局必须在打断前写入
-     */
-    @Test
-    void shouldWriteInterruptedOutcomeBeforeInterruptAction() {
-        Span root = bindRootSpan();
-        Disposable disposable = mock(Disposable.class);
-        // 模拟框架收尾时官方中间件 end 根 span
-        handle.bindStream(disposable, () -> {
-            root.end();
-            handle.markUpstreamTerminated();
-        });
-
-        handle.interruptUpstream();
-
-        assertThat(onlySpan().getAttributes().get(StarlineAttributes.RUN_OUTCOME))
-                .isEqualTo(StarlineAttributes.RUN_OUTCOME_INTERRUPTED);
-    }
-
-    /**
-     * dispose 后没有线程能读 span，结局必须在掐链前落定
-     */
-    @Test
-    void shouldWriteAbortedOutcomeBeforeDispose() {
-        Span root = bindRootSpan();
-        Disposable disposable = mock(Disposable.class);
-        doAnswer(invocation -> {
-            root.end();
-            return null;
-        }).when(disposable).dispose();
-        // 不发终止信号，等满窗口后走强制断流
-        handle.bindStream(disposable, () -> {
-        });
-
-        handle.interruptUpstream();
-
-        assertThat(onlySpan().getAttributes().get(StarlineAttributes.RUN_OUTCOME))
-                .isEqualTo(StarlineAttributes.RUN_OUTCOME_ABORTED);
-    }
-
     @Test
     void shouldMarkForcedDisposalWhenAwaitTimesOut() {
         Disposable disposable = mock(Disposable.class);
@@ -509,14 +447,4 @@ class AgentRunHandleTest {
         assertThatCode(() -> handle.interruptUpstream()).doesNotThrowAnyException();
     }
 
-    private Span bindRootSpan() {
-        Span root = tracerProvider.get("test").spanBuilder("invoke_agent starlineagent").startSpan();
-        AgentRunTracer.bindRoot(runtimeContext, root);
-        return root;
-    }
-
-    private SpanData onlySpan() {
-        assertThat(exported).hasSize(1);
-        return exported.get(0);
-    }
 }

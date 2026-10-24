@@ -64,8 +64,11 @@ services:
     command: ['java', '-jar', '/app/starline.jar']
     volumes:
       - ./starline.jar:/app/starline.jar:ro
+      - ./application.yaml:/app/application.yaml:ro
+      - ./logs:/app/logs
     environment:
       TZ: Asia/Shanghai
+      SPRING_CONFIG_ADDITIONAL_LOCATION: 'file:/app/application.yaml'
       SPRING_DATASOURCE_URL: 'jdbc:postgresql://starline-postgres:5432/starline?client_encoding=UTF8'
       SPRING_DATASOURCE_USERNAME: starline
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
@@ -116,4 +119,3 @@ networks:
 volumes:
   starline-rustfs-data:
   starline-rocketmq-store:
-

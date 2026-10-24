@@ -18,7 +18,6 @@
 package com.nageoffer.ai.starlineagent.agent.tool;
 
 import cn.hutool.core.util.StrUtil;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentToolBodyTracer;
 import com.nageoffer.ai.starlineagent.framework.cancellation.TaskCancellation;
 import com.nageoffer.ai.starlineagent.rag.service.KnowledgeSearchFacade;
 import io.agentscope.core.message.TextBlock;
@@ -83,7 +82,7 @@ public class KnowledgeSearchTool implements AgentTool {
 
     @Override
     public Mono<ToolResultBlock> callAsync(ToolCallParam param) {
-        return AgentToolBodyTracer.trace(this, param, () -> Mono.fromCallable(() -> execute(param))
+        return AgentToolExecutionTracker.track(param, () -> Mono.fromCallable(() -> execute(param))
                 .subscribeOn(Schedulers.boundedElastic()));
     }
 

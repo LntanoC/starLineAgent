@@ -19,7 +19,6 @@ package com.nageoffer.ai.starlineagent.agent.tool;
 
 import com.nageoffer.ai.starlineagent.agent.skill.AgentSkillMaskingMiddleware;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolCatalog.McpToolBinding;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentToolBodyTracer;
 import com.nageoffer.ai.starlineagent.framework.cancellation.TaskCancellation;
 import io.agentscope.core.agent.AgentBase;
 import io.agentscope.core.agent.RuntimeContext;
@@ -89,7 +88,7 @@ public class McpToolProxy extends McpTool {
                     .state(ToolResultState.ERROR)
                     .build());
         }
-        return AgentToolBodyTracer.trace(this, param, () -> {
+        return AgentToolExecutionTracker.track(param, () -> {
             Map<String, Object> meta = context.map(ctx -> ctx.get(McpMeta.class))
                     .map(McpMeta::entries)
                     .orElseGet(Map::of);

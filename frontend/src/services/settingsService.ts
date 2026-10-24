@@ -42,7 +42,6 @@ export interface SystemSettings {
       rerank: boolean;
       citation: boolean;
       contextEnrich: boolean;
-      trace: boolean;
     };
     search: {
       defaultTopK: number;
@@ -68,22 +67,6 @@ export interface SystemSettings {
         rrfK: number;
         rerankCandidateLimit: number;
       };
-    };
-    rateLimit: {
-      global: {
-        enabled: boolean;
-        maxConcurrent: number;
-        maxWaitSeconds: number;
-        leaseSeconds: number;
-        pollIntervalMs: number;
-      };
-    };
-    memory: {
-      historyKeepTurns: number;
-      summaryStartTurns: number;
-      summaryEnabled: boolean;
-      summaryMaxChars: number;
-      titleMaxLength: number;
     };
   };
   ai: {

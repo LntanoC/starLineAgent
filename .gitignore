@@ -52,3 +52,6 @@ docs/temp
 ### Regression artifacts ###
 # Local reports, credentials, logs, snapshots and compiled CLI classes.
 /resources/regression/*/artifacts/
+
+# Local rollback source snapshots (never commit).
+.local-backups/

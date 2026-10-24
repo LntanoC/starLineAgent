@@ -1,3 +1,4 @@
 .env
 starline.jar
 frontend-dist/
+logs/

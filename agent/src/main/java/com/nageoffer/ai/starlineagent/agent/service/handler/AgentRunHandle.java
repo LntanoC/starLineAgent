@@ -18,10 +18,8 @@
 package com.nageoffer.ai.starlineagent.agent.service.handler;
 
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolExecutionFacts;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentRunTracer;
 import com.nageoffer.ai.starlineagent.framework.web.SseEmitterSender;
 import com.nageoffer.ai.starlineagent.framework.web.StreamTaskManager;
-import io.agentscope.core.agent.RuntimeContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.Disposable;
@@ -92,27 +90,18 @@ public class AgentRunHandle {
     private volatile boolean stateSaveRequired;
 
     /**
-     * 中断时刻记在这里，没结束的 span 拿它当终点
+     * 中断时刻记在这里，没结束的工具调用审计用它当终点
      */
     private final AgentToolExecutionFacts facts;
 
-    /**
-     * 打断跑在 HTTP 线程上够不着响应式链，根 span 从这里取
-     */
-    private final RuntimeContext runtimeContext;
-
     public AgentRunHandle(String taskId, SseEmitterSender sender, StreamTaskManager taskManager,
-                          AgentToolExecutionFacts facts, RuntimeContext runtimeContext) {
+                          AgentToolExecutionFacts facts) {
         this.taskId = taskId;
         this.sender = sender;
         this.taskManager = taskManager;
         this.facts = facts;
-        this.runtimeContext = runtimeContext;
     }
 
-    /**
-     * 绑定上游订阅与打断动作，两个字段只在这把锁内读写，所以不用 volatile
-     */
     public void bindStream(Disposable disposable, Runnable interruptAction) {
         synchronized (lifecycleLock) {
             this.disposable = disposable;
@@ -180,9 +169,7 @@ public class AgentRunHandle {
         if (interrupt != null) {
             boolean graceful = false;
             try {
-                // 得赶在 interrupt 之前写，框架收尾会 end 掉根 span，之后再写属性没用
                 facts.markInterrupted();
-                AgentRunTracer.markInterrupted(runtimeContext);
                 interrupt.run();
                 graceful = awaitUpstreamTermination();
             } catch (Exception e) {
@@ -192,9 +179,7 @@ public class AgentRunHandle {
             // 只置位不清零，优雅中断不能冲掉失败出口已标记的补存盘需求
             if (!graceful) {
                 stateSaveRequired = true;
-                // dispose 之后没人能再读 span，只能在这之前写
                 facts.markCancelled();
-                AgentRunTracer.markAborted(runtimeContext);
             }
         }
         // 框架已自行收尾时这里是空操作，强制断流才真的掐链

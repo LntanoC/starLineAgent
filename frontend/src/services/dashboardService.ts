@@ -1,5 +1,4 @@
 import { api } from "@/services/api";
-import type { EngineType } from "@/stores/engineStore";
 
 export type DashboardKpi = {
   value: number;
@@ -8,7 +7,7 @@ export type DashboardKpi = {
 };
 
 export type DashboardOverview = {
-  engine: EngineType;
+  engine: "agent";
   window: string;
   compareWindow: string;
   updatedAt: number;
@@ -21,18 +20,6 @@ export type DashboardOverview = {
     messages24h: DashboardKpi;
     activeSessions: DashboardKpi;
   };
-};
-
-export type WorkflowDashboardPerformance = {
-  engine: "workflow";
-  window: string;
-  avgLatencyMs: number;
-  p95LatencyMs: number;
-  successRate: number;
-  errorRate: number;
-  noDocRate: number;
-  slowRate: number;
-  sampleCount: number;
 };
 
 export type AgentDashboardPerformance = {
@@ -105,7 +92,7 @@ export type AgentDashboardPerformance = {
   };
 };
 
-export type DashboardPerformance = WorkflowDashboardPerformance | AgentDashboardPerformance;
+export type DashboardPerformance = AgentDashboardPerformance;
 
 export type DashboardTrendPoint = {
   ts: number;

@@ -56,7 +56,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.ObjectProvider;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -123,16 +122,7 @@ class ReActAgentProviderTest {
                 passThrough(AgentConfirmDenialMiddleware.class),
                 passThrough(AgentSkillMaskingMiddleware.class),
                 new AgentToolBatchMiddleware(),
-                absent(),
-                absent());
-    }
-
-    /**
-     * 追踪关闭时中间件不在容器里，mock ifAvailable 即空操作
-     */
-    @SuppressWarnings("unchecked")
-    private static <T> ObjectProvider<T> absent() {
-        return mock(ObjectProvider.class);
+                new com.nageoffer.ai.starlineagent.agent.audit.AgentAuditMiddleware(null));
     }
 
     // Provider 测试只隔离业务中间件，保留真实框架的恢复、推理和存盘流程

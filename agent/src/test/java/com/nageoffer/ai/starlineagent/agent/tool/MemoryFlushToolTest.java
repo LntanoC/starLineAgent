@@ -23,7 +23,6 @@ import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryOutcome.Status;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryPipeline;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentMemorySnapshot;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentUserMemoryMiddleware;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentTraceContextKeys;
 import io.agentscope.core.agent.RuntimeContext;
 import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.message.ToolResultBlock;
@@ -210,7 +209,7 @@ class MemoryFlushToolTest {
 
     private RuntimeContext newRuntimeContext() {
         RuntimeContext runtimeContext = RuntimeContext.builder().userId(USER_ID).sessionId(CONVERSATION_ID).build();
-        runtimeContext.put(AgentTraceContextKeys.REPLY_TO_MESSAGE_ID, REQUEST_ID);
+        runtimeContext.put(AgentRuntimeContextKeys.REPLY_TO_MESSAGE_ID, REQUEST_ID);
         return runtimeContext;
     }
 

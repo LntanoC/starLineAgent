@@ -149,8 +149,13 @@ const menuGroups: MenuGroup[] = [
         icon: KeyRound
       },
       {
-        path: "/admin/traces",
-        label: "链路追踪",
+        path: "/admin/bad-cases",
+        label: "Bad case 分析",
+        icon: ClipboardList
+      },
+      {
+        path: "/admin/agent-runs",
+        label: "Agent 运行审计",
         icon: Workflow
       },
       {
@@ -196,7 +201,8 @@ const breadcrumbMap: Record<string, string> = {
   "intent-tree": "意图树配置",
   "intent-list": "意图列表",
   ingestion: "数据通道",
-  traces: "链路追踪",
+  "agent-runs": "Agent 运行审计",
+  "bad-cases": "Bad case 分析",
   "change-logs": "审计日志",
   "starline-sources": "星序来源清单",
   "sample-questions": "示例问题",
@@ -327,10 +333,6 @@ export function AdminLayout() {
 
     if (section === "knowledge" && segments.includes("docs")) {
       items.push({ label: "分块管理" });
-    }
-
-    if (section === "traces" && segments.length > 2) {
-      items.push({ label: "链路详情" });
     }
 
     if (section === "agents" && segments.length > 2) {

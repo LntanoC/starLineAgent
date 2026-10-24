@@ -16,7 +16,7 @@ import type {
 import "../src/styles/globals.css";
 
 const params = new URLSearchParams(location.search);
-const engine = params.get("engine") === "workflow" ? "workflow" : "agent";
+const engine = "agent" as const;
 const scenario = params.get("scenario") ?? "sample";
 /** console 复刻真实控制台外壳（含 256px 左栏），bare 为无左栏的裸预览 */
 const chrome = params.get("chrome") === "console" ? "console" : "bare";
@@ -192,32 +192,16 @@ api.defaults.adapter = async (config) => {
       }
     } satisfies DashboardOverview;
   } else if (config.url.endsWith("/performance")) {
-    data =
-      engine === "agent"
-        ? { ...agentData, window: windowValue }
-        : ({
-            engine: "workflow",
-            window: windowValue,
-            avgLatencyMs: n(2360),
-            p95LatencyMs: n(5800),
-            successRate: n(99.2),
-            errorRate: n(0.8),
-            noDocRate: n(4.2),
-            slowRate: n(1.2),
-            sampleCount: n(468)
-          } satisfies DashboardPerformance);
+    data = { ...agentData, window: windowValue } satisfies DashboardPerformance;
   } else {
     if (scenario === "trend-error") throw new Error("测试：趋势读取失败");
     const metric = config.params?.metric;
-    if (engine === "agent" && ["avgLatency", "quality"].includes(metric))
+    if (["avgLatency", "quality"].includes(metric))
       throw new Error("Agent 不应请求 RAG 性能指标");
-    if (engine === "workflow" && ["tools", "replies"].includes(metric))
-      throw new Error("Workflow 不应请求 Agent 专属指标");
     /*
      * Agent 分支对 sessions/messages/activeusers 下发两条序列（当前周期 + 上周期），
-     * Workflow 分支只有一条：流量图必须两种形状都能画
      */
-    const compared = engine === "agent" && ["messages", "sessions", "activeusers"].includes(metric);
+    const compared = ["messages", "sessions", "activeusers"].includes(metric);
     const definitions: Record<string, Array<[string, number]>> = {
       messages: compared
         ? [
@@ -285,7 +269,6 @@ const scenarioNav = (
   <nav aria-label="测试场景" className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
     <span className="font-semibold">隔离预览 · 全部为测试数据</span>
     <a href={`?engine=agent&chrome=${chrome}`}>Agent</a>
-    <a href={`?engine=workflow&chrome=${chrome}`}>Workflow</a>
     {["sample", "empty", "missing", "error", "trend-error"].map((value) => (
       <a key={value} href={`?engine=${engine}&scenario=${value}&chrome=${chrome}`}>
         {value}

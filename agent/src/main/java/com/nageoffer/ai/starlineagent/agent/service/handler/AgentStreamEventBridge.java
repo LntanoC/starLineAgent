@@ -73,6 +73,9 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class AgentStreamEventBridge {
+    private com.nageoffer.ai.starlineagent.agent.audit.AgentAuditSession auditSession;
+    public void attachAudit(com.nageoffer.ai.starlineagent.agent.audit.AgentAuditSession session) { this.auditSession = session; }
+
 
     private static final String HINT_AGENT = "AGENT_HINT";
     private static final String HINT_MAX_ITERATIONS = "MAX_ITERATIONS";
@@ -210,6 +213,7 @@ public class AgentStreamEventBridge {
         if (runHandle.isCancelled()) {
             return;
         }
+        if (auditSession != null) auditSession.fail(throwable);
         runHandle.fail(() -> {
             log.error("Agent 流式会话异常, taskId: {}", runHandle.getTaskId(), throwable);
             // 中断提示单独成 error 块：这是系统在说话，混进 answer 就跟模型的回答一个身份了
@@ -236,6 +240,7 @@ public class AgentStreamEventBridge {
      * 取消后收尾：持久化已生成内容，发 cancel/done 事件
      */
     public void finishCancelledStream() {
+        if (auditSession != null) auditSession.interrupt();
         runHandle.cancel(() -> {
             // 取消时如果有待确认的工具，走确认流程而非中断
             if (settleAwaitingConfirm()) {
@@ -640,9 +645,12 @@ public class AgentStreamEventBridge {
         flushSealedTextBlocks();
         returned.forEach(progress -> sender.sendEvent(AgentSSEEventType.BLOCK.value(), progress));
         try {
-            return conversationService.addAssistantMessage(conversationId, userId, content,
+            String id = conversationService.addAssistantMessage(conversationId, userId, content,
                     thinking, settled, replyToMessageId, status, facts.settleRun());
+            if (auditSession != null) auditSession.finish(id, content, status.name());
+            return id;
         } catch (Exception e) {
+            if (auditSession != null) { auditSession.partial(); auditSession.fail(e); auditSession.finish(null, content, "FAILED"); }
             log.error("Agent 终答落库失败, conversationId: {}", conversationId, e);
             return null;
         }

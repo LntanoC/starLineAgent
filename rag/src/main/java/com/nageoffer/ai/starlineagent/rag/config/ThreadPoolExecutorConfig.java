@@ -117,25 +117,6 @@ public class ThreadPoolExecutorConfig {
     }
 
     /**
-     * 对话记忆摘要生成线程池
-     */
-    @Bean
-    public Executor memorySummaryExecutor() {
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(
-                1,
-                Math.max(2, CPU_COUNT >> 1),
-                60,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(200),
-                ThreadFactoryBuilder.create()
-                        .setNamePrefix("memory_summary_executor_")
-                        .build(),
-                new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-        return TtlExecutors.getTtlExecutor(executor);
-    }
-
-    /**
      * 模型流式输出线程池
      */
     @Bean
@@ -155,27 +136,6 @@ public class ThreadPoolExecutorConfig {
     }
 
     /**
-     * SSE 排队后执行入口线程池
-     */
-    @Bean
-    public Executor chatEntryExecutor(RAGRateLimitProperties rateLimitProperties) {
-        int size = rateLimitProperties.getGlobalMaxConcurrent();
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(
-                size,
-                size,
-                60,
-                TimeUnit.SECONDS,
-                new SynchronousQueue<>(),
-                ThreadFactoryBuilder.create()
-                        .setNamePrefix("chat_entry_executor_")
-                        .build(),
-                new ThreadPoolExecutor.AbortPolicy()
-        );
-        executor.allowCoreThreadTimeOut(true);
-        return TtlExecutors.getTtlExecutor(executor);
-    }
-
-    /**
      * 知识库文档分块线程池
      */
     @Bean
@@ -190,25 +150,6 @@ public class ThreadPoolExecutorConfig {
                         .setNamePrefix("kb_chunk_executor_")
                         .build(),
                 new ThreadPoolExecutor.AbortPolicy()
-        );
-        return TtlExecutors.getTtlExecutor(executor);
-    }
-
-    /**
-     * 对话记忆加载线程池（并行加载摘要与历史记录）
-     */
-    @Bean
-    public Executor memoryLoadExecutor() {
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(
-                Math.max(2, CPU_COUNT >> 1),
-                Math.max(4, CPU_COUNT),
-                60,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(200),
-                ThreadFactoryBuilder.create()
-                        .setNamePrefix("memory_load_executor_")
-                        .build(),
-                new ThreadPoolExecutor.CallerRunsPolicy()
         );
         return TtlExecutors.getTtlExecutor(executor);
     }

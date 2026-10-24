@@ -34,7 +34,6 @@ type Tone = "cyan" | "emerald" | "indigo" | "amber" | "sky" | "slate";
 
 // 选型值到展示文案的映射，未知取值原样透出
 const ENGINE_CAPTIONS: Record<string, string> = {
-  workflow: "工作流编排管线",
   agent: "ReAct 主智能体"
 };
 
@@ -404,7 +403,7 @@ export function SystemSettingsPage() {
         </div>
       </div>
 
-      <Section title="架构选型" hint="引擎与四类后端组件，切换需修改 yaml 并重启">
+      <Section title="架构选型" hint="Agent 唯一入口；后端组件通过 yaml 配置">
         <div className="settings-arch-grid">
           <ArchCard
             icon={Cpu}
@@ -553,7 +552,6 @@ export function SystemSettingsPage() {
             <FeaturePill label="Rerank 精排" keyName="rerank" on={features.rerank} />
             <FeaturePill label="行内引用" keyName="citation" on={features.citation} />
             <FeaturePill label="上下文富化" keyName="context-enrich" on={features.contextEnrich} />
-            <FeaturePill label="链路追踪" keyName="trace" on={features.trace} />
           </div>
         </div>
       </Section>
@@ -664,7 +662,7 @@ export function SystemSettingsPage() {
         </div>
       </Section>
 
-      <Section title="运行时参数" hint="向量空间、会话记忆与资源限额">
+      <Section title="运行时参数" hint="向量空间、对象存储与上传限额">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div className="settings-card">
             <div className="settings-card-title">向量空间</div>
@@ -673,34 +671,6 @@ export function SystemSettingsPage() {
               <KV label="向量维度" value={rag.default.dimension} mono />
               <KV label="相似度度量" value={rag.default.metricType} mono />
               <KV label="SSE 超时" value={formatDurationMs(rag.default.sseTimeoutMs)} />
-            </div>
-          </div>
-          <div className="settings-card">
-            <div className="settings-card-title">
-              会话记忆
-              <span className="settings-card-title-hint">
-                <StateTag on={rag.memory.summaryEnabled} onText="摘要压缩启用" offText="摘要压缩关闭" />
-              </span>
-            </div>
-            <div className="settings-kv-grid">
-              <KV label="历史保留轮数" value={`${rag.memory.historyKeepTurns} 轮`} />
-              <KV label="摘要起始轮数" value={`第 ${rag.memory.summaryStartTurns} 轮`} />
-              <KV label="摘要长度上限" value={`${rag.memory.summaryMaxChars} 字`} />
-              <KV label="会话标题上限" value={`${rag.memory.titleMaxLength} 字`} />
-            </div>
-          </div>
-          <div className="settings-card">
-            <div className="settings-card-title">
-              全局限流
-              <span className="settings-card-title-hint">
-                <StateTag on={rag.rateLimit.global.enabled} />
-              </span>
-            </div>
-            <div className="settings-kv-grid">
-              <KV label="最大并发" value={rag.rateLimit.global.maxConcurrent} mono />
-              <KV label="最长等待" value={`${rag.rateLimit.global.maxWaitSeconds} s`} />
-              <KV label="租约时长" value={`${rag.rateLimit.global.leaseSeconds} s`} />
-              <KV label="轮询间隔" value={formatDurationMs(rag.rateLimit.global.pollIntervalMs)} />
             </div>
           </div>
           <div className="settings-card">

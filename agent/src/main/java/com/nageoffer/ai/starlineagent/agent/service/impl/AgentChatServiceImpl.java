@@ -18,6 +18,8 @@
 package com.nageoffer.ai.starlineagent.agent.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import com.nageoffer.ai.starlineagent.agent.audit.AgentAuditService;
+import com.nageoffer.ai.starlineagent.agent.audit.AgentAuditSession;
 import cn.hutool.core.util.StrUtil;
 import com.nageoffer.ai.starlineagent.agent.config.ConditionalOnAgentEngine;
 import com.nageoffer.ai.starlineagent.agent.config.ReActAgentProvider;
@@ -34,7 +36,6 @@ import com.nageoffer.ai.starlineagent.agent.service.handler.AgentRunGate;
 import com.nageoffer.ai.starlineagent.agent.service.handler.AgentRunHandle;
 import com.nageoffer.ai.starlineagent.agent.service.handler.AgentStreamEventBridge;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolExecutionFacts;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentTraceContextKeys;
 import com.nageoffer.ai.starlineagent.framework.context.UserContext;
 import com.nageoffer.ai.starlineagent.framework.exception.ClientException;
 import com.nageoffer.ai.starlineagent.framework.web.SseEmitterSender;
@@ -75,6 +76,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AgentChatServiceImpl implements AgentChatService {
 
     private final ReActAgentProvider agentProvider;
+    private final AgentAuditService auditService;
     private final AgentConversationService conversationService;
     private final StreamTaskManager taskManager;
     private final AgentRunGate runGate;
@@ -230,15 +232,20 @@ public class AgentChatServiceImpl implements AgentChatService {
         // 事实源：桥、上下文与句柄共用，ID 与时刻只在这里产生
         Clock clock = Clock.systemDefaultZone();
         AgentToolExecutionFacts facts = new AgentToolExecutionFacts(taskId, clock);
-        // 上下文传到底，中断时句柄从这里取根 span
+        // 上下文传给 AgentScope，工具执行与审计中间件从中读取本轮事实
         RuntimeContext runtimeContext = buildRuntimeContext(scope, facts);
+        AgentAuditSession auditSession = auditService.open(taskId, userId, conversationId,
+                scope.replyToMessageId(), scope.confirmMessageId(), input, facts);
+        if (auditSession != null) runtimeContext.put(AgentAuditSession.CONTEXT_KEY, auditSession);
         SseEmitterSender sender = new SseEmitterSender(scope.emitter());
-        AgentRunHandle runHandle = new AgentRunHandle(taskId, sender, taskManager, facts, runtimeContext);
+        AgentRunHandle runHandle = new AgentRunHandle(taskId, sender, taskManager, facts);
         bindReleaseHooks(runHandle, agent, scope);
+        if (auditSession != null) runHandle.onRelease(() -> auditSession.finish(null, null, "NORMAL"));
         try {
             bindEmitterLifecycle(scope.emitter(), runHandle, taskId);
             sender.sendEvent(AgentSSEEventType.META.value(), new AgentMetaPayload(conversationId, taskId));
             AgentStreamEventBridge bridge = buildBridge(activeAgent, scope, runHandle, facts, clock);
+            bridge.attachAudit(auditSession);
             taskManager.register(taskId, userId, bridge::finishCancelledStream);
             // 预埋取消标记会让 register 当场跑完收尾，此时不再启动 Agent
             if (runHandle.isSettled()) {
@@ -255,6 +262,7 @@ public class AgentChatServiceImpl implements AgentChatService {
                 taskManager.bindHandle(taskId, runHandle::interruptUpstream);
             });
         } catch (RuntimeException | Error e) {
+            if (auditSession != null) { auditSession.fail(e); auditSession.finish(null, null, "FAILED"); }
             // 启动失败时释放钩子不会执行，手动清掉缓存里的坏状态
             agent.clearStateCache(userId, conversationId);
             throw e;
@@ -325,9 +333,10 @@ public class AgentChatServiceImpl implements AgentChatService {
                 .put(McpMeta.class, new McpMeta(AgentMcpMeta.ofUser(scope.userId())))
                 .put(AgentToolExecutionFacts.RUNTIME_CONTEXT_KEY, facts)
                 .build();
-        runtimeContext.put(AgentTraceContextKeys.TASK_ID, scope.taskId());
-        runtimeContext.put(AgentTraceContextKeys.REPLY_TO_MESSAGE_ID, scope.replyToMessageId());
-        runtimeContext.put(AgentTraceContextKeys.CONFIRM_MESSAGE_ID, scope.confirmMessageId());
+        if (scope.replyToMessageId() != null) {
+            runtimeContext.put(com.nageoffer.ai.starlineagent.agent.tool.AgentRuntimeContextKeys.REPLY_TO_MESSAGE_ID,
+                    scope.replyToMessageId());
+        }
         return runtimeContext;
     }
 

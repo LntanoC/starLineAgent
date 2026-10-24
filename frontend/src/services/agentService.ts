@@ -47,6 +47,13 @@ export async function getAgentMeta() {
   return api.get<AgentEngineMeta, AgentEngineMeta>("/agent/v1/meta");
 }
 
+export async function submitAgentMessageFeedback(messageId: string, reason?: string, comment?: string) {
+  return api.post<void>(
+    "/agent/v1/messages/" + encodeURIComponent(messageId) + "/feedback",
+    { vote: -1, reason, comment }
+  );
+}
+
 export async function stopAgentTask(taskId: string) {
   return api.post<void>(`/agent/v1/stop?taskId=${encodeURIComponent(taskId)}`);
 }

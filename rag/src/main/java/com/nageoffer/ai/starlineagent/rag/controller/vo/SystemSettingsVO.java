@@ -127,8 +127,6 @@ public class SystemSettingsVO {
         private DefaultSettings defaultConfig;
         private FeatureSettings features;
         private SearchSettings search;
-        private RateLimitSettings rateLimit;
-        private MemorySettings memory;
     }
 
     @Data
@@ -150,7 +148,6 @@ public class SystemSettingsVO {
         private Boolean rerank;
         private Boolean citation;
         private Boolean contextEnrich;
-        private Boolean trace;
     }
 
     /**
@@ -210,32 +207,6 @@ public class SystemSettingsVO {
             private Integer rrfK;
             private Integer rerankCandidateLimit;
         }
-    }
-
-    @Data
-    @Builder
-    public static class MemorySettings {
-        private Integer historyKeepTurns;
-        private Boolean summaryEnabled;
-        private Integer summaryStartTurns;
-        private Integer summaryMaxChars;
-        private Integer titleMaxLength;
-    }
-
-    @Data
-    @Builder
-    public static class RateLimitSettings {
-        private GlobalRateLimit global;
-    }
-
-    @Data
-    @Builder
-    public static class GlobalRateLimit {
-        private Boolean enabled;
-        private Integer maxConcurrent;
-        private Integer maxWaitSeconds;
-        private Integer leaseSeconds;
-        private Integer pollIntervalMs;
     }
 
     @Data

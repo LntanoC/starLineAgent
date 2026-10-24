@@ -1,7 +1,5 @@
 /**
  * Agent 分支的整页正文：KPI 带 + 两层等高分栏。
- * 排布与 Workflow 分支零重叠——这一页的栅格断点、纵向余量分配全挂在 globals.css 的
- * dashboard-page--agent 下，按内容列宽断而不是按视口断，那边一条规则也落不到 Workflow 上
  */
 import { ShieldCheck, Sparkles } from "lucide-react";
 
@@ -32,7 +30,6 @@ import {
 // ==========================================================================
 
 /**
- * 后两格：助手回复与工具成功率。前两格与 Workflow 分支同源，从 baseKpiItems 接过来
  */
 const agentKpiItems = (
     overview: DashboardOverview | null,

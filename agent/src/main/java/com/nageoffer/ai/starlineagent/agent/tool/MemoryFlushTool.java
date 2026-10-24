@@ -22,8 +22,6 @@ import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryOutcome;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryOutcome.Status;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryPipeline;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentUserMemoryMiddleware;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentToolBodyTracer;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentTraceContextKeys;
 import io.agentscope.core.agent.RuntimeContext;
 import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.message.ToolResultBlock;
@@ -76,7 +74,7 @@ public class MemoryFlushTool implements AgentTool {
 
     @Override
     public Mono<ToolResultBlock> callAsync(ToolCallParam param) {
-        return AgentToolBodyTracer.trace(this, param, () -> Mono.fromCallable(() -> execute(param))
+        return AgentToolExecutionTracker.track(param, () -> Mono.fromCallable(() -> execute(param))
                 .subscribeOn(Schedulers.boundedElastic()));
     }
 
@@ -97,7 +95,7 @@ public class MemoryFlushTool implements AgentTool {
         // 本轮答复挂的那条用户消息就是本次请求；拿不到就判不了「处理到了没有」，不能硬跑后报成功
         String requestMessageId = runtimeContext == null
                 ? null
-                : runtimeContext.get(AgentTraceContextKeys.REPLY_TO_MESSAGE_ID) instanceof String id ? id : null;
+                : runtimeContext.get(AgentRuntimeContextKeys.REPLY_TO_MESSAGE_ID) instanceof String id ? id : null;
         if (StrUtil.isBlank(userId) || StrUtil.isBlank(conversationId) || StrUtil.isBlank(requestMessageId)) {
             log.warn("记忆整理工具拿不到会话身份或本次请求, 本次不整理");
             return buildResult(toolCallId, "当前会话无法整理记忆，本次内容未能写入", true);

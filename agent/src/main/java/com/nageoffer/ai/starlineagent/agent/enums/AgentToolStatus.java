@@ -21,8 +21,8 @@ import io.agentscope.core.message.ToolResultState;
 import lombok.AllArgsConstructor;
 
 /**
- * 工具调用状态，SSE、落库块与 LangFuse trace 共用这一套取值
- * 框架状态到它的映射只此一处，前端与追踪各映一遍迟早会漂成两种解释
+ * 工具调用状态，SSE、落库块与 Agent 运行审计共用这一套取值
+ * 框架状态到它的映射只此一处，前端与后端各映一遍迟早会漂成两种解释
  */
 @AllArgsConstructor
 public enum AgentToolStatus {

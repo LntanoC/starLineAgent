@@ -300,7 +300,7 @@ function byCallIndex(a: AgentBlockUI, b: AgentBlockUI): number {
  * 有工具开了工却没有终点 说明这批还没收口 此时只报起点不报耗时 不拿现有的最晚终点冒充整批
  * 这不是后端那个 tool_batch —— 那一段从 acting 入口起算 含权限判定与后处理 比包络长几十毫秒 两个数不该互相对账
  */
-function batchWindow(
+export function batchWindow(
   group: AgentBlockUI[],
   perTool: boolean
 ): { startedAt?: number; durationMs?: number } {
@@ -324,7 +324,7 @@ function batchWindow(
  * 任一条没收口就不表态 断在半路的区间未知 说它并行或串行都是编
  * 老口径整批共用一份起止 读出来必然重叠 那不是并行的证据 调用方不该拿老数据问这个
  */
-function overlapped(group: AgentBlockUI[]): boolean | undefined {
+export function overlapped(group: AgentBlockUI[]): boolean | undefined {
   const spans = group.filter((item) => item.startedAt != null);
   if (spans.length < 2 || spans.some((item) => item.endedAt == null)) return undefined;
   const ordered = [...spans].sort((a, b) => (a.startedAt as number) - (b.startedAt as number));

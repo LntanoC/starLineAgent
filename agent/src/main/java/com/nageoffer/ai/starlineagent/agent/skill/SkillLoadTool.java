@@ -18,7 +18,7 @@
 package com.nageoffer.ai.starlineagent.agent.skill;
 
 import cn.hutool.core.util.StrUtil;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentToolBodyTracer;
+import com.nageoffer.ai.starlineagent.agent.tool.AgentToolExecutionTracker;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkill;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkillRegistry;
 import io.agentscope.core.message.ContentBlock;
@@ -99,7 +99,7 @@ public class SkillLoadTool implements AgentTool {
 
     @Override
     public Mono<ToolResultBlock> callAsync(ToolCallParam param) {
-        return AgentToolBodyTracer.trace(this, param, () -> Mono.fromCallable(() -> execute(param))
+        return AgentToolExecutionTracker.track(param, () -> Mono.fromCallable(() -> execute(param))
                 .subscribeOn(Schedulers.boundedElastic()));
     }
 

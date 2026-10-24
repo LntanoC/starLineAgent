@@ -375,7 +375,6 @@ html.dark *::-webkit-scrollbar-thumb:hover {
    * admin-content → dashboard-page--agent → dashboard-stack → 两层分栏的链把余量一路交下去，
    * 每一环都是 flex-shrink 0 加 flex-basis auto：只在有余量时长，永远不压到自然高度以下，
    * 内容比屏幕高的那些档（窄屏单列）照旧滚动。
-   * Workflow 分支一条也拿不到——它的层自己不认 flex-grow，链只要搭上去就变成在层内攒余量，
    * 页尾那行会被推低几十到几百像素。别的后台页也不受影响，仍是内容有多高页面就多高
    */
   .admin-layout .admin-main:has(.dashboard-page--agent) .admin-content {
@@ -398,7 +397,6 @@ html.dark *::-webkit-scrollbar-thumb:hover {
    * 图本身改由 fillHeight 铺满它——图是无条件绝对定位的，所以定位祖先与这个下限必须全档都在，
    * 只写进宽档会让窄档的图区塌成 0 高、图跑去贴更外层的定位祖先。
    * 图也因此不再把自己的高算进卡的内容高，否则"量到多高就画多高"会反过来把卡再撑高一轮。
-   * 这个盒子只在 Agent 分支存在（TrafficCard 的 plotFill），Workflow 那边图高照旧写死
    */
   .dashboard-page--agent .dashboard-traffic-plot {
     @apply relative;
@@ -440,7 +438,6 @@ html.dark *::-webkit-scrollbar-thumb:hover {
    * 却仍按视口塌成单列，比 1280 视口展开时 1024px 的双列还宽 92px。
    * 每一档的门槛都是原视口断点换算成内容列宽后再低一档，让出滚动条占掉的 17px，
    * 原有各档（≥1280 视口）的排布因此一处不动，收起侧栏与 1180~1279 这段则不再白扔宽度。
-   * Workflow 分支不开这个上下文、也没有一条选择器落进来，它的栅格仍是 Tailwind 的视口断点
    */
   .admin-layout .admin-page.dashboard-page--agent {
     container: dashboard / inline-size;
@@ -4775,8 +4772,7 @@ textarea {
   animation: agent-form-in 0.32s ease-out both;
 }
 
-/* 待机空态：一张预演轨迹卡 + 一行示例问句 收成一个物件整块居中
-   两物件此前各贴一头（卡贴流顶、问句贴输入条）中间空出半屏 谁也不挨谁 */
+/* 待机空态：将后台配置的示例问句集中展示在输入框上方 */
 .agent-app .agent-stream-empty {
   height: 100%;
   display: flex;
@@ -4812,8 +4808,7 @@ textarea {
   flex-direction: column;
 }
 
-/* 演示 + 图注带 + 问句行是一个物件：边框圆角裁切挂在这层
-   卡外的浮块一律没有归属（第七轮那条）——问句行从卡下的独立芯片行收进卡里成末行 */
+/* 示例问题卡片 */
 .agent-app .agent-empty-card {
   border: var(--agent-hair);
   border-radius: var(--agent-radius);
@@ -4821,82 +4816,12 @@ textarea {
   overflow: hidden;
 }
 
-/* figure 只管「演示 + 注」那一对语义 形交给外层卡 */
-.agent-app .agent-empty-figure {
-  margin: 0;
-}
-
-/* 预演卡：结构就是真卡本体 只摘掉交互
-   不再压亮度——半透明在页面上唯一的读法是"禁用/没加载出来" 身份交给卡头「示例」胶囊和下面的图注带
-   第十四轮起信号色也不再就地转中性：演示卡说的就是"你的话会被这样打出来" 真卡里橙的东西（答复节点 时间轴 展开箭头）
-   在这儿灰着 演示讲的就不是同一件事了 身份由「示例」胶囊单独担着 不需要再抽一遍色 */
-.agent-app .agent-empty-demo {
-  pointer-events: none;
-  user-select: none;
-}
-
-.agent-app .agent-empty-demo .agent-turn {
-  border: none;
-  border-radius: 0;
-}
-
-/* 图注带：四格按时间顺序横排 说明句与图例合成一个物件 880 的宽度这才被用满 */
-/* 底不上灰：待机屏正中的物件不许灰化（同"半透明＝没加载出来"那条） 分格靠发丝线就够 */
-.agent-app .agent-empty-cap {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-top: var(--agent-hair);
-  background: transparent;
-}
-
-.agent-app .agent-empty-step {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px var(--agent-s3);
-  border-left: var(--agent-hair);
-}
-
-.agent-app .agent-empty-step:first-child {
-  border-left: none;
-}
-
-.agent-app .agent-empty-step-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--agent-s2);
-  font-size: var(--agent-t-sm);
-  color: var(--agent-ink);
-}
-
-/* 字符与卡内左列那一列同形同色 图例这才贴着被解释的东西 */
-.agent-app .agent-empty-step-glyph {
-  font-family: var(--agent-font-mono);
-  font-size: var(--agent-t-xs);
-  color: var(--agent-muted);
-}
-
-/* 同形同色到底：卡里那枚答复节点是橙的 讲它的这一格字符就不能是灰的 另外三格照旧跟着各自的节点走中性 */
-.agent-app .agent-empty-step-glyph[data-answer="true"] {
-  color: var(--agent-signal);
-}
-
-.agent-app .agent-empty-step-desc {
-  font-size: var(--agent-t-xs);
-  line-height: 1.5;
-  color: var(--agent-faint);
-}
-
-/* 示例问题：卡里的末行 接着图注带往下读（第十三轮由卡下的独立芯片行收进来）
-   卡下那一行是待机屏最后一个没归属的物件：与卡同边同底 读成从卡上掉下来的碎片
-   与图注带同一套形制——发丝上边分行 左内距 s3 与图注带的字对齐
-   演示（图注带）在上 能点的（问句）在下：一张卡里读完"这页怎么用"到"从哪开始" */
+/* 示例问题与未配置提示 */
 .agent-app .agent-empty-try {
   display: flex;
   align-items: baseline;
   gap: var(--agent-s3);
   padding: 10px var(--agent-s3);
-  border-top: var(--agent-hair);
 }
 
 .agent-app .agent-empty-try-label {
@@ -5010,19 +4935,6 @@ textarea {
 @media (max-width: 760px) {
   .agent-app .agent-empty-wrap {
     padding: var(--agent-s4) var(--agent-s4);
-  }
-
-  /* 窄屏四格挤成一行会把小字压断 改两行两格 分隔线跟着换向 */
-  .agent-app .agent-empty-cap {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .agent-app .agent-empty-step:nth-child(odd) {
-    border-left: none;
-  }
-
-  .agent-app .agent-empty-step:nth-child(n + 3) {
-    border-top: var(--agent-hair);
   }
 
   .agent-app .agent-empty-blank {

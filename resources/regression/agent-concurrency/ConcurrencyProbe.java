@@ -449,7 +449,7 @@ final class ConcurrencyProbe {
     private Map<String, String> selectedYamlSettings() throws IOException {
         String configuredPath = config.get("application.config-resolved", "");
         if (configuredPath.isBlank()) return Map.of();
-        Set<String> selected = Set.of("agent.trace.enabled", "rag.keyword.type", "rag.graph.type",
+        Set<String> selected = Set.of("rag.keyword.type", "rag.graph.type",
                 "rag.vector.type", "rag.storage.type", "starlineagent.engine.type", "agent.memory.long-term-enabled",
                 "agent.memory.summary-enabled", "agent.memory.context-window-chars");
         Map<String, String> result = new LinkedHashMap<>();

@@ -1,6 +1,6 @@
 # 服务器 Docker 配置快照
 
-这里保存 StarLineAgent 服务器当前运行使用的 Compose 文件和相邻挂载配置。配置来源是服务器上的文件，不包含服务器的 .env、应用 JAR 或前端构建产物。
+这里保存 StarLineAgent 服务器当前运行使用的 Compose 文件和相邻挂载配置。配置来源是服务器上的文件，不包含服务器的 .env、应用 JAR、前端构建产物或运行日志。
 
 ## Stack 对应关系
 
@@ -41,6 +41,8 @@ Copy-Item resources/docker/server/.env.example resources/docker/server/.env
 ## 重新部署前需要准备
 
 服务器当前发布目录还包含 starline.jar、frontend-dist/、.env。Compose 之外还要求 starline_default 网络由 starline Stack 创建。上述运行数据和凭据不包含在此快照中。部署时应先准备这些文件与变量，再通过 Portainer 的 Stacks 或 Docker Compose 启动。
+
+应用 Compose 将发布目录的 `logs/` 挂载到 API 容器 `/app/logs`。应用日志文件最大 100 MB，保留 7 天且总量上限为 1 GB；`logs/` 是运行数据，已加入 `.gitignore`。
 
 
 ## 发布版本配置快照

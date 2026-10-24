@@ -9,7 +9,11 @@ param(
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $targetDir = Join-Path $repoRoot "resources/docker/server"
-$opsLog = Join-Path $repoRoot "docs/server-operations.md"
+$opsIndex = Join-Path $repoRoot "docs/server-operations.md"
+$opsLogDir = Join-Path $repoRoot "docs/server-operations"
+$date = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, "China Standard Time").ToString("yyyy-MM-dd")
+$opsLogRelative = "docs/server-operations/$date.md"
+$opsLog = Join-Path $repoRoot $opsLogRelative
 $changeIndex = Join-Path $repoRoot "docs/change-log.md"
 $identityResolved = (Resolve-Path -LiteralPath $IdentityFile).Path
 $releaseRoot = $RemoteRoot.TrimEnd("/") + "/releases/" + $Release
@@ -18,6 +22,25 @@ $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 function Add-Utf8Text {
     param([string]$Path, [string]$Text)
     [System.IO.File]::AppendAllText($Path, $Text + [Environment]::NewLine, $utf8NoBom)
+}
+
+New-Item -ItemType Directory -Force -Path $opsLogDir | Out-Null
+if (-not (Test-Path -LiteralPath $opsLog)) {
+    $dailyHeader = "# 服务器操作日志 · $date" + [Environment]::NewLine + [Environment]::NewLine +
+        "[返回日期索引](../server-operations.md)" + [Environment]::NewLine + [Environment]::NewLine
+    [System.IO.File]::WriteAllText($opsLog, $dailyHeader, $utf8NoBom)
+}
+
+$opsIndexText = [System.IO.File]::ReadAllText($opsIndex)
+if (-not $opsIndexText.Contains("server-operations/$date.md")) {
+    $separator = "| --- | --- | --- |"
+    $separatorAt = $opsIndexText.IndexOf($separator, [StringComparison]::Ordinal)
+    if ($separatorAt -lt 0) {
+        throw "服务器操作索引缺少日期表头，未执行同步；请先修复 docs/server-operations.md。"
+    }
+    $row = "| $date | 服务器 Docker 配置同步 | [查看当日记录](server-operations/$date.md) |"
+    $opsIndexText = $opsIndexText.Insert($separatorAt + $separator.Length, [Environment]::NewLine + $row)
+    [System.IO.File]::WriteAllText($opsIndex, $opsIndexText, $utf8NoBom)
 }
 
 New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
@@ -29,7 +52,6 @@ $files = @(
     [pscustomobject]@{ Remote = $releaseRoot + "/nginx.conf"; Name = "nginx.conf" }
 )
 
-$date = Get-Date -Format "yyyy-MM-dd"
 $stageDir = Join-Path $targetDir (".sync-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $stageDir | Out-Null
 
@@ -124,7 +146,7 @@ if ($null -eq $failure) {
         ""
         "## $($finished.ToString('yyyy-MM-dd HH:mm:ss'))：同步服务器 Docker 配置快照"
         ""
-        "- 从服务器同步五份 Compose 及挂载配置到 resources/docker/server/；同步来源与排除项详见 docs/server-operations.md。"
+        "- 从服务器同步五份 Compose 及挂载配置到 resources/docker/server/；同步来源与排除项详见 $opsLogRelative。"
         "- 未复制环境变量文件、应用 JAR 或前端构建产物。"
     ) -join [Environment]::NewLine
     Add-Utf8Text -Path $dailyLog -Text $changeText

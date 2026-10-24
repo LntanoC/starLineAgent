@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Optional;
 
@@ -151,6 +152,17 @@ public class GlobalExceptionHandler {
             message = "上传请求大小超过限制，单次请求最大允许 " + maxRequestSize;
         }
         return jsonError(response, Results.failure(BaseErrorCode.CLIENT_ERROR.code(), message));
+    }
+
+    /**
+     * 未匹配到静态资源或路由时属于预期的 404，记录为 WARN 且不附带堆栈，避免探活和旧链接淹没真实错误。
+     */
+    @ExceptionHandler(value = NoResourceFoundException.class)
+    public ResponseEntity<Result<Void>> noResourceFoundHandler(HttpServletRequest request,
+                                                               HttpServletResponse response,
+                                                               NoResourceFoundException ex) {
+        log.warn("[{}] {} 路由不存在: {}", request.getMethod(), getUrl(request), ex.getResourcePath());
+        return jsonError(response, Results.failure(BaseErrorCode.CLIENT_ERROR.code(), "请求的资源不存在"));
     }
 
     /**

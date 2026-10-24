@@ -27,7 +27,7 @@ import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryProperties;
 import com.nageoffer.ai.starlineagent.agent.service.AgentConversationService;
 import com.nageoffer.ai.starlineagent.agent.service.handler.AgentRunGate;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolCatalog.ResolvedCatalog;
-import com.nageoffer.ai.starlineagent.agent.trace.AgentTraceContextKeys;
+import com.nageoffer.ai.starlineagent.agent.tool.AgentRuntimeContextKeys;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentMcpMeta;
 import io.agentscope.core.tool.mcp.McpMeta;
 import com.nageoffer.ai.starlineagent.framework.context.LoginUser;
@@ -117,7 +117,7 @@ class AgentChatServiceImplTest {
         memoryProperties = new AgentMemoryProperties();
         memoryProperties.setLongTermEnabled(false);
         memoryPipeline = mock(AgentMemoryPipeline.class);
-        service = new AgentChatServiceImpl(agentProvider, conversationService, taskManager, runGate,
+        service = new AgentChatServiceImpl(agentProvider, mock(com.nageoffer.ai.starlineagent.agent.audit.AgentAuditService.class), conversationService, taskManager, runGate,
                 memoryProperties, memoryPipeline);
 
         gateReleased = new AtomicInteger();
@@ -265,29 +265,22 @@ class AgentChatServiceImplTest {
         verifyNoMoreInteractions(memoryPipeline);
     }
 
-    /**
-     * 业务 ID 随上下文进框架，供链路追踪反查
-     */
+    /** Reply message id is required by memory-flush behavior; tracing has no context-key dependency. */
     @Test
-    void shouldCarryBusinessIdsIntoRuntimeContext() {
+    void shouldCarryReplyMessageIdIntoRuntimeContextForTools() {
         when(agent.streamEvents(any(Msg.class), any(RuntimeContext.class))).thenReturn(Flux.empty());
         ArgumentCaptor<RuntimeContext> runtimeContext = ArgumentCaptor.forClass(RuntimeContext.class);
-        ArgumentCaptor<String> taskId = ArgumentCaptor.forClass(String.class);
 
         service.streamChat("问题", CONVERSATION_ID, new SseEmitter());
         verify(agent).streamEvents(any(Msg.class), runtimeContext.capture());
-        verify(taskManager).register(taskId.capture(), anyString(), any());
+        verify(taskManager).register(anyString(), anyString(), any());
 
         RuntimeContext captured = runtimeContext.getValue();
         assertThat(captured.getUserId()).isEqualTo(USER_ID);
         assertThat(captured.getSessionId()).isEqualTo(CONVERSATION_ID);
         assertThat(captured.get(McpMeta.class).entries())
                 .containsEntry(AgentMcpMeta.USER_ID_KEY, USER_ID);
-        // 与 SSE META 给前端的任务号一致
-        assertThat(contextId(captured, AgentTraceContextKeys.TASK_ID)).isEqualTo(taskId.getValue());
-        assertThat(contextId(captured, AgentTraceContextKeys.REPLY_TO_MESSAGE_ID)).isEqualTo("m-3003");
-        // 首问无确认消息号，null 不能炸
-        assertThat(contextId(captured, AgentTraceContextKeys.CONFIRM_MESSAGE_ID)).isNull();
+        assertThat(contextId(captured, AgentRuntimeContextKeys.REPLY_TO_MESSAGE_ID)).isEqualTo("m-3003");
     }
 
     /**
@@ -316,8 +309,7 @@ class AgentChatServiceImplTest {
         verify(agent).streamEvents(any(Msg.class), runtimeContext.capture());
 
         RuntimeContext captured = runtimeContext.getValue();
-        assertThat(contextId(captured, AgentTraceContextKeys.CONFIRM_MESSAGE_ID)).isEqualTo("m-4004");
-        assertThat(contextId(captured, AgentTraceContextKeys.REPLY_TO_MESSAGE_ID)).isEqualTo("m-3003");
+        assertThat(contextId(captured, AgentRuntimeContextKeys.REPLY_TO_MESSAGE_ID)).isEqualTo("m-3003");
     }
 
     @ParameterizedTest

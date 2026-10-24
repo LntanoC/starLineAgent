@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Download } from "lucide-react";
 
-import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
+const MarkdownRenderer = lazy(() => import("@/components/common/MarkdownRenderer").then(m => ({ default: m.MarkdownRenderer })));
 import { csvToMarkdown } from "@/lib/csvToMarkdown";
 import { fetchDocumentFile, previewDocument } from "@/services/knowledgeService";
 
@@ -194,7 +194,7 @@ export function DocumentPreview({ docId, fileType, docName }: DocumentPreviewPro
         </pre>
       ) : null}
       <div className="px-6 py-4">
-        <MarkdownRenderer content={body} />
+        <Suspense fallback={<div className="p-4 text-sm text-slate-500">正在加载文档…</div>}><MarkdownRenderer content={body} /></Suspense>
       </div>
     </div>
   );

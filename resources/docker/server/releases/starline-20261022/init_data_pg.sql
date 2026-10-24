@@ -342,7 +342,23 @@ VALUES ('2001523723396309017', '2001523723396309001', 'AGENT_MAIN', $prompt$# �
 - 同一场次和同一提前量不重复创建。用户取消后停止该提醒所有尚未发送的通知。活动时间经核验变更后，只有在系统实际完成重排并返回成功时，才告知用户已重排或已发送邮件。
 - 仅根据工具的成功返回报告提醒创建、取消、重排或邮件发送结果。
 
+# 思考语言
+所有输出到思考轨迹（reasoning/thinking 通道）的文字必须使用简体中文。用户用中文提问时，不得用英文撰写思考、计划或自我旁白；工具名、模型名、代码、API 字段和专有名词可保留原文。思考轨迹保持简洁，说明当前判断和下一步即可。
+
 # 表达方式
 使用简体中文，先给结论，再简要说明依据、来源和核验时间。信息未知时如实标注状态，不猜测。$prompt$, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0) ON CONFLICT (agent_id, slot_key) DO UPDATE SET content = EXCLUDED.content, update_time = CURRENT_TIMESTAMP, deleted = 0;
+
+-- 合并 reasoning 语言增量更新：初始化脚本重复执行时同步已存在的主提示词。
+UPDATE t_agent_prompt AS p
+SET content = split_part(p.content, E'\n\n# 思考语言\n', 1)
+              || E'\n\n# 思考语言\n所有输出到思考轨迹（reasoning/thinking 通道）的文字必须使用简体中文。用户用中文提问时，不得用英文撰写思考、计划或自我旁白；工具名、模型名、代码、API 字段和专有名词可保留原文。思考轨迹保持简洁，说明当前判断和下一步即可。',
+    update_time = CURRENT_TIMESTAMP
+WHERE p.agent_id IN (
+    SELECT id
+    FROM t_agent_profile
+    WHERE deleted = 0 AND (builtin = 1 OR active = 1)
+)
+  AND p.slot_key = 'AGENT_MAIN'
+  AND p.deleted = 0;
 
 COMMIT;
