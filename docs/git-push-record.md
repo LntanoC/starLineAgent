@@ -389,3 +389,8 @@
 - `scripts/sync-server-docker-config.ps1`
 - `scripts/verify-agent-audit-server.py`
 - `scripts/verify-workflow-retirement.py`
+
+### 本次提交
+
+- 全量项目改动提交：`bed12fc3`（`chore: sync all local project changes`）。
+- 推送目标：`origin/main`；推送记录随本次推送一起提交。
