@@ -1,52 +1,26 @@
-# 星序首个业务切片：活动信息与邮箱提醒
+# 星序活动与日历提醒
 
-本切片在现有登录体系下提供活动信息录入、来源确认、待公布状态展示、提醒创建和取消。
+本业务切片记录用户关注的演出活动。开票时间为空表示“待公布”，活动仍保存在列表中，但不会进入日历；只有已核验来源且有准确开票时间的活动，才会进入 iCal 订阅。
 
-## 当前边界
+## 提醒规则
 
-- 本迭代由用户录入公开信息和来源链接；没有接入演出信息检索 Agent，不会生成或猜测艺人活动数据。
-- “待公布”记录不创建提醒。
-- 已公布记录必须确认来源，并提供未来的准确开票时间、提醒时间和邮箱。
-- 到达提醒时间后，后端轮询待发送记录并发送邮件。邮件配置默认关闭。
+- 开票时间采用北京时间（Asia/Shanghai），提醒固定在开票前 10 分钟。
+- 用户需确认来源内容与艺人、活动、开票时间一致；来源链接只接受 HTTP 或 HTTPS。
+- 开票时间必须晚于当前时间，并至少相隔 10 分钟，否则不允许创建日历提醒。
+- 用户取消后，活动状态变成 CANCELLED；日历源保留同 UID 的取消事件且不再包含闹钟，客户端同步后停止提醒。
+- 开票时间经核验发生变化时，先取消旧记录再创建新记录；日历客户端按自己的同步周期同步，星序不能确认设备是否实际响铃。
 
 ## 数据库
 
-首次部署按顺序执行 resources/database/migrations/V001__starline_event_reminders.sql 与 V002__starline_platform_sources.sql。两个脚本均可重复执行。
-
-## 邮件配置
-
-通过部署环境变量配置，不要把凭据写入配置文件或 Git：
-
-- STARLINE_EMAIL_ENABLED=true
-- STARLINE_EMAIL_FROM：发件邮箱
-- SPRING_MAIL_HOST、SPRING_MAIL_PORT
-- SPRING_MAIL_USERNAME、SPRING_MAIL_PASSWORD
-- 可选：SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
-- 可选：SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
-
-未启用或未配置邮件时，提醒记录仍可创建、查询和取消；不会发送邮件。
+全新数据库使用 resources/database/schema_pg.sql。已有数据库保留历史迁移，按序完成 V001、V002 和 20261026_starline_ical.sql。新迁移会保留活动记录和取消状态，清除邮件投递字段，并建立日历订阅凭证表。
 
 ## API
 
-应用已有 context path /api/starlineagent：
+- GET /api/starlineagent/starline/events：查询当前用户活动。
+- POST /api/starlineagent/starline/events：创建活动；缺少 ticketTime 时记录为待公布。
+- DELETE /api/starlineagent/starline/events/{id}/reminder：取消当前用户的活动或提醒。
+- GET /api/starlineagent/starline/calendar-token：登录后获取当前用户订阅凭证。
+- POST /api/starlineagent/starline/calendar-token/reset：登录后立即撤销旧链接并签发新链接。
+- GET /api/starlineagent/starline/calendar.ics?token=...：日历客户端只读订阅地址；凭证只授权读取该用户的星序日历。
 
-- GET /api/starlineagent/starline/events：当前登录用户的活动与提醒
-- POST /api/starlineagent/starline/events：创建待公布记录或已确认来源的邮箱提醒
-- DELETE /api/starlineagent/starline/events/{id}/reminder：取消仍处于待发送状态的提醒
-
-所有接口按当前登录用户隔离数据。
-
-## 官方来源平台清单评审
-
-管理员可在 /admin/starline-sources 登记平台级候选域名和调研结论，分别记录产品与研发评审。只有两项评审均通过的来源才会进入可供后续查询适配器使用的已审批清单。任一调研字段修改后需重新评审。
-
-- 页面可访问性、活动/场次字段与开票时间/状态字段可得性
-- 字段稳定性、官方身份依据、更新频率
-- 访问或授权边界
-
-评审 API（当前应用 context path 为 /api/starlineagent）：
-
-- GET /api/starlineagent/starline/admin/platform-sources
-- POST /api/starlineagent/starline/admin/platform-sources
-- PUT /api/starlineagent/starline/admin/platform-sources/{id}
-- POST /api/starlineagent/starline/admin/platform-sources/{id}/reviews
+订阅链接等同私人凭证。生产环境应通过 HTTPS 访问，并避免在截图或公开消息中分享链接。

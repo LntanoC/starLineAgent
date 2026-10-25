@@ -19,16 +19,6 @@ package com.nageoffer.ai.starlineagent.starline.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.nageoffer.ai.starlineagent.starline.dao.entity.StarlineEventDO;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Update;
-import java.time.LocalDateTime;
 
-@Mapper
 public interface StarlineEventMapper extends BaseMapper<StarlineEventDO> {
-    @Update("""
-            UPDATE t_starline_event_reminder
-               SET reminder_status = 'SENDING', update_time = #{now}
-             WHERE id = #{id} AND reminder_status = 'PENDING'
-            """)
-    int claimForSending(String id, LocalDateTime now);
 }

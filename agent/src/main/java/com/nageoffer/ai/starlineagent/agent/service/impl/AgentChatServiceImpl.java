@@ -141,7 +141,7 @@ public class AgentChatServiceImpl implements AgentChatService {
 
     private void startRun(String question, String userId, String conversationId, String taskId,
                           SseEmitter emitter, Runnable releaseGate) {
-        ActiveAgent activeAgent = agentProvider.getAgent();
+        ActiveAgent activeAgent = agentProvider.getAgent(question);
 
         String title = conversationService.touchConversation(conversationId, userId, question);
         // 必须在 addUserMessage 之前建立基线，否则本轮消息会被划进历史、漏抽

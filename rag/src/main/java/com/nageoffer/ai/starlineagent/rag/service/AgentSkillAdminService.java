@@ -63,7 +63,7 @@ public interface AgentSkillAdminService {
     void toggleEnabled(String id, boolean enabled);
 
     /**
-     * 可引用的工具选项，来自意图树里已启用的 MCP 节点
+     * 可引用的工具选项，来自已启用且可分发的 MCP 工具注册记录
      */
     List<AgentSkillToolOptionVO> listToolOptions();
 }

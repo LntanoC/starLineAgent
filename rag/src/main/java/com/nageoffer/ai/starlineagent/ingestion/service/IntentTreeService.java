@@ -26,7 +26,7 @@ import java.util.List;
 public interface IntentTreeService {
 
     /**
-     * 查询整棵意图树（包含 RAG + SYSTEM）
+     * 查询知识路由意图树
      */
     List<IntentNodeTreeVO> getFullTree();
 

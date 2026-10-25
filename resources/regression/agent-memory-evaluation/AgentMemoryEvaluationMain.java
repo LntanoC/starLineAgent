@@ -39,7 +39,7 @@ public final class AgentMemoryEvaluationMain {
 
     private static void execute(Map<String, String> args) throws Exception {
         Path suite = Path.of(args.getOrDefault("suite-dir", "resources/regression/agent-memory-evaluation")).toAbsolutePath();
-        Path dataset = Path.of(args.getOrDefault("dataset", suite.resolve("datasets/bit-selection.json").toString())).toAbsolutePath();
+        Path dataset = Path.of(args.getOrDefault("dataset", suite.resolve("datasets/starline-events.json").toString())).toAbsolutePath();
         List<EvaluationDataset.Case> cases = EvaluationDataset.select(EvaluationDataset.load(dataset),
                 args.getOrDefault("cases", ""), args.getOrDefault("tags", ""), nonnegative(args, "limit", 0));
         int repetitions = positive(args, "repetitions", 1);

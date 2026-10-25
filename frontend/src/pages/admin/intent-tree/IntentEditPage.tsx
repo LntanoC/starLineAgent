@@ -46,9 +46,7 @@ const LEVEL_OPTIONS = [
 ];
 
 const KIND_OPTIONS = [
-  { value: 0, label: "KB", description: "知识库检索" },
-  { value: 1, label: "SYSTEM", description: "系统交互" },
-  { value: 2, label: "MCP", description: "工具调用" }
+  { value: 0, label: "KB", description: "知识库检索" }
 ];
 
 const formSchema = z.object({
@@ -58,8 +56,6 @@ const formSchema = z.object({
   kind: z.number(),
   parentCode: z.string().optional(),
   collectionNames: z.array(z.string()),
-  mcpToolId: z.string().optional(),
-  requireConfirm: z.boolean(),
   description: z.string().optional(),
   examplesText: z.string().optional(),
   topK: z.number().int().positive("TopK 必须大于 0").optional(),
@@ -82,8 +78,6 @@ type FlatIntentNode = {
   examples?: string | null;
   collectionName?: string | null;
   collectionNames?: string[] | null;
-  mcpToolId?: string | null;
-  requireConfirm: number;
   topK?: number | null;
   enabled: number;
   sortOrder: number;
@@ -127,8 +121,6 @@ const flattenIntentTree = (
       examples: node.examples,
       collectionName: node.collectionName,
       collectionNames: node.collectionNames,
-      mcpToolId: node.mcpToolId,
-      requireConfirm: node.requireConfirm === 1 ? 1 : 0,
       topK: node.topK,
       enabled: node.enabled === 0 ? 0 : 1,
       sortOrder: node.sortOrder ?? 0,
@@ -148,8 +140,6 @@ const emptyDefaults: FormValues = {
   kind: 0,
   parentCode: ROOT_PARENT,
   collectionNames: [],
-  mcpToolId: "",
-  requireConfirm: false,
   description: "",
   examplesText: "",
   topK: undefined,
@@ -234,8 +224,6 @@ export function IntentEditPage() {
         : currentNode.collectionName
           ? [currentNode.collectionName]
           : [],
-      mcpToolId: currentNode.mcpToolId || "",
-      requireConfirm: currentNode.requireConfirm === 1,
       description: currentNode.description || "",
       examplesText: parseExamples(currentNode.examples).join("\n"),
       topK: currentNode.topK ?? undefined,
@@ -283,11 +271,6 @@ export function IntentEditPage() {
       form.setError("collectionNames", { message: "TOPIC 节点请至少选择一个知识库" });
       return;
     }
-    if (values.kind === 2 && !values.mcpToolId?.trim()) {
-      form.setError("mcpToolId", { message: "MCP节点必须填写工具ID" });
-      return;
-    }
-
     const parentCode = values.parentCode === ROOT_PARENT ? null : values.parentCode || null;
     const examples = values.examplesText
       ? values.examplesText
@@ -303,15 +286,12 @@ export function IntentEditPage() {
       description: values.description?.trim() || "",
       examples,
       collectionNames: values.kind === 0 ? values.collectionNames : [],
-      mcpToolId: values.kind === 2 ? values.mcpToolId?.trim() || "" : "",
-      // 非 MCP 节点回落 0，与后端 normalizeRequireConfirm 同口径，避免改类型后残留
-      requireConfirm: values.kind === 2 && values.requireConfirm ? 1 : 0,
       kind: values.kind,
       topK: values.topK ?? undefined,
       sortOrder: values.sortOrder ?? 0,
       enabled: values.enabled ? 1 : 0,
-      promptSnippet: values.kind === 2 ? undefined : values.promptSnippet?.trim() || "",
-      promptTemplate: values.kind === 2 ? undefined : values.promptTemplate?.trim() || ""
+      promptSnippet: values.promptSnippet?.trim() || "",
+      promptTemplate: values.promptTemplate?.trim() || ""
     };
 
     try {
@@ -501,46 +481,6 @@ export function IntentEditPage() {
                       </FormControl>
                       <FormDescription>
                         可选择多个知识库，检索时统一排序，节点 TopK 为总返回上限
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : null}
-
-              {kind === 2 ? (
-                <FormField
-                  control={form.control}
-                  name="mcpToolId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>MCP 工具ID（必填）</FormLabel>
-                      <FormControl>
-                        <Input placeholder="例如：sales_query" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : null}
-
-              {kind === 2 ? (
-                <FormField
-                  control={form.control}
-                  name="requireConfirm"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center gap-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(value) => field.onChange(value === true)}
-                          />
-                        </FormControl>
-                        <FormLabel className="!m-0">执行前需要用户确认</FormLabel>
-                      </div>
-                      <FormDescription>
-                        勾上之后，助手调用这个工具前会先停下来，把工具名和参数交给用户点头。请假、退款一类会真正改数据的工具建议勾上
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

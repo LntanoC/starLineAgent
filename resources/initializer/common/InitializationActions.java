@@ -44,6 +44,7 @@ final class InitializationActions {
         int expectedKnowledgeBases = context.config().getInt("verification.knowledge-base-count",
                 context.dataset().knowledgeBases().size());
         int expectedIntents = context.config().getInt("verification.intent-count", context.dataset().intents().size());
+        int expectedMcpTools = context.config().getInt("verification.mcp-tool-count", context.dataset().mcpTools().size());
         int expectedQuestions = context.config().getInt("verification.question-count",
                 context.dataset().questions().size());
         require(documentCount == expectedDocuments,
@@ -52,6 +53,8 @@ final class InitializationActions {
                 "知识库数量与配置不一致");
         require(context.dataset().intents().size() == expectedIntents,
                 "意图数量与配置不一致");
+        require(context.dataset().mcpTools().size() == expectedMcpTools,
+                "MCP 工具数量与配置不一致");
         require(context.dataset().questions().size() == expectedQuestions,
                 "演示问题数量与配置不一致，expected=" + expectedQuestions
                         + ", actual=" + context.dataset().questions().size());
@@ -278,7 +281,7 @@ final class InitializationActions {
     static void initializeIntentTree(InitializerContext context) throws Exception {
         if (context.dryRun()) {
             for (InitializerDataset.IntentDefinition intent : context.dataset().intents()) {
-                System.out.printf("[intent][dry-run] create code=%s parent=%s kbRef=%s%n",
+                System.out.printf("[intent][dry-run] create knowledge route code=%s parent=%s kbRef=%s%n",
                         intent.code(), intent.parentCode(), intent.knowledgeBaseRef());
             }
             return;
@@ -301,8 +304,6 @@ final class InitializationActions {
             if (!intent.examples().isEmpty()) {
                 payload.put("examples", intent.examples());
             }
-            putIfNotNull(payload, "mcpToolId", intent.mcpToolId());
-            payload.put("requireConfirm", intent.requireConfirm() ? 1 : 0);
             putIfNotNull(payload, "topK", intent.topK());
             payload.put("kind", intent.kind());
             payload.put("sortOrder", intent.sortOrder());
@@ -318,6 +319,38 @@ final class InitializationActions {
             Object id = context.http().postJson("/intent-tree", payload);
             System.out.println("[intent] 已创建: " + intent.code() + " (" + id + ")");
         }
+    }
+
+    /** Configure the reviewed MCP manifest independently from the knowledge intent tree. */
+    static void initializeMcpTools(InitializerContext context) throws Exception {
+        List<InitializerDataset.McpToolDefinition> tools = context.dataset().mcpTools();
+        if (tools.isEmpty()) {
+            System.out.println("[mcp-tool] 数据集没有配置工具，跳过");
+            return;
+        }
+        if (context.dryRun()) {
+            for (InitializerDataset.McpToolDefinition tool : tools) {
+                System.out.printf("[mcp-tool][dry-run] configure toolId=%s enabled=%s resident=%s%n",
+                        tool.toolId(), tool.enabled(), tool.resident());
+            }
+            return;
+        }
+        List<Map<String, Object>> payload = new ArrayList<>();
+        for (InitializerDataset.McpToolDefinition tool : tools) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("toolId", tool.toolId());
+            item.put("displayName", tool.displayName());
+            item.put("description", tool.description());
+            item.put("requireConfirm", tool.requireConfirm());
+            item.put("resident", tool.resident());
+            item.put("dispatchable", tool.dispatchable());
+            item.put("enabled", tool.enabled());
+            item.put("sortOrder", tool.sortOrder());
+            putIfNotNull(item, "remark", tool.remark());
+            payload.add(item);
+        }
+        context.http().postJson("/admin/mcp-tools/configure", Map.of("tools", payload));
+        System.out.println("[mcp-tool] 已配置工具注册表: " + tools.size());
     }
 
     static void initializeSampleQuestions(InitializerContext context) throws Exception {
@@ -659,6 +692,15 @@ final class InitializationActions {
         List<Map<String, Object>> intents = flattenIntentTree(context.http().get("/intent-tree/trees"));
         require(intents.size() == context.config().getInt("verification.intent-count", context.dataset().intents().size()),
                 "意图节点总数校验失败，actual=" + intents.size());
+        List<Map<String, Object>> registeredTools = SimpleJson.array(
+                context.http().get("/admin/mcp-tools")).stream().map(SimpleJson::object).toList();
+        Set<String> registeredToolIds = registeredTools.stream()
+                .map(item -> SimpleJson.string(item, "toolId")).collect(java.util.stream.Collectors.toSet());
+        Set<String> expectedToolIds = context.dataset().mcpTools().stream()
+                .map(InitializerDataset.McpToolDefinition::toolId).collect(java.util.stream.Collectors.toSet());
+        require(registeredToolIds.containsAll(expectedToolIds),
+                "MCP 工具注册表缺少模板工具: " + expectedToolIds.stream()
+                        .filter(toolId -> !registeredToolIds.contains(toolId)).toList());
         Map<String, Map<String, Object>> intentByCode = new HashMap<>();
         intents.forEach(intent -> intentByCode.put(SimpleJson.string(intent, "intentCode"), intent));
         for (InitializerDataset.IntentDefinition definition : context.dataset().intents()) {

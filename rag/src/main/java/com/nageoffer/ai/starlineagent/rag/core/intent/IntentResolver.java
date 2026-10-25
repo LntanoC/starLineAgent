@@ -36,7 +36,6 @@ import java.util.concurrent.Executor;
 
 import static com.nageoffer.ai.starlineagent.rag.constant.RAGConstant.INTENT_MIN_SCORE;
 import static com.nageoffer.ai.starlineagent.rag.constant.RAGConstant.MAX_INTENT_COUNT;
-import static com.nageoffer.ai.starlineagent.rag.enums.IntentKind.SYSTEM;
 
 @Slf4j
 @Service
@@ -77,12 +76,6 @@ public class IntentResolver {
             kbIntents.addAll(NodeScoreFilters.kb(si.nodeScores()));
         }
         return kbIntents;
-    }
-
-    public boolean isSystemOnly(List<NodeScore> nodeScores) {
-        return nodeScores.size() == 1
-                && nodeScores.get(0).getNode() != null
-                && nodeScores.get(0).getNode().getKind() == SYSTEM;
     }
 
     private List<NodeScore> classifyIntents(String question) {

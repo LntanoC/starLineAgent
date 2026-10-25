@@ -100,16 +100,6 @@ public class IntentNode {
     private List<String> collectionNames = new ArrayList<>();
 
     /**
-     * MCP 工具 ID（仅对 kind=MCP 有意义）
-     */
-    private String mcpToolId;
-
-    /**
-     * 执行工具前是否需要用户确认（仅对 kind=MCP 有意义）
-     */
-    private boolean requireConfirm;
-
-    /**
      * 节点级检索 TopK（可选）
      * 未配置时回退到全局 TopK
      */
@@ -139,20 +129,6 @@ public class IntentNode {
      */
     public boolean isKB() {
         return kind == null || kind == IntentKind.KB;
-    }
-
-    /**
-     * 是否为 MCP 类型节点
-     */
-    public boolean isMCP() {
-        return kind == IntentKind.MCP;
-    }
-
-    /**
-     * 是否为 SYSTEM 类型节点
-     */
-    public boolean isSystem() {
-        return kind == IntentKind.SYSTEM;
     }
 
     /**

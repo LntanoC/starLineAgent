@@ -18,8 +18,8 @@ public final class EvaluationSelfTestMain {
 
     public static void main(String[] args) throws Exception {
         Path dir = Path.of(args.length == 0 ? "resources/regression/agent-memory-evaluation/datasets" : args[0]);
-        List<EvaluationDataset.Case> retention = EvaluationDataset.load(dir.resolve("bit-selection.json"));
-        require(!retention.isEmpty(), "bit-selection cases");
+        List<EvaluationDataset.Case> retention = EvaluationDataset.load(dir.resolve("starline-events.json"));
+        require(!retention.isEmpty(), "starline-events cases");
         require(EvaluationDataset.fingerprint(retention).equals(EvaluationDataset.fingerprint(retention)), "stable hash");
         require(EvaluationDataset.select(retention, "", "", 1).size() == 1, "limit selects cases");
         expectFailure(() -> EvaluationDataset.select(retention, "does-not-exist", "", 0));

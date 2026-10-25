@@ -52,9 +52,11 @@ public interface MessageFeedbackMapper extends BaseMapper<MessageFeedbackDO> {
                 (#{feedback.id}, #{feedback.messageId}, #{feedback.conversationId}, #{feedback.userId},
                  0, NULL, NULL, #{feedback.createTime}, #{feedback.updateTime}, 1)
             ON CONFLICT (message_id, user_id) DO UPDATE SET
-                update_time = EXCLUDED.update_time,
+                vote = 0,
+                reason = NULL,
+                comment = NULL,
+                update_time = GREATEST(CURRENT_TIMESTAMP, t_message_feedback.update_time + INTERVAL '1 millisecond'),
                 deleted = 1
-            WHERE t_message_feedback.update_time < EXCLUDED.update_time
             """)
     int upsertCancelledFeedback(@Param("feedback") MessageFeedbackDO feedback);
 }

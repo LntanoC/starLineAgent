@@ -29,8 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,21 +46,39 @@ import java.util.Map;
 public class AgentMcpClients {
 
     private final AgentMcpProperties properties;
-    private final Map<String, RemoteTool> tools = new LinkedHashMap<>();
-    private final List<McpClientWrapper> clients = new ArrayList<>();
+    private final Map<String, RemoteTool> tools = new ConcurrentHashMap<>();
+    private final List<McpClientWrapper> clients = new CopyOnWriteArrayList<>();
+    private final Set<String> connectedServers = ConcurrentHashMap.newKeySet();
+    private final Set<String> connectingServers = ConcurrentHashMap.newKeySet();
+    private final Map<String, Long> lastConnectionAttemptAt = new ConcurrentHashMap<>();
+    private static final long RETRY_INTERVAL_MILLIS = 15_000;
 
     @PostConstruct
     public void init() {
+        refreshConnections();
+    }
+
+    /** 启动失败的 MCP 服务在后续请求或管理端同步时重试连接。 */
+    public void refreshConnections() {
         List<AgentMcpProperties.ServerConfig> servers = properties.getServers();
-        if (servers == null) {
-            return;
-        }
+        if (servers == null) return;
         for (AgentMcpProperties.ServerConfig server : servers) {
-            connect(server);
+            if (server.getName() != null && !connectedServers.contains(server.getName())) {
+                connect(server);
+            }
         }
     }
 
     private void connect(AgentMcpProperties.ServerConfig server) {
+        String serverName = server.getName();
+        if (serverName == null || connectedServers.contains(serverName)) return;
+        long now = System.currentTimeMillis();
+        Long lastAttempt = lastConnectionAttemptAt.putIfAbsent(serverName, now);
+        if (lastAttempt != null) {
+            if (now - lastAttempt < RETRY_INTERVAL_MILLIS) return;
+            if (!lastConnectionAttemptAt.replace(serverName, lastAttempt, now)) return;
+        }
+        if (!connectingServers.add(serverName)) return;
         McpClientWrapper client = null;
         try {
             String baseUrl = StrUtil.removeSuffix(server.getUrl(), "/");
@@ -70,6 +89,7 @@ public class AgentMcpClients {
             client.initialize().block();
             List<Tool> discovered = client.listTools().block();
             clients.add(client);
+            connectedServers.add(serverName);
             if (discovered != null) {
                 for (Tool tool : discovered) {
                     RemoteTool existing = tools.putIfAbsent(tool.name(), new RemoteTool(tool, client));
@@ -89,11 +109,18 @@ public class AgentMcpClients {
                 }
             }
             log.error("AgentScope MCP 服务连接失败, server={}, reason={}", server.getName(), e.getMessage());
+        } finally {
+            connectingServers.remove(serverName);
         }
     }
 
     public RemoteTool get(String toolId) {
         return tools.get(toolId);
+    }
+
+    /** 已连接 MCP 服务发现的工具快照，供管理端同步到项目注册表。 */
+    public Map<String, RemoteTool> allTools() {
+        return Map.copyOf(tools);
     }
 
     @PreDestroy

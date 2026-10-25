@@ -22,12 +22,14 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.nageoffer.ai.starlineagent.agent.dao.entity.AgentMessageDO;
 import com.nageoffer.ai.starlineagent.agent.dao.mapper.AgentMessageMapper;
 import com.nageoffer.ai.starlineagent.agent.enums.AgentMessageStatus;
+import com.nageoffer.ai.starlineagent.framework.badcase.api.BadCaseIntake;
 import com.nageoffer.ai.starlineagent.framework.exception.ClientException;
 import com.nageoffer.ai.starlineagent.rag.controller.request.MessageFeedbackRequest;
 import com.nageoffer.ai.starlineagent.rag.dao.entity.MessageFeedbackDO;
 import com.nageoffer.ai.starlineagent.rag.dao.mapper.MessageFeedbackMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
@@ -41,6 +43,7 @@ public class AgentMessageFeedbackService {
 
     private final AgentMessageMapper agentMessageMapper;
     private final MessageFeedbackMapper messageFeedbackMapper;
+    private final BadCaseIntake badCaseIntake;
 
     public void submitDislike(String messageId, String userId, MessageFeedbackRequest request) {
         if (!StringUtils.hasText(userId)) {
@@ -82,5 +85,39 @@ public class AgentMessageFeedbackService {
                 .updateTime(now)
                 .build();
         messageFeedbackMapper.upsertActiveFeedback(feedback);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelDislike(String messageId, String userId) {
+        if (!StringUtils.hasText(userId)) {
+            throw new ClientException("未获取到当前登录用户");
+        }
+        if (!StringUtils.hasText(messageId)) {
+            throw new ClientException("消息ID不能为空");
+        }
+
+        AgentMessageDO message = agentMessageMapper.selectOne(
+                Wrappers.lambdaQuery(AgentMessageDO.class)
+                        .eq(AgentMessageDO::getId, messageId)
+                        .eq(AgentMessageDO::getUserId, userId)
+                        .eq(AgentMessageDO::getRole, "assistant")
+                        .eq(AgentMessageDO::getMessageStatus, AgentMessageStatus.NORMAL.name())
+                        .eq(AgentMessageDO::getDeleted, 0)
+        );
+        if (message == null) {
+            throw new ClientException("仅支持撤销当前用户已完成的助手回答点踩");
+        }
+
+        Date now = new Date();
+        MessageFeedbackDO tombstone = MessageFeedbackDO.builder()
+                .id(IdWorker.getIdStr())
+                .messageId(message.getId())
+                .conversationId(message.getConversationId())
+                .userId(userId)
+                .createTime(now)
+                .updateTime(now)
+                .build();
+        messageFeedbackMapper.upsertCancelledFeedback(tombstone);
+        badCaseIntake.withdrawUserFeedback(message.getId(), userId);
     }
 }

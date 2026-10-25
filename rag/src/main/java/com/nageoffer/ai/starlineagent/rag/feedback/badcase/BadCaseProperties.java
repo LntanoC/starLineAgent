@@ -43,4 +43,45 @@ public class BadCaseProperties {
     private int maxSameToolCalls = 3;
     /** 是否启用误报较高的“未调用工具却给出具体回答”线索。 */
     private boolean enableNoToolCallRule = false;
+    private Intake intake = new Intake();
+    private java.util.Map<String,Detector> detectors = new java.util.HashMap<>();
+    private Behavior behavior = new Behavior();
+    private Sampling sampling = new Sampling();
+    private AutoReview autoReview = new AutoReview();
+    private Alerts alerts = new Alerts();
+    @Data public static class Intake {
+        private String mode="ON"; private int dailyLimit=500;
+        private int perConversationHourlyLimit=5; private int evidenceMaxChars=32000;
+        public String getMode(){return normalizeMode(mode);}
+    }
+    @Data public static class Detector { private String mode="SHADOW";public String getMode(){return normalizeMode(mode);} }
+    @Data public static class Behavior {
+        private int repeatWindowMinutes=10; private double repeatSimilarityThreshold=.82;
+        private int clarificationMinRounds=3; private int noFollowupAfterHours=24;
+        private int dailyLimitPerRule=50;
+    }
+    @Data public static class Sampling {
+        private int rateBp=200; private int dailyLimit=50; private int minMessageAgeMinutes=30;
+        private int measurementWeeklyLimit=20; private String seed="starline-v1";
+    }
+    @Data public static class AutoReview {
+        private boolean enabled=false; private String tier="FAST"; private String modelId="";
+        private int timeoutSeconds=20; private int maxInputChars=24000;
+        private int dailyLimit=100; private int maxRetries=2;
+    }
+    @Data public static class Alerts { private boolean enabled=false; private int windowMinutes=15;private int s2Threshold=3; }
+    public static String normalizeMode(String value) {
+        if(value==null)return "OFF";
+        return switch(value.trim().toUpperCase(java.util.Locale.ROOT)) {
+            case "TRUE","ON" -> "ON";
+            case "FALSE","OFF" -> "OFF";
+            case "SHADOW" -> "SHADOW";
+            default -> "OFF";
+        };
+    }
+    public String detectorMode(String code) {
+        if("user-feedback".equals(code))return "ON";
+        Detector detector=detectors.get(code);
+        return detector==null?(java.util.Set.of("behavior","sampling").contains(code)?"OFF":"SHADOW"):detector.getMode().toUpperCase(java.util.Locale.ROOT);
+    }
 }

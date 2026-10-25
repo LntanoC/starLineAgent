@@ -19,16 +19,16 @@ package com.nageoffer.ai.starlineagent.starline.controller.request;
 
 import lombok.Data;
 
-/** 已核验的演出/开票信息；待公布记录不创建提醒。 */
+/**
+ * 活动记录。ticketTime 为空时仅表示待公布，不创建日历提醒。
+ * 有开票时间时必须提交核验来源、确认标记和准确时间。
+ */
 @Data
 public class SaveStarlineEventRequest {
     private String artistName;
     private String eventName;
-    private String infoStatus;
     private String sourceName;
     private String sourceUrl;
     private Boolean sourceConfirmed;
     private String ticketTime;
-    private String remindAt;
-    private String email;
 }

@@ -32,16 +32,19 @@ final class InitializerDataset {
     private final Path agentTypeDir;
     private final List<KnowledgeBaseDefinition> knowledgeBases;
     private final List<IntentDefinition> intents;
+    private final List<McpToolDefinition> mcpTools;
     private final List<QuestionDefinition> questions;
     private final List<SkillDefinition> skills;
     private final AgentProfileDefinition agentProfile;
 
     private InitializerDataset(Path agentTypeDir, List<KnowledgeBaseDefinition> knowledgeBases,
-                               List<IntentDefinition> intents, List<QuestionDefinition> questions,
+                               List<IntentDefinition> intents, List<McpToolDefinition> mcpTools,
+                               List<QuestionDefinition> questions,
                                List<SkillDefinition> skills, AgentProfileDefinition agentProfile) {
         this.agentTypeDir = agentTypeDir;
         this.knowledgeBases = knowledgeBases;
         this.intents = intents;
+        this.mcpTools = mcpTools;
         this.questions = questions;
         this.skills = skills;
         this.agentProfile = agentProfile;
@@ -54,11 +57,12 @@ final class InitializerDataset {
         }
         List<KnowledgeBaseDefinition> knowledgeBases = loadKnowledgeBases(normalized);
         List<IntentDefinition> intents = loadIntents(normalized, knowledgeBases);
+        List<McpToolDefinition> mcpTools = loadMcpTools(normalized);
         List<QuestionDefinition> questions = loadQuestions(normalized);
         List<SkillDefinition> skills = loadSkills(normalized);
         AgentProfileDefinition agentProfile = loadAgentProfile(normalized);
         InitializerDataset dataset = new InitializerDataset(
-                normalized, knowledgeBases, intents, questions, skills, agentProfile);
+                normalized, knowledgeBases, intents, mcpTools, questions, skills, agentProfile);
         dataset.validate();
         return dataset;
     }
@@ -73,6 +77,10 @@ final class InitializerDataset {
 
     List<IntentDefinition> intents() {
         return intents;
+    }
+
+    List<McpToolDefinition> mcpTools() {
+        return mcpTools;
     }
 
     List<QuestionDefinition> questions() {
@@ -205,9 +213,13 @@ final class InitializerDataset {
         }
 
         Set<String> availableTools = new HashSet<>();
-        for (IntentDefinition intent : intents) {
-            if (intent.enabled() && intent.mcpToolId() != null) {
-                availableTools.add(intent.mcpToolId());
+        Set<String> mcpToolIds = new HashSet<>();
+        for (McpToolDefinition tool : mcpTools) {
+            if (!mcpToolIds.add(tool.toolId())) {
+                throw new IllegalArgumentException("MCP tool-id 重复: " + tool.toolId());
+            }
+            if (tool.enabled() && tool.dispatchable()) {
+                availableTools.add(tool.toolId());
             }
         }
         Set<String> skillCodes = new HashSet<>();
@@ -217,7 +229,7 @@ final class InitializerDataset {
             }
             for (String toolId : skill.toolIds()) {
                 if (!availableTools.contains(toolId)) {
-                    throw new IllegalArgumentException("技能解锁的工具不在本数据集已启用的 MCP 意图节点中: "
+                    throw new IllegalArgumentException("技能解锁的工具不在本数据集已启用的 MCP 工具注册表中: "
                             + skill.skillCode() + " -> " + toolId);
                 }
             }
@@ -272,8 +284,6 @@ final class InitializerDataset {
                         kbRef,
                         trimToNull(values.getProperty("description")),
                         split(values.getProperty("examples"), "\\|"),
-                        trimToNull(values.getProperty("mcp-tool-id")),
-                        optionalBoolean(values, "require-confirm", false),
                         optionalInt(values, "top-k", file),
                         requiredInt(values, "sort-order", file),
                         optionalBoolean(values, "enabled", true),
@@ -283,6 +293,32 @@ final class InitializerDataset {
             }
         }
         result.sort(Comparator.comparingInt(IntentDefinition::sortOrder));
+        return List.copyOf(result);
+    }
+
+    private static List<McpToolDefinition> loadMcpTools(Path agentTypeDir) throws IOException {
+        Path toolsDir = agentTypeDir.resolve("mcp-tools");
+        if (!Files.isDirectory(toolsDir)) {
+            return List.of();
+        }
+        List<McpToolDefinition> result = new ArrayList<>();
+        try (Stream<Path> paths = Files.list(toolsDir)) {
+            for (Path file : paths.filter(path -> path.getFileName().toString().endsWith(".properties"))
+                    .sorted().toList()) {
+                Properties values = InitializerConfig.loadProperties(file);
+                result.add(new McpToolDefinition(
+                        required(values, "tool-id", file.toString()),
+                        required(values, "display-name", file.toString()),
+                        required(values, "description", file.toString()),
+                        optionalBoolean(values, "require-confirm", false),
+                        optionalBoolean(values, "resident", false),
+                        optionalBoolean(values, "dispatchable", true),
+                        optionalBoolean(values, "enabled", true),
+                        optionalInt(values, "sort-order", file),
+                        trimToNull(values.getProperty("remark"))
+                ));
+            }
+        }
         return List.copyOf(result);
     }
 
@@ -474,8 +510,13 @@ final class InitializerDataset {
 
     record IntentDefinition(String code, String name, int level, String parentCode, int kind,
                             String knowledgeBaseRef, String description, List<String> examples,
-                            String mcpToolId, boolean requireConfirm, Integer topK, int sortOrder, boolean enabled,
+                            Integer topK, int sortOrder, boolean enabled,
                             String promptSnippet, String promptTemplate) {
+    }
+
+    record McpToolDefinition(String toolId, String displayName, String description, boolean requireConfirm,
+                             boolean resident, boolean dispatchable, boolean enabled, Integer sortOrder,
+                             String remark) {
     }
 
     record SkillDefinition(String skillCode, String name, String description, String content,

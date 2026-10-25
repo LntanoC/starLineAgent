@@ -7,10 +7,10 @@
 | [agent-memory](agent-memory/README.md) | 行为回归、机制回归、单会话排查 | 修改裁剪、摘要或长期记忆逻辑后检查功能与状态 |
 | [agent-memory-evaluation](agent-memory-evaluation/README.md) | 数据集测评、指标统计、A/B 报告 | 比较方案、模型或配置的质量、用量与耗时 |
 | [agent-memory-audit](agent-memory-audit/README.md) | 独立账号的真实流程复现、逐轮证据采集 | 核实跨会话覆盖、删除回写、清空和摘要问题 |
-| [agent-concurrency](agent-concurrency/README.md) | 多用户并发、请求隔离与数据库一致性回归 | 验证共享 Agent 的真实服务路径能否并行执行 |
 | [agent-run-gate-audit](agent-run-gate-audit/README.md) | Java 测试与临时 Redis 闸门检查 | 验证会话互斥、用户名额、跨线程释放和看门狗回收 |
-| [agent-compaction](agent-compaction/README.md) | 比特严选长会话、逐代摘要判定 | 修改压缩代码或比特严选压缩提示词后，检查摘要有界与业务正确 |
 | [agent-long-term-memory](agent-long-term-memory/README.md) | 手机选购场景、7 轮跨会话记忆测评 | 单独验证新增、临时信息不记、偏好修改与撤回 |
+
+`agent-compaction` 已归档暂停：其剧本和断言绑定已移除的比特严选数据、订单和提示词，不属于当前可运行套件。
 
 各套件的运行条件、命令、配置、数据操作范围和结果解释，见对应子目录的 README。
 

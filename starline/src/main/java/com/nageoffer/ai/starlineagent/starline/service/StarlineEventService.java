@@ -18,6 +18,8 @@
 package com.nageoffer.ai.starlineagent.starline.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.nageoffer.ai.starlineagent.framework.badcase.api.BadCaseIntake;
+import com.nageoffer.ai.starlineagent.framework.badcase.api.BadCaseSignal;
 import com.nageoffer.ai.starlineagent.framework.context.UserContext;
 import com.nageoffer.ai.starlineagent.framework.exception.ClientException;
 import com.nageoffer.ai.starlineagent.starline.controller.request.SaveStarlineEventRequest;
@@ -25,65 +27,111 @@ import com.nageoffer.ai.starlineagent.starline.controller.vo.StarlineEventVO;
 import com.nageoffer.ai.starlineagent.starline.dao.entity.StarlineEventDO;
 import com.nageoffer.ai.starlineagent.starline.dao.mapper.StarlineEventMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.HexFormat;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class StarlineEventService {
-    private static final String ANNOUNCED = "ANNOUNCED";
-    private static final String TO_BE_ANNOUNCED = "TO_BE_ANNOUNCED";
-    private static final String PENDING = "PENDING";
+    private static final String ACTIVE = "ACTIVE";
+    private static final String CANCELLED = "CANCELLED";
+    private static final ZoneId ZONE = ZoneId.of("Asia/Shanghai");
+
     private final StarlineEventMapper mapper;
+    private final ObjectProvider<BadCaseIntake> intake;
 
     public List<StarlineEventVO> listMine() {
         String userId = UserContext.requireUser().getUserId();
         return mapper.selectList(Wrappers.<StarlineEventDO>lambdaQuery()
-                .eq(StarlineEventDO::getUserId, userId)
-                .orderByDesc(StarlineEventDO::getCreatedTime))
+                        .eq(StarlineEventDO::getUserId, userId)
+                        .orderByDesc(StarlineEventDO::getCreatedTime))
                 .stream().map(StarlineEventService::toVO).toList();
+    }
+
+    /** 日历订阅只读取当前用户仍关注且具有开票时间的活动。 */
+    public List<StarlineEventDO> findCalendarEvents(String userId) {
+        return mapper.selectList(Wrappers.<StarlineEventDO>lambdaQuery()
+                .eq(StarlineEventDO::getUserId, userId)
+                .in(StarlineEventDO::getReminderStatus, ACTIVE, CANCELLED)
+                .isNotNull(StarlineEventDO::getTicketTime)
+                .ge(StarlineEventDO::getTicketTime, LocalDateTime.now(ZONE))
+                .orderByAsc(StarlineEventDO::getTicketTime));
     }
 
     @Transactional
     public String create(SaveStarlineEventRequest request) {
-        String status = required(request.getInfoStatus(), "请选择信息状态").toUpperCase(Locale.ROOT);
-        if (!ANNOUNCED.equals(status) && !TO_BE_ANNOUNCED.equals(status)) throw new ClientException("信息状态不合法");
+        return create(request, StarlineInvocationContext.userForm());
+    }
+
+    /** 保留业务规则 bad case 检测与 Agent 调用归因。 */
+    @Transactional
+    public String create(SaveStarlineEventRequest request, StarlineInvocationContext context) {
+        try {
+            return doCreate(request);
+        } catch (StarlineRuleViolationException failure) {
+            if (context != null && context.systemGenerated()) {
+                reportRuleViolation(request, context, failure);
+            }
+            throw failure;
+        }
+    }
+
+    private String doCreate(SaveStarlineEventRequest request) {
+        String artistName = required(request.getArtistName(), "ARTIST_REQUIRED", "请填写艺人名称");
+        String eventName = trim(request.getEventName());
+        LocalDateTime now = LocalDateTime.now(ZONE);
         StarlineEventDO event = new StarlineEventDO();
         event.setUserId(UserContext.requireUser().getUserId());
-        event.setArtistName(required(request.getArtistName(), "请填写艺人名称"));
-        event.setEventName(trim(request.getEventName()));
-        event.setInfoStatus(status);
-        event.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
-        event.setUpdateTime(event.getCreatedTime());
+        event.setArtistName(artistName);
+        event.setEventName(eventName);
+        event.setReminderStatus(ACTIVE);
+        event.setCreatedTime(now);
+        event.setUpdateTime(now);
 
-        if (TO_BE_ANNOUNCED.equals(status)) {
-            event.setReminderStatus("NOT_CREATED");
+        String rawTicketTime = trim(request.getTicketTime());
+        if (rawTicketTime == null) {
             mapper.insert(event);
             return event.getId();
         }
 
-        event.setEventName(required(request.getEventName(), "已公布信息请填写活动名称"));
-        event.setSourceName(required(request.getSourceName(), "请填写信息来源"));
+        event.setEventName(required(eventName, "EVENT_NAME_REQUIRED", "已公布信息请填写活动名称"));
+        event.setSourceName(required(request.getSourceName(), "SOURCE_REQUIRED", "已公布信息请填写来源名称"));
         event.setSourceUrl(validateUrl(request.getSourceUrl()));
-        if (!Boolean.TRUE.equals(request.getSourceConfirmed())) throw new ClientException("请先确认来源内容与活动信息一致");
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
-        LocalDateTime ticketTime = parseTime(request.getTicketTime(), "请填写准确的开票时间");
-        LocalDateTime remindAt = parseTime(request.getRemindAt(), "请填写提醒时间");
-        if (!ticketTime.isAfter(now)) throw new ClientException("开票时间必须晚于当前时间");
-        if (!remindAt.isAfter(now)) throw new ClientException("提醒时间必须晚于当前时间");
-        if (remindAt.isAfter(ticketTime)) throw new ClientException("提醒时间不能晚于开票时间");
-        String email = required(request.getEmail(), "请填写接收提醒的邮箱");
-        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) throw new ClientException("邮箱格式不正确");
+        if (!Boolean.TRUE.equals(request.getSourceConfirmed())) {
+            throw new StarlineRuleViolationException("SOURCE_NOT_CONFIRMED", "请先确认来源内容与活动信息一致");
+        }
+
+        LocalDateTime ticketTime = parseTime(rawTicketTime, "TICKET_TIME_REQUIRED", "请填写准确的开票时间");
+        if (!ticketTime.isAfter(now)) {
+            throw new StarlineRuleViolationException("TICKET_TIME_NOT_FUTURE", "开票时间必须晚于当前时间");
+        }
+        if (ticketTime.isBefore(now.plusMinutes(10))) {
+            throw new StarlineRuleViolationException("TOO_CLOSE_TO_NOTIFY", "开票时间距今不足 10 分钟，赶不上提前提醒了");
+        }
+
         event.setTicketTime(ticketTime);
-        event.setRemindAt(remindAt);
-        event.setEmail(email);
-        event.setReminderStatus(PENDING);
+        StarlineEventDO existing = mapper.selectOne(Wrappers.<StarlineEventDO>lambdaQuery()
+                .eq(StarlineEventDO::getUserId, event.getUserId())
+                .eq(StarlineEventDO::getArtistName, artistName)
+                .eq(StarlineEventDO::getEventName, eventName)
+                .eq(StarlineEventDO::getTicketTime, ticketTime)
+                .eq(StarlineEventDO::getReminderStatus, ACTIVE)
+                .last("LIMIT 1"));
+        if (existing != null) {
+            return existing.getId();
+        }
         mapper.insert(event);
         return event.getId();
     }
@@ -93,36 +141,66 @@ public class StarlineEventService {
         int updated = mapper.update(null, Wrappers.<StarlineEventDO>lambdaUpdate()
                 .eq(StarlineEventDO::getId, id)
                 .eq(StarlineEventDO::getUserId, UserContext.requireUser().getUserId())
-                .eq(StarlineEventDO::getReminderStatus, PENDING)
-                .set(StarlineEventDO::getReminderStatus, "CANCELLED")
-                .set(StarlineEventDO::getUpdateTime, LocalDateTime.now(ZoneId.of("Asia/Shanghai"))));
-        if (updated == 0) throw new ClientException("提醒不存在、已开始发送或已不能取消");
+                .eq(StarlineEventDO::getReminderStatus, ACTIVE)
+                .set(StarlineEventDO::getReminderStatus, CANCELLED)
+                .set(StarlineEventDO::getUpdateTime, LocalDateTime.now(ZONE)));
+        if (updated == 0) {
+            throw new ClientException("活动记录不存在或已取消");
+        }
     }
 
-    public List<StarlineEventDO> findDue(LocalDateTime now) {
-        return mapper.selectList(Wrappers.<StarlineEventDO>lambdaQuery()
-                .eq(StarlineEventDO::getReminderStatus, PENDING)
-                .le(StarlineEventDO::getRemindAt, now)
-                .orderByAsc(StarlineEventDO::getRemindAt).last("LIMIT 50"));
+    private void reportRuleViolation(SaveStarlineEventRequest request,
+                                     StarlineInvocationContext context,
+                                     StarlineRuleViolationException failure) {
+        try {
+            String user = UserContext.requireUser().getUserId();
+            String normalized = String.valueOf(request.getArtistName()) + "|"
+                    + request.getTicketTime() + "|" + request.getSourceConfirmed();
+            String subject = sha256(user + "|" + failure.getRuleCode() + "|" + normalized
+                    + "|" + (System.currentTimeMillis() / 3600000));
+            BadCaseIntake sink = intake.getIfAvailable();
+            if (sink == null) {
+                return;
+            }
+            sink.submitSafely(new BadCaseSignal("STARLINE_BUSINESS", "STARLINE_RULE_VIOLATION",
+                    "HIGH", "S3",
+                    context.messageId() == null ? "STARLINE_RULE" : "AGENT_MESSAGE",
+                    context.messageId() == null ? subject : context.messageId(),
+                    context.messageId(), context.conversationId(), user, context.runId(),
+                    "rule:" + subject,
+                    "星序业务规则违例：" + failure.getRuleCode(), Instant.now(), "starline-rule-v1",
+                    Map.of("ruleCode", failure.getRuleCode(),
+                            "origin", context.origin().name(),
+                            "requestSummary", normalized)));
+        } catch (Exception ignored) {
+            // 检测失败不能改变原始业务异常。
+        }
     }
 
-    public boolean claim(String id) {
-        return mapper.claimForSending(id, LocalDateTime.now(ZoneId.of("Asia/Shanghai"))) == 1;
+    private static String sha256(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
-    @Transactional
-    public void mark(String id, String status, LocalDateTime sentAt) {
-        StarlineEventDO event = new StarlineEventDO();
-        event.setId(id);
-        event.setReminderStatus(status);
-        event.setSentAt(sentAt);
-        event.setUpdateTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
-        mapper.updateById(event);
+    private static StarlineEventVO toVO(StarlineEventDO event) {
+        return new StarlineEventVO(event.getId(), event.getArtistName(), event.getEventName(),
+                event.getSourceName(), event.getSourceUrl(), event.getTicketTime(),
+                event.getReminderStatus(), event.getCreatedTime());
     }
 
     private static String required(String value, String message) {
+        return required(value, "REQUIRED_FIELD_MISSING", message);
+    }
+
+    private static String required(String value, String ruleCode, String message) {
         String result = trim(value);
-        if (result == null) throw new ClientException(message);
+        if (result == null) {
+            throw new StarlineRuleViolationException(ruleCode, message);
+        }
         return result;
     }
 
@@ -137,25 +215,20 @@ public class StarlineEventService {
             String scheme = uri.getScheme();
             if (uri.getHost() == null || scheme == null
                     || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
-                throw new ClientException("来源链接必须是有效的 HTTP 或 HTTPS 地址");
+                throw new StarlineRuleViolationException("INVALID_SOURCE_URL",
+                        "来源链接必须是有效的 HTTP 或 HTTPS 地址");
             }
         } catch (IllegalArgumentException exception) {
-            throw new ClientException("来源链接格式不正确");
+            throw new StarlineRuleViolationException("INVALID_SOURCE_URL", "来源链接格式不正确");
         }
         return url;
     }
 
-    private static LocalDateTime parseTime(String value, String message) {
+    private static LocalDateTime parseTime(String value, String ruleCode, String message) {
         try {
             return LocalDateTime.parse(required(value, message));
         } catch (DateTimeParseException exception) {
-            throw new ClientException(message);
+            throw new StarlineRuleViolationException(ruleCode, message);
         }
-    }
-
-    private static StarlineEventVO toVO(StarlineEventDO e) {
-        return new StarlineEventVO(e.getId(), e.getArtistName(), e.getEventName(), e.getInfoStatus(),
-                e.getSourceName(), e.getSourceUrl(), e.getTicketTime(), e.getEmail(), e.getRemindAt(),
-                e.getReminderStatus(), e.getSentAt(), e.getCreatedTime());
     }
 }

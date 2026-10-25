@@ -24,6 +24,7 @@ import com.nageoffer.ai.starlineagent.framework.convention.Result;
 import com.nageoffer.ai.starlineagent.framework.web.Results;
 import com.nageoffer.ai.starlineagent.rag.controller.request.MessageFeedbackRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +44,12 @@ public class AgentMessageFeedbackController {
     public Result<Void> submitFeedback(@PathVariable String messageId,
                                        @RequestBody MessageFeedbackRequest request) {
         feedbackService.submitDislike(messageId, UserContext.getUserId(), request);
+        return Results.success();
+    }
+
+    @DeleteMapping("/agent/v1/messages/{messageId}/feedback")
+    public Result<Void> cancelFeedback(@PathVariable String messageId) {
+        feedbackService.cancelDislike(messageId, UserContext.getUserId());
         return Results.success();
     }
 }

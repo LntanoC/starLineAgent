@@ -1,11 +1,12 @@
 import * as React from "react";
-import { Github } from "lucide-react";
+import { Github, Menu, X } from "lucide-react";
 
 import { AgentRawLog } from "@/components/agent/AgentRawLog";
 import { AgentSidebar } from "@/components/agent/AgentSidebar";
 import { useGitHubStars } from "@/hooks/useGitHubStars";
 import { getAgentMeta } from "@/services/agentService";
 import type { AgentEngineMeta } from "@/types/agent";
+import { useLocation } from "react-router-dom";
 
 export type AgentMetaState =
   | { status: "probing" }
@@ -39,9 +40,11 @@ interface AgentHeaderProps {
   meta: AgentMetaState;
   rawOpen: boolean;
   onToggleRaw: () => void;
+  mobileMenuOpen: boolean;
+  onToggleMobileMenu: () => void;
 }
 
-function AgentHeader({ meta, rawOpen, onToggleRaw }: AgentHeaderProps) {
+function AgentHeader({ meta, rawOpen, onToggleRaw, mobileMenuOpen, onToggleMobileMenu }: AgentHeaderProps) {
   const starCount = useGitHubStars();
 
   const starLabel = starCount === null ? null : starCount.toLocaleString("en-US");
@@ -52,6 +55,9 @@ function AgentHeader({ meta, rawOpen, onToggleRaw }: AgentHeaderProps) {
   return (
     <header className="agent-header">
       <div className="agent-brand">
+        <button type="button" className="agent-mobile-menu" onClick={onToggleMobileMenu} aria-label={mobileMenuOpen ? "关闭导航菜单" : "打开导航菜单"} aria-expanded={mobileMenuOpen}>
+          {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </button>
         <span className="agent-wordmark">starline</span>
         <span className="agent-brand-sep">/</span>
         <span className="agent-brand-tag">星序</span>
@@ -104,13 +110,33 @@ interface AgentLayoutProps {
 
 export function AgentLayout({ children }: AgentLayoutProps) {
   const [rawOpen, setRawOpen] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const location = useLocation();
   const meta = useAgentMeta();
+
+  React.useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="agent-app">
-      <AgentHeader meta={meta} rawOpen={rawOpen} onToggleRaw={() => setRawOpen((v) => !v)} />
+      <AgentHeader
+        meta={meta}
+        rawOpen={rawOpen}
+        onToggleRaw={() => setRawOpen((v) => !v)}
+        mobileMenuOpen={mobileMenuOpen}
+        onToggleMobileMenu={() => setMobileMenuOpen((open) => !open)}
+      />
       <div className="agent-body">
-        <AgentSidebar />
+        <AgentSidebar mobileOpen={mobileMenuOpen} onMobileNavigate={() => setMobileMenuOpen(false)} />
+        {mobileMenuOpen ? (
+          <button
+            type="button"
+            className="agent-mobile-backdrop"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="关闭导航菜单"
+          />
+        ) : null}
         <main className="agent-main">{children}</main>
         {rawOpen ? <AgentRawLog onClose={() => setRawOpen(false)} /> : null}
       </div>

@@ -30,6 +30,7 @@ public class BadCaseScanJob {
     private final BadCaseService service;
     private final BadCaseProperties properties;
     private final BadCaseRepository repository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @Scheduled(fixedDelayString="${rag.feedback.bad-case.scan-delay-ms:300000}",initialDelay=60000)
     public void scan() { run(false); }
@@ -41,7 +42,7 @@ public class BadCaseScanJob {
     @Scheduled(fixedDelay=86400000,initialDelay=120000)
     public void archive() {
         if(!properties.isEnabled()) return;
-        try { int count=repository.archiveResolved(properties.getRetentionDays()); if(count>0) log.info("归档 bad case {} 条",count); }
+        try { int count=repository.archiveResolved(properties.getRetentionDays()); if(count>0) {jdbc.update("UPDATE t_bad_case_signal SET evidence='{\"archived\":true}'::jsonb WHERE bad_case_id IN (SELECT id FROM t_bad_case WHERE deleted=1 AND archived_at IS NOT NULL)");log.info("归档 bad case {} 条",count); } }
         catch(Exception e) { log.warn("bad case 归档失败",e); }
     }
     private void run(boolean includeOlder) {

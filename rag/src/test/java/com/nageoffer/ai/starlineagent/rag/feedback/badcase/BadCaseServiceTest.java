@@ -25,18 +25,10 @@ import static org.mockito.Mockito.*;
 
 class BadCaseServiceTest {
     private final BadCaseRepository repo=mock(BadCaseRepository.class);
-    private final BadCaseAnalyzer analyzer=mock(BadCaseAnalyzer.class);
-    private final BadCaseService service=new BadCaseService(repo,analyzer,new BadCaseProperties());
+    private final BadCaseDetectionCoordinator coordinator=mock(BadCaseDetectionCoordinator.class);
+    private final BadCaseService service=new BadCaseService(repo,coordinator,new BadCaseProperties());
     @Test void failedItemDoesNotStopBatchAndConflictIsIdempotent() {
-        var a=new BadCaseRepository.Feedback("a","c","u",-1,null,null);
-        var b=new BadCaseRepository.Feedback("b","c","u",-1,null,null);
-        var c=new BadCaseRepository.Feedback("c","c","u",-1,null,null);
-        var report=new BadCaseReport();
-        when(repo.pendingFeedback(isNull(),anyInt())).thenReturn(List.of(a,b,c));
-        when(analyzer.analyze(eq(a),anyLong())).thenThrow(new IllegalStateException("bad snapshot"));
-        when(analyzer.analyze(eq(b),anyLong())).thenReturn(report);
-        when(analyzer.analyze(eq(c),anyLong())).thenReturn(report);
-        when(repo.insert(report)).thenReturn(true,false);
+        when(coordinator.scan(null,false,true)).thenReturn(Map.of("created",1,"failed",1,"scanned",3,"busy",false));
         var result=service.scan(true);
         assertThat(result.created()).isEqualTo(1);assertThat(result.failed()).isEqualTo(1);assertThat(result.scanned()).isEqualTo(3);
     }

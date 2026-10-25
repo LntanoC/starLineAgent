@@ -67,6 +67,7 @@ interface AgentChatState {
   updateSessionTitle: (sessionId: string, title: string) => void;
   setDraft: (text: string) => void;
   toggleBlockOpen: (messageId: string, blockId: number) => void;
+  setMessageFeedback: (messageId: string, vote?: number) => void;
   sendMessage: (question: string) => Promise<void>;
   confirmPendingTool: (messageId: string, blockId: number, approved: boolean) => Promise<void>;
   cancelGeneration: () => void;
@@ -657,7 +658,8 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => {
             // 服务端耗时 旧数据为空则不显示
             elapsedMs: item.durationMs ?? undefined,
             status: "done" as const,
-            messageStatus: item.messageStatus ?? "NORMAL"
+            messageStatus: item.messageStatus ?? "NORMAL",
+            feedbackVote: item.feedbackVote ?? undefined
           };
         });
         setConversation({ messages: mapped });
@@ -742,6 +744,13 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => {
                 )
               }
             : message
+        )
+      }));
+    },
+    setMessageFeedback: (messageId, vote) => {
+      set((state) => ({
+        messages: state.messages.map((message) =>
+          message.id === messageId ? { ...message, feedbackVote: vote } : message
         )
       }));
     },

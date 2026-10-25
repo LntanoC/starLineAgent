@@ -110,6 +110,7 @@ export interface AgentMessage {
   blocks?: AgentBlockUI[];
   status?: AgentMessageUiStatus;
   messageStatus?: AgentPersistedMessageStatus;
+  feedbackVote?: number;
   createdAt?: string;
   // 服务端耗时 直播与回放同源
   elapsedMs?: number;

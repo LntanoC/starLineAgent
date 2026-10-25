@@ -66,7 +66,12 @@ function groupSessions(sessions: AgentSession[]): SessionGroup[] {
     .map(([label, items]) => ({ label, items }));
 }
 
-export function AgentSidebar() {
+interface AgentSidebarProps {
+  mobileOpen?: boolean;
+  onMobileNavigate?: () => void;
+}
+
+export function AgentSidebar({ mobileOpen = false, onMobileNavigate }: AgentSidebarProps = {}) {
   const {
     sessions,
     currentSessionId,
@@ -132,6 +137,7 @@ export function AgentSidebar() {
   };
 
   const openSession = (sessionId: string) => {
+    onMobileNavigate?.();
     if (sessionId === currentSessionId) return;
     loadMessages(sessionId).catch(() => null);
     navigate(`/chat/${sessionId}`);
@@ -177,13 +183,14 @@ export function AgentSidebar() {
   const groups = groupSessions(shown);
 
   return (
-    <aside className="agent-rail">
+    <aside className="agent-rail" data-mobile-open={mobileOpen}>
       {/* 栏首：主动作卡本身就是卡 外面不再套一层「快速开始」壳 顶栏字标就在正上方 */}
       <div className="agent-quick">
         <button
           type="button"
           className="agent-new-btn"
           onClick={() => {
+            onMobileNavigate?.();
             exitSelect();
             startNewChat();
             navigate("/chat");
@@ -197,7 +204,7 @@ export function AgentSidebar() {
             <span className="agent-new-sub">从空白开始</span>
           </span>
         </button>
-        <button type="button" className="agent-admin-btn" onClick={() => navigate("/starline/reminders")}>
+        <button type="button" className="agent-admin-btn" onClick={() => { onMobileNavigate?.(); navigate("/starline/reminders"); }}>
           <BellRing className="h-3.5 w-3.5" strokeWidth={2} />
           星序活动提醒
         </button>
@@ -205,7 +212,7 @@ export function AgentSidebar() {
           <button
             type="button"
             className="agent-admin-btn"
-            onClick={() => window.open("/admin", "_blank")}
+            onClick={() => { onMobileNavigate?.(); window.open("/admin", "_blank"); }}
           >
             <Settings className="h-3.5 w-3.5" strokeWidth={2} />
             管理后台

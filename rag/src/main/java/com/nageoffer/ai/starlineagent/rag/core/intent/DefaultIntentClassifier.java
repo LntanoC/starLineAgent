@@ -28,8 +28,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nageoffer.ai.starlineagent.infra.util.LLMResponseCleaner;
 import com.nageoffer.ai.starlineagent.infra.util.LogSafe;
-import com.nageoffer.ai.starlineagent.rag.config.OrchestrationMode;
-import com.nageoffer.ai.starlineagent.rag.config.OrchestrationProperties;
 import com.nageoffer.ai.starlineagent.rag.dao.entity.IntentNodeDO;
 import com.nageoffer.ai.starlineagent.rag.dao.mapper.IntentNodeMapper;
 import com.nageoffer.ai.starlineagent.framework.convention.ChatMessage;
@@ -66,7 +64,6 @@ public class DefaultIntentClassifier implements IntentClassifier, IntentNodeRegi
     private final IntentNodeMapper intentNodeMapper;
     private final PromptTemplateLoader promptTemplateLoader;
     private final IntentTreeCacheManager intentTreeCacheManager;
-    private final OrchestrationProperties orchestrationProperties;
 
     /**
      * 从Redis加载意图树并构建内存结构
@@ -110,15 +107,6 @@ public class DefaultIntentClassifier implements IntentClassifier, IntentNodeRegi
         return data.id2Node.get(id);
     }
 
-    @Override
-    public List<IntentNode> listMcpToolNodes() {
-        return loadIntentTreeData().leafNodes.stream()
-                .filter(IntentNode::isMCP)
-                .filter(node -> node.getMcpToolId() != null && !node.getMcpToolId().isBlank())
-                .sorted(Comparator.comparing(IntentNode::getId))
-                .toList();
-    }
-
     /**
      * 意图树数据结构（临时对象，不持久化）
      */
@@ -157,14 +145,12 @@ public class DefaultIntentClassifier implements IntentClassifier, IntentNodeRegi
             return List.of();
         }
 
-        // Agent 的知识库工具只识别 KB，Workflow 额外保留 SYSTEM 应答
+        // 意图树只负责知识路由；系统应答与 MCP 工具均由 Agent 主流程处理。
         List<IntentNode> candidates = data.leafNodes.stream()
-                .filter(node -> node.isKB()
-                        || (orchestrationProperties.getMode() == OrchestrationMode.WORKFLOW && node.isSystem()))
+                .filter(IntentNode::isKB)
                 .toList();
         if (candidates.isEmpty()) {
-            log.debug("当前编排模式没有可用意图叶子节点，跳过 LLM 意图识别, mode={}",
-                    orchestrationProperties.getMode());
+            log.debug("意图树没有可用知识叶子节点，跳过 LLM 意图识别");
             return List.of();
         }
         Map<String, IntentNode> candidateById = candidates.stream()
@@ -263,7 +249,7 @@ public class DefaultIntentClassifier implements IntentClassifier, IntentNodeRegi
             sb.append("  path=").append(node.getFullPath()).append("\n");
             sb.append("  description=").append(node.getDescription()).append("\n");
 
-            sb.append(node.isSystem() ? "  type=SYSTEM\n" : "  type=KB\n");
+            sb.append("  type=KB\n");
 
             if (node.getExamples() != null && !node.getExamples().isEmpty()) {
                 sb.append("  examples=");
@@ -298,8 +284,6 @@ public class DefaultIntentClassifier implements IntentClassifier, IntentNodeRegi
             // 数据库中的 code 映射到 IntentNode 的 id/parentId
             node.setId(each.getIntentCode());
             node.setParentId(each.getParentCode());
-            node.setMcpToolId(each.getMcpToolId());
-            node.setRequireConfirm(Objects.equals(each.getRequireConfirm(), 1));
             node.setExamples(parseExamples(each.getExamples()));
             if (CollUtil.isEmpty(each.getCollectionNames())) {
                 node.setCollectionNames(

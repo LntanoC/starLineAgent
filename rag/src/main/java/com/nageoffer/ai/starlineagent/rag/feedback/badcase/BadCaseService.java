@@ -28,11 +28,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 @RequiredArgsConstructor
 public class BadCaseService {
-    public static final Set<String> ROOT_CAUSES=Set.of("RETRIEVAL_MISS","RETRIEVAL_NOISE","INTENT","HALLUCINATION","FORMAT","PERF","OTHER");
-    public static final Set<String> FIX_ACTIONS=Set.of("MAPPING","INTENT_NODE","KNOWLEDGE_BASE","PROMPT","RERANK","NONE");
+    public static final Set<String> ROOT_CAUSES=Set.of("RETRIEVAL_MISS","RETRIEVAL_NOISE","INTENT","HALLUCINATION","FORMAT","PERF","OTHER","TOOL_EXECUTION","BUSINESS_RULE","DELIVERY");
+    public static final Set<String> FIX_ACTIONS=Set.of("MAPPING","INTENT_NODE","KNOWLEDGE_BASE","PROMPT","RERANK","NONE","TOOL","BUSINESS_RULE","DELIVERY","EVAL_DATASET");
     public static final Set<String> STATUSES=Set.of("PENDING","REVIEWED","IGNORED","FIXED");
     private final BadCaseRepository repository;
-    private final BadCaseAnalyzer analyzer;
+    private final BadCaseDetectionCoordinator coordinator;
     private final BadCaseProperties properties;
     private final AtomicBoolean scanning=new AtomicBoolean();
 
@@ -41,18 +41,8 @@ public class BadCaseService {
                                 String reviewStatus,Long revision) {}
 
     public ScanResult scan(boolean includeOlder) {
-        if(!scanning.compareAndSet(false,true)) return new ScanResult(0,0,0,true);
-        try {
-            Date since=includeOlder?null:new Date(System.currentTimeMillis()-Math.max(1,properties.getLookbackMinutes())*60000L);
-            var feedbacks=repository.pendingFeedback(since,Math.max(1,Math.min(properties.getBatchSize(),500)));
-            int created=0,failed=0;
-            long p95=repository.retrieveP95(Math.max(1,properties.getRetrieveSlowThresholdMs()));
-            for(var feedback:feedbacks) {
-                try { if(repository.insert(analyzer.analyze(feedback,p95))) created++; }
-                catch(Exception e) { failed++; log.warn("bad case 分析失败，messageId={}",feedback.messageId(),e); }
-            }
-            return new ScanResult(created,failed,feedbacks.size(),false);
-        } finally { scanning.set(false); }
+        var r=coordinator.scan(null,false,includeOlder);
+        return new ScanResult(((Number)r.getOrDefault("created",0)).intValue(),((Number)r.getOrDefault("failed",0)).intValue(),((Number)r.getOrDefault("scanned",0)).intValue(),Boolean.TRUE.equals(r.get("busy")));
     }
     public BadCaseRepository.Page page(String status,String cause,int page,int size) {
         if(status!=null&&!status.isBlank()&&!STATUSES.contains(status)) throw new ClientException("无效的判定状态");

@@ -2,9 +2,9 @@
 
 [返回回归与测评总览](../README.md)
 
-基于 `resources/initializer/bit-selection` 的知识库提问，测裁剪、摘要、缓存和多轮记忆效果。Java 17 编译后运行。
+基于 `resources/initializer/starline-events` 的星序知识和行为用例，测裁剪、摘要、缓存和多轮记忆效果。Java 17 编译后运行。
 
-先确认已经初始化比特严选数据、启用比特严选人设，并启动服务与数据库。程序只提问和读取测评结果，不负责初始化或重启服务。
+先确认已经初始化星序模板、启用星序人设，并启动服务与数据库；涉及实时演出查询的用例还需要可用的 MCP 搜索 Key。程序只提问和读取测评结果，不负责初始化或重启服务。
 
 本套件的编译缓存、测评报告与原始采集结果放在 `artifacts/`，由仓库根 `.gitignore` 忽略。每次测评显式指定新的 `--output-dir`，避免混用结果。
 
@@ -23,10 +23,10 @@ java -cp resources/regression/agent-memory-evaluation/artifacts/classes \
   com.nageoffer.ai.starlineagent.initializer.AgentMemoryEvaluationMain \
   --limit 1 \
   --variant baseline \
-  --output-dir resources/regression/agent-memory-evaluation/artifacts/bit-evaluation/baseline
+  --output-dir resources/regression/agent-memory-evaluation/artifacts/starline-evaluation/baseline
 ```
 
-默认读取展开格式的 `datasets/bit-selection.json`。`--limit 1` 先跑第一个短用例；去掉它跑整份数据。每个用例新建会话，用例内按顺序提问。再次运行时换一个输出目录，程序不会覆盖旧结果。
+默认读取展开格式的 `datasets/starline-events.json`。`--limit 1` 先跑第一个用例；去掉它跑整份数据。每个用例新建会话，用例内按顺序提问。再次运行时换一个输出目录，程序不会覆盖旧结果。
 
 连接和主模型默认继承 `application.yaml`，修改 `agent.chat.model` 后测评自动跟随，无需另写模型名。其他环境用 `--config /path/to/local.properties`，账号可通过 `STARLINEAGENT_EVAL_USERNAME`、`STARLINEAGENT_EVAL_PASSWORD` 设置。服务若使用 JVM 参数覆盖配置，测评配置也需同步对应项。
 
@@ -64,9 +64,9 @@ java -cp resources/regression/agent-memory-evaluation/artifacts/classes \
 ```bash
 java -cp resources/regression/agent-memory-evaluation/artifacts/classes \
   com.nageoffer.ai.starlineagent.initializer.EvaluationReportMain \
-  --baseline resources/regression/agent-memory-evaluation/artifacts/bit-evaluation/baseline \
-  --candidate resources/regression/agent-memory-evaluation/artifacts/bit-evaluation/candidate \
-  --output-dir resources/regression/agent-memory-evaluation/artifacts/bit-evaluation/comparison
+  --baseline resources/regression/agent-memory-evaluation/artifacts/starline-evaluation/baseline \
+  --candidate resources/regression/agent-memory-evaluation/artifacts/starline-evaluation/candidate \
+  --output-dir resources/regression/agent-memory-evaluation/artifacts/starline-evaluation/comparison
 ```
 
 看 `comparison/compare.md`。程序会检查两次的数据、执行顺序和计量条件是否一致。用于项目或简历时，保留数据集、样本数、基线与这份报告；字符压缩比例不能直接当成费用节省比例。

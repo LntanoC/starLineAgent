@@ -4,8 +4,6 @@ server:
     context-path: /api/starlineagent
 
 spring:
-  config:
-    import: optional:classpath:starline-application.yaml
   application:
     name: starlineagent${unique-name:}-service
 

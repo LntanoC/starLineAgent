@@ -21,4 +21,10 @@ import java.util.Date;
 
 public record BadCaseRecord(String id, BadCaseReport report, String rootCause, String rootCauseDetail,
                             String fixAction, String fixRef, String fixNote, String reviewStatus,
-                            String reviewer, Date reviewTime, long revision, Date createTime, Date updateTime) {}
+                            String reviewer, Date reviewTime, long revision, Date createTime, Date updateTime,
+                            java.util.Map<String,Object> candidate) {
+ public BadCaseRecord(String id,BadCaseReport report,String rootCause,String rootCauseDetail,String fixAction,String fixRef,
+ String fixNote,String reviewStatus,String reviewer,Date reviewTime,long revision,Date createTime,Date updateTime) {
+ this(id,report,rootCause,rootCauseDetail,fixAction,fixRef,fixNote,reviewStatus,reviewer,reviewTime,revision,createTime,updateTime,java.util.Map.of());
+ }
+}

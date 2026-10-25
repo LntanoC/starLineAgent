@@ -19,6 +19,20 @@ package com.nageoffer.ai.starlineagent.agent.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.nageoffer.ai.starlineagent.agent.dao.entity.AgentMessageDO;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 public interface AgentMessageMapper extends BaseMapper<AgentMessageDO> {
+
+    @Select("""
+            SELECT message_id FROM t_message_feedback
+            WHERE conversation_id = #{conversationId}
+              AND user_id = #{userId}
+              AND vote = -1
+              AND deleted = 0
+            """)
+    List<String> selectActiveFeedbackMessageIds(@Param("conversationId") String conversationId,
+                                                @Param("userId") String userId);
 }

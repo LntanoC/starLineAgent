@@ -15,7 +15,7 @@ export interface AgentSkill {
   updateTime?: string | null;
 }
 
-/** 技能可勾为解锁项的工具，来自意图树里的 MCP 节点 */
+/** 技能可勾为解锁项的工具，来自 MCP 工具注册表 */
 export interface AgentSkillToolOption {
   toolId: string;
   name: string;

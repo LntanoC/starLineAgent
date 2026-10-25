@@ -27,6 +27,7 @@ import {
   FolderKanban,
   Workflow,
   Globe2,
+  Puzzle,
   type LucideIcon
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
@@ -94,6 +95,11 @@ const menuGroups: MenuGroup[] = [
         path: "/admin/agent-skills",
         label: "技能管理",
         icon: Sparkles
+      },
+      {
+        path: "/admin/mcp-tools",
+        label: "MCP 工具管理",
+        icon: Puzzle
       },
       {
         path: "/admin/knowledge",
@@ -196,6 +202,7 @@ const breadcrumbMap: Record<string, string> = {
   dashboard: "Dashboard",
   agents: "智能体管理",
   "agent-skills": "技能管理",
+  "mcp-tools": "MCP 工具管理",
   knowledge: "知识库管理",
   "knowledge-graph": "知识图谱",
   "intent-tree": "意图树配置",
@@ -215,7 +222,7 @@ export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => window.matchMedia("(max-width: 1023px)").matches);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -235,6 +242,17 @@ export function AdminLayout() {
   const isDashboardRoute = location.pathname.startsWith("/admin/dashboard");
   // 知识图谱页要沉浸式铺满，去掉内容区内边距与面包屑
   const isGraphRoute = location.pathname.startsWith("/admin/knowledge-graph");
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023px)");
+    const syncSidebar = () => setCollapsed(media.matches);
+    media.addEventListener("change", syncSidebar);
+    return () => media.removeEventListener("change", syncSidebar);
+  }, []);
+
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 1023px)").matches) setCollapsed(true);
+  }, [location.pathname, location.search]);
 
   const handleLogout = async () => {
     await logout();
@@ -614,6 +632,14 @@ export function AdminLayout() {
           </button>
         </div>
       </aside>
+      {!collapsed ? (
+        <button
+          type="button"
+          className="admin-mobile-backdrop"
+          onClick={() => setCollapsed(true)}
+          aria-label="关闭导航菜单"
+        />
+      ) : null}
 
       <div
         className={cn(

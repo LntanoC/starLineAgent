@@ -300,11 +300,21 @@ public class AgentConversationServiceImpl implements AgentConversationService {
 
     @Override
     public List<AgentMessageVO> listMessages(String conversationId, String userId) {
-        return messageMapper.selectList(Wrappers.lambdaQuery(AgentMessageDO.class)
-                        .eq(AgentMessageDO::getConversationId, conversationId)
-                        .eq(AgentMessageDO::getUserId, userId)
-                        .orderByAsc(AgentMessageDO::getId))
+        List<AgentMessageDO> messages = messageMapper.selectList(Wrappers.lambdaQuery(AgentMessageDO.class)
+                .eq(AgentMessageDO::getConversationId, conversationId)
+                .eq(AgentMessageDO::getUserId, userId)
+                .orderByAsc(AgentMessageDO::getId));
+        Set<String> assistantIds = messages.stream()
+                .filter(item -> ROLE_ASSISTANT.equals(item.getRole()))
+                .map(AgentMessageDO::getId)
+                .collect(Collectors.toSet());
+        Map<String, Integer> feedbackVotes = assistantIds.isEmpty() ? Map.of() : messageMapper
+                .selectActiveFeedbackMessageIds(conversationId, userId)
                 .stream()
+                .filter(assistantIds::contains)
+                .collect(Collectors.toMap(messageId -> messageId, messageId -> -1));
+
+        return messages.stream()
                 .map(item -> AgentMessageVO.builder()
                         .id(item.getId())
                         .role(item.getRole())
@@ -312,6 +322,7 @@ public class AgentConversationServiceImpl implements AgentConversationService {
                         .thinkingContent(item.getThinkingContent())
                         .blocks(item.getBlocks())
                         .messageStatus(item.getMessageStatus())
+                        .feedbackVote(feedbackVotes.get(item.getId()))
                         .durationMs(item.getDurationMs())
                         .createTime(item.getCreateTime())
                         .build())

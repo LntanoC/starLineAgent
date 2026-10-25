@@ -16,6 +16,7 @@ export interface AgentMessageVO {
   // 旧数据为 null 由前端按持久化字段合成
   blocks?: AgentBlock[] | null;
   messageStatus?: AgentPersistedMessageStatus | null;
+  feedbackVote?: number | null;
   // 服务端耗时 assistant 才有
   durationMs?: number | null;
   createTime?: string;
@@ -52,6 +53,10 @@ export async function submitAgentMessageFeedback(messageId: string, reason?: str
     "/agent/v1/messages/" + encodeURIComponent(messageId) + "/feedback",
     { vote: -1, reason, comment }
   );
+}
+
+export async function cancelAgentMessageFeedback(messageId: string) {
+  return api.delete<void>("/agent/v1/messages/" + encodeURIComponent(messageId) + "/feedback");
 }
 
 export async function stopAgentTask(taskId: string) {

@@ -8,6 +8,7 @@
 
 | 日期 | 操作概要 | 记录 |
 | --- | --- | --- |
+| 2026-10-25 | Bad Case 改造部署、元宝 Key 权限收紧、MCP 单服务与 Tool RAG 改造部署 | [查看当日记录](server-operations/2026-10-25.md) |
 | 2026-10-24 | 首页与中文思考、点踩/Bad case、Langfuse 退役、Agent 审计、workflow 下线 | [查看当日记录](server-operations/2026-10-24.md) |
 | 2026-10-23 | Portainer、Docker 配置同步、公网入口与账号初始化 | [查看当日记录](server-operations/2026-10-23.md) |
 | 2026-10-22 | 应用部署、数据库初始化、镜像及服务排查 | [查看当日记录](server-operations/2026-10-22.md) |

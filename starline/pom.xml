@@ -8,16 +8,12 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>starline</artifactId>
-    <description>星序业务域：活动信息与邮箱提醒</description>
+    <description>星序业务域：活动信息与 iCal 日历提醒</description>
     <dependencies>
         <dependency>
             <groupId>com.nageoffer.ai</groupId>
             <artifactId>system</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
     </dependencies>
 </project>

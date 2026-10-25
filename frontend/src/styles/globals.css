@@ -5426,3 +5426,225 @@ textarea {
     animation: none;
   }
 }
+
+
+/* Mobile shell: keep chat and reminder content full height; open navigation as a drawer. */
+@media (max-width: 760px) {
+  .agent-app {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .agent-app .agent-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .agent-app .agent-header-center {
+    display: none;
+  }
+
+  .agent-app .agent-brand {
+    min-width: 0;
+    gap: var(--agent-s2);
+  }
+
+  .agent-app .agent-mobile-menu {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: var(--agent-hair-strong);
+    border-radius: 8px;
+    background: var(--agent-surface);
+    color: var(--agent-ink);
+  }
+
+  .agent-app .agent-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .agent-app .agent-rail {
+    display: none;
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: min(88vw, 320px);
+    max-height: none;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-right: var(--agent-hair-strong);
+    border-bottom: none;
+    box-shadow: 12px 0 28px rgba(24, 22, 18, 0.12);
+  }
+
+  .agent-app .agent-rail[data-mobile-open="true"] {
+    display: flex;
+  }
+
+  .agent-app .agent-mobile-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    border: 0;
+    background: rgba(23, 24, 28, 0.34);
+  }
+
+  .agent-app .agent-quick,
+  .agent-app .agent-search-card,
+  .agent-app .agent-railbase {
+    flex: none;
+    width: 100%;
+  }
+
+  .agent-app .agent-sessions {
+    flex: 1 1 auto;
+    min-height: 120px;
+  }
+
+  .agent-app .agent-session-wrap {
+    max-height: none;
+  }
+
+  .agent-app .agent-header-right {
+    gap: var(--agent-s1);
+  }
+
+  .agent-app .agent-head-btn {
+    padding: 5px 8px;
+  }
+
+  .agent-app .agent-stream-rows {
+    padding-right: var(--agent-s3);
+    padding-left: var(--agent-s3);
+  }
+
+  .agent-app .agent-composer {
+    padding: var(--agent-s2) var(--agent-s3) max(var(--agent-s3), env(safe-area-inset-bottom));
+  }
+
+  .agent-app .agent-composer-box {
+    padding: var(--agent-s2) var(--agent-s3);
+  }
+
+  .agent-app .agent-composer-input {
+    min-height: 48px;
+    max-height: 120px;
+    font-size: 16px;
+  }
+
+  .admin-layout {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .admin-layout .admin-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: min(86vw, 16rem);
+    flex: none;
+    min-height: 0;
+    overflow-y: auto;
+    transform: translateX(0);
+    transition: transform 180ms ease;
+    box-shadow: 12px 0 28px rgba(15, 23, 42, 0.2);
+  }
+
+  .admin-layout .admin-sidebar--collapsed {
+    width: min(86vw, 16rem);
+    transform: translateX(-105%);
+  }
+
+  .admin-layout .admin-main {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow: auto;
+  }
+
+  .admin-layout .admin-content {
+    max-width: none;
+    min-width: 0;
+    padding: 20px 16px 28px;
+  }
+
+  .admin-layout .admin-content--full {
+    padding: 0;
+  }
+
+  .admin-layout .admin-topbar-inner {
+    height: 60px;
+    gap: 8px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .admin-layout .admin-topbar-inner > div:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .admin-layout .admin-topbar-search {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .admin-layout .admin-topbar-kbd {
+    display: none;
+  }
+
+  .admin-mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    border: 0;
+    background: rgba(15, 23, 42, 0.42);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-layout .admin-content {
+    padding: 16px 12px 24px;
+  }
+
+  .admin-layout .admin-topbar-inner > div:last-child {
+    gap: 6px;
+  }
+
+  .admin-layout .admin-topbar-inner > div:last-child > a {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-app .agent-rail,
+  .admin-layout .admin-sidebar {
+    transition: none;
+  }
+}
+
+
+.agent-app .agent-mobile-menu,
+.admin-mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .agent-app .agent-mobile-menu {
+    display: inline-flex;
+  }
+
+  .admin-mobile-backdrop {
+    display: block;
+  }
+}

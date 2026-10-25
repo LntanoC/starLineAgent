@@ -21,6 +21,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -31,14 +32,10 @@ public class StarlineEventDO {
     private String userId;
     private String artistName;
     private String eventName;
-    private String infoStatus;
     private String sourceName;
     private String sourceUrl;
     private LocalDateTime ticketTime;
-    private String email;
-    private LocalDateTime remindAt;
     private String reminderStatus;
-    private LocalDateTime sentAt;
     private LocalDateTime createdTime;
     private LocalDateTime updateTime;
 }

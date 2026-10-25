@@ -6,6 +6,7 @@
 
 - starline：compose.yaml 与 pgvector.override.yaml。前者定义 PostgreSQL 和 Redis，后者把 PostgreSQL 镜像替换为带 pgvector 的版本。
 - starline-20261022：starline-app.compose.yaml。定义 API、Web、RocketMQ 和 RustFS。
+- `starline-mcp`：由应用 Compose 管理的独立 MCP Server 容器，使用 `mcp-server.jar`，只加入 Docker 内部网络，不发布宿主机端口；YUANBAO_SEARCH_API_KEY 留空时星序演出查询工具不会注册，YDC_API_KEY 仅用于可选的通用 You.com 搜索工具。
 - rocketmq-broker.conf 与 nginx.conf：由应用 Compose 只读挂载的附属配置。
 
 应用 Stack 使用外部 Docker 网络 starline_default；先创建 starline Stack 后，应用 Stack 才能接入。配置还引用同目录的 starline.jar 和 frontend-dist/，这两项是发布构建产物，不在本目录中。
@@ -56,3 +57,28 @@ resources/docker/server/releases/starline-20261022/ 保存该发布版本的 Com
 
 `starline-web` 的 Compose 端口映射为 `80:80`，可通过服务器公网 IP 的 HTTP 80 端口访问前端；当前 Nginx 在容器内继续代理 `/api/` 到 API 服务。腾讯云安全组和主机防火墙需允许 TCP 80。应用 API 的宿主机 9090 仍绑定 `127.0.0.1`，数据库、Redis、RustFS、RocketMQ 和 Portainer 不应通过公网直接暴露。此 IP + HTTP 方式用于临时演示；正式使用应配置域名、备案（如适用）和 HTTPS。
 访问示例：http://<服务器公网 IP>/starline/reminders。
+
+
+## 2026-10-25 Bad Case 统一候选池
+
+现行 release 快照包含 `20261025_bad_case_candidate_pool.sql` 和 iCal 迁移 `20261026_starline_ical.sql`；旧的 `20261025_starline_delivery_failure.sql` 仅保留为历史文件，不得在新部署中运行。
+`application.yaml`为服务器最终配置，模式值显式带引号；四类高置信入口ON，行为/抽样OFF，自动评审和告警false。新一轮全量部署先在临时配置将四类入口置SHADOW，联调后再ON。
+`deploy-badcase-candidate-pool.sh`负责备份、迁移和整体切换，`verify-badcase-candidate-pool.py`负责在线断言；`deploy-badcase-mode-hardening.sh`记录本次最终模式容错切换。完整命令和结果见 `docs/server-operations/2026-10-25.md`。
+不保存.env、密钥、数据库转储或运行数据。
+
+## 元宝搜索 API Key
+
+星序演出查询 MCP 使用腾讯云元宝搜索。将控制台创建的服务 API KEY 放入服务器 /home/ubuntu/starline-infra/.env：
+
+~~~dotenv
+YUANBAO_SEARCH_API_KEY=在腾讯云控制台创建的服务密钥
+~~~
+
+不要把真实密钥提交到 Git、粘贴到聊天或写入操作日志。保存 .env 后，仅重建 MCP 容器以加载新环境变量：
+
+~~~sh
+cd /home/ubuntu/starline-infra/releases/starline-20261022
+sudo docker compose --env-file /home/ubuntu/starline-infra/.env -p starline-20261022 -f starline-app.compose.yaml up -d --no-deps --force-recreate starline-mcp
+~~~
+
+YUANBAO_SEARCH_API_KEY 未配置时，MCP 不注册 search_artist_events 工具。

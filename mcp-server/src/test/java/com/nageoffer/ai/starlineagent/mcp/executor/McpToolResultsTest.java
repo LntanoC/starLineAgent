@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class McpToolResultsTest {
 
-    private static final String TOOL_ID = "query_order";
+    private static final String TOOL_ID = "sample_tool";
 
     /**
      * 键名带反向 DNS 前缀是规范要求，且必须与调用方那份常量逐字符一致，改一侧就断

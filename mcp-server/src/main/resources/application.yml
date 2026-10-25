@@ -7,11 +7,12 @@ spring:
     name: starlineagent-mcp-server
 
 starlineagent:
-  bit:
-    datasource:
-      url: jdbc:postgresql://127.0.0.1:5432/starlineagent_bit?client_encoding=UTF8
-      username: postgres
-      password: postgres
-    pending-order:
-      timeout: 5m
-      scan-interval: 1m
+  artist-event-search:
+    official-domains:
+      - damai.cn
+      - maoyan.com
+      - showstart.com
+      - piaoxingqiu.com
+      - 228.com.cn
+    stale-hours: 168
+    max-items: 10

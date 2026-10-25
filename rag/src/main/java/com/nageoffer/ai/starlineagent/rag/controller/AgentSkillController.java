@@ -55,7 +55,7 @@ public class AgentSkillController {
     }
 
     /**
-     * 可引用的工具选项，来自意图树里已启用的 MCP 节点
+     * 可引用的工具选项，来自 MCP 工具注册表
      */
     @GetMapping("/agent-skills/tool-options")
     public Result<List<AgentSkillToolOptionVO>> toolOptions() {

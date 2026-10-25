@@ -66,9 +66,14 @@ public class ReActAgentProvider {
      * 以人设内容和工具目录签名判断重建时机：控制台修改后无需重启，下一次会话生效
      */
     public ActiveAgent getAgent() {
+        return getAgent(null);
+    }
+
+    /** 按本轮用户问题构造最小工具集；确认恢复使用无问题重载，保留已授权工具。 */
+    public ActiveAgent getAgent(String question) {
         Map<String, String> prompts = agentPromptResolver.resolveAll();
         String persona = resolvePersona(prompts);
-        ResolvedCatalog catalog = toolCatalog.resolve(prompts);
+        ResolvedCatalog catalog = toolCatalog.resolve(prompts, question);
         CachedAgent current = cached;
         if (matches(current, persona, catalog)) {
             return current.activeAgent();

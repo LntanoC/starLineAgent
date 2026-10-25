@@ -1,5 +1,7 @@
 # Agent 记忆行为与机制回归
 
+当前 `turns.properties` 使用星序提醒与核验场景，记忆锚点为测试用虚构信息。本文后续的企业入职示例和历史观测记录描述旧版剧本，仅供了解机制，不代表当前数据集依赖旧知识模板。
+
 [返回回归与测评总览](../README.md)
 
 验证已启动 StarlineAgent 服务的工具结果裁剪、会话摘要和长期记忆。复用 `resources/initializer/common` 的配置、HTTP 与 JDBC 客户端，使用 Java 17 CLI，不启动 Spring。

@@ -58,6 +58,24 @@ services:
     networks:
       - starline
 
+  starline-mcp:
+    image: eclipse-temurin:17-jre
+    container_name: starline-mcp
+    command: ['java', '-jar', '/app/mcp-server.jar']
+    volumes:
+      - ./mcp-server.jar:/app/mcp-server.jar:ro
+    environment:
+      TZ: Asia/Shanghai
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: '9099'
+      YDC_API_KEY: ${YDC_API_KEY:-}
+      YUANBAO_SEARCH_API_KEY: ${YUANBAO_SEARCH_API_KEY:-}
+    expose:
+      - '9099'
+    restart: unless-stopped
+    networks:
+      - starline
+
   starline-api:
     image: eclipse-temurin:17-jre
     container_name: starline-api
@@ -82,11 +100,12 @@ services:
       RAG_STORAGE_S3_REGION: us-east-1
       RAG_STORAGE_S3_PATH_STYLE: 'true'
       ROCKETMQ_NAME_SERVER: starline-rocketmq-namesrv:9876
-      SPRING_APPLICATION_JSON: '{"agent":{"mcp":{"servers":[]}}}'
+      SPRING_APPLICATION_JSON: '{"agent":{"mcp":{"servers":[{"name":"starline-mcp","url":"http://starline-mcp:9099"}]}}}'
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       BAILIAN_API_KEY: ${BAILIAN_API_KEY:-}
-      STARLINE_EMAIL_ENABLED: ${STARLINE_EMAIL_ENABLED:-false}
     depends_on:
+      starline-mcp:
+        condition: service_started
       starline-rustfs:
         condition: service_started
       starline-rocketmq-namesrv:

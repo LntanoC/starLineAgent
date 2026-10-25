@@ -20,9 +20,11 @@ package com.nageoffer.ai.starlineagent.mcp.executor.common;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
+import com.nageoffer.ai.starlineagent.mcp.executor.starline.YouComWebSearchClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.core.env.StandardEnvironment;
 
 import java.util.Map;
 
@@ -41,7 +43,8 @@ class YouComSearchMcpExecutorLiveTest {
     @Test
     @DisplayName("真实检索返回编号结果文本")
     void liveSearchReturnsFormattedResults() {
-        YouComSearchMcpExecutor executor = new YouComSearchMcpExecutor();
+        YouComSearchMcpExecutor executor = new YouComSearchMcpExecutor(
+                new YouComWebSearchClient(new StandardEnvironment()));
 
         CallToolResult result = executor.handleCall(new CallToolRequest("youcom_search",
                 Map.of("query", "Model Context Protocol", "count", 3)));

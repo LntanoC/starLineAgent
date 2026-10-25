@@ -33,21 +33,6 @@
             <artifactId>hutool-all</artifactId>
         </dependency>
 
-        <!-- 比特严选业务库，本模块第一次有数据库；不引 MyBatis-Plus 是因为这里没有 entity/mapper 层，工具就是十几条手写 SQL -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

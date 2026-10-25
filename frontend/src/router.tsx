@@ -29,6 +29,7 @@ import { AgentSkillEditPage } from "@/pages/admin/agent-skills/AgentSkillEditPag
 import { UserListPage } from "@/pages/admin/users/UserListPage";
 import { StarlineRemindersPage } from "@/pages/StarlineRemindersPage";
 import { PlatformSourceRegistryPage } from "@/pages/admin/starline/PlatformSourceRegistryPage";
+import { McpToolPage } from "@/pages/admin/mcp-tools/McpToolPage";
 import { useAuthStore } from "@/stores/authStore";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -207,6 +208,10 @@ export const router = createBrowserRouter([
       {
         path: "agent-skills",
         element: <AgentSkillPage />
+      },
+      {
+        path: "mcp-tools",
+        element: <McpToolPage />
       },
       {
         path: "agent-skills/:skillId",

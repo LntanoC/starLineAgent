@@ -23,11 +23,12 @@ import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryPipeline;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryProperties;
 import com.nageoffer.ai.starlineagent.agent.skill.SkillLoadTool;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentMcpClients.RemoteTool;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNode;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNodeRegistry;
+import com.nageoffer.ai.starlineagent.rag.dao.entity.McpToolDO;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.AgentPromptSlot;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkill;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkillRegistry;
+import com.nageoffer.ai.starlineagent.rag.service.McpToolRegistryService;
+import com.nageoffer.ai.starlineagent.rag.service.ToolRagService;
 import com.nageoffer.ai.starlineagent.rag.service.KnowledgeSearchFacade;
 import io.agentscope.core.tool.Toolkit;
 import io.agentscope.core.tool.mcp.McpTool;
@@ -47,7 +48,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 主 Agent 工具目录：固定注册 search_knowledge，并按意图树配置挂载当前可用的 MCP 工具
+ * 主 Agent 工具目录：固定注册知识/记忆/技能工具，按注册表和 Tool RAG 结果挂载 MCP 工具
  */
 @Slf4j
 @Component
@@ -62,8 +63,9 @@ public class AgentToolCatalog {
             KnowledgeSearchTool.TOOL_NAME, MemoryFlushTool.TOOL_NAME, SkillLoadTool.TOOL_NAME);
 
     private final KnowledgeSearchFacade knowledgeSearchFacade;
-    private final IntentNodeRegistry intentNodeRegistry;
+    private final McpToolRegistryService mcpToolRegistry;
     private final AgentMcpClients mcpClients;
+    private final ToolRagService toolRagService;
     private final AgentMemoryProperties memoryProperties;
     private final AgentMemoryPipeline memoryPipeline;
     private final AgentSkillRegistry skillRegistry;
@@ -74,9 +76,19 @@ public class AgentToolCatalog {
      * @param prompts 本轮提示词快照，由调用方一次读出
      */
     public ResolvedCatalog resolve(Map<String, String> prompts) {
-        McpResolution mcp = resolveMcpTools();
+        return resolve(prompts, null);
+    }
+
+    public ResolvedCatalog resolve(Map<String, String> prompts, String question) {
+        mcpClients.refreshConnections();
+        List<AgentSkill> skills = skillRegistry.listEnabled();
+        List<String> protectedToolIds = skills.stream().flatMap(skill -> skill.toolIds().stream()).distinct().toList();
+        ToolRagService.RecallResult recall = question == null || question.isBlank()
+                ? toolRagService.recallAll()
+                : toolRagService.recall(question, protectedToolIds);
+        McpResolution mcp = resolveMcpTools(recall);
         return new ResolvedCatalog(resolveKnowledgeToolDescription(prompts), resolveMemoryToolDescription(prompts),
-                mcp.bindings, mcp.unavailableToolIds, skillRegistry.listEnabled());
+                mcp.bindings, mcp.unavailableToolIds, skills);
     }
 
     /**
@@ -98,7 +110,7 @@ public class AgentToolCatalog {
         catalog.bindings.forEach(binding -> toolkit.registerAgentTool(new McpToolProxy(binding)));
         // 只在构建实例时记，不随每次 resolve 刷日志
         catalog.unavailableToolIds.forEach(toolId ->
-                log.warn("意图树配置的 MCP 工具未挂载: 服务端未发现或与内置工具重名, toolId: {}", toolId));
+                log.warn("注册表中的 MCP 工具未挂载: 服务端未发现或与内置工具重名, toolId: {}", toolId));
         return toolkit;
     }
 
@@ -106,7 +118,9 @@ public class AgentToolCatalog {
      * 当前可用的 MCP 工具数量，用于 meta 探活接口
      */
     public int mcpToolCount() {
-        return resolveMcpTools().bindings.size();
+        return (int) mcpToolRegistry.listDispatchable().stream()
+                .filter(tool -> mcpClients.get(tool.getToolId()) != null)
+                .count();
     }
 
     private String resolveKnowledgeToolDescription(Map<String, String> prompts) {
@@ -128,22 +142,20 @@ public class AgentToolCatalog {
         return StrUtil.isBlank(description) ? null : description;
     }
 
-    /**
-     * 意图树配置与 AgentScope 发现的工具取交集，无工具或与内置工具重名的记入 unavailableToolIds
-     * 一个工具只有一个节点（管理端与唯一索引共同保证），两处排序都为了指纹稳定
-     */
-    private McpResolution resolveMcpTools() {
+    /** 注册表授权、Tool RAG 候选与 MCP Server 实际发现结果共同决定本轮可用工具。 */
+    private McpResolution resolveMcpTools(ToolRagService.RecallResult recall) {
         List<McpToolBinding> bindings = new ArrayList<>();
         List<String> unavailableToolIds = new ArrayList<>();
-        for (IntentNode node : intentNodeRegistry.listMcpToolNodes()) {
-            String toolId = node.getMcpToolId().trim();
+        for (McpToolDO row : recall.selectedTools()) {
+            String toolId = row.getToolId().trim();
             RemoteTool remote = mcpClients.get(toolId);
             if (remote == null || RESERVED_TOOL_NAMES.contains(toolId)) {
                 unavailableToolIds.add(toolId);
                 continue;
             }
-            String displayName = StrUtil.isNotBlank(node.getName()) ? node.getName() : toolId;
-            bindings.add(McpToolBinding.of(toolId, displayName, node.getDescription(), node.isRequireConfirm(), remote));
+            String displayName = StrUtil.isNotBlank(row.getDisplayName()) ? row.getDisplayName() : toolId;
+            bindings.add(McpToolBinding.of(toolId, displayName, row.getDescription(),
+                    Integer.valueOf(1).equals(row.getRequireConfirm()), remote));
         }
         bindings.sort(Comparator.comparing(McpToolBinding::toolId));
         unavailableToolIds.sort(Comparator.naturalOrder());
@@ -156,8 +168,8 @@ public class AgentToolCatalog {
     /**
      * MCP 工具的生效值，AgentScope 工具与指纹都读这里
      *
-     * @param description  意图树描述为空时回落服务端描述
-     * @param needsConfirm 意图树勾选，或服务端未明确声明 readOnlyHint=true
+     * @param description  注册表描述为空时回落服务端描述
+     * @param needsConfirm 注册表显式确认，或服务端未明确声明 readOnlyHint=true
      */
     public record McpToolBinding(
             String toolId,

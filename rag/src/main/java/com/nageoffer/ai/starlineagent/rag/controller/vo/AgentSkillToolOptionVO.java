@@ -23,7 +23,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 技能可引用的工具选项，来自意图树里已启用的 MCP 节点
+ * 技能可引用的工具选项，来自 MCP 工具注册表
  */
 @Data
 @NoArgsConstructor

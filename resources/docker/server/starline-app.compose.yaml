@@ -85,7 +85,6 @@ services:
       SPRING_APPLICATION_JSON: '{"agent":{"mcp":{"servers":[]}}}'
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       BAILIAN_API_KEY: ${BAILIAN_API_KEY:-}
-      STARLINE_EMAIL_ENABLED: ${STARLINE_EMAIL_ENABLED:-false}
     depends_on:
       starline-rustfs:
         condition: service_started

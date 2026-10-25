@@ -56,9 +56,7 @@ const LEVEL_OPTIONS = [
 ];
 
 const KIND_OPTIONS = [
-  { value: 0, label: "KB" },
-  { value: 1, label: "SYSTEM" },
-  { value: 2, label: "MCP" }
+  { value: 0, label: "KB" }
 ];
 
 const FILTER_SELECT_TRIGGER_CLASS =
@@ -77,7 +75,6 @@ type FlatIntentNode = {
   examples?: string | null;
   collectionName?: string | null;
   collectionNames?: string[] | null;
-  mcpToolId?: string | null;
   topK?: number | null;
   enabled: number;
   sortOrder: number;
@@ -126,7 +123,6 @@ const flattenIntentTree = (
       examples: node.examples,
       collectionName: node.collectionName,
       collectionNames: node.collectionNames,
-      mcpToolId: node.mcpToolId,
       topK: node.topK,
       enabled: node.enabled === 0 ? 0 : 1,
       sortOrder: node.sortOrder ?? 0,
@@ -149,10 +145,7 @@ const resolveKindLabel = (value: number) =>
   KIND_OPTIONS.find((option) => option.value === value)?.label ?? "UNKNOWN";
 
 const resolveKindBadge = (value: number) => {
-  const label = resolveKindLabel(value);
-  if (label === "MCP") return "default";
-  if (label === "SYSTEM") return "secondary";
-  return "outline";
+  return resolveKindLabel(value) === "KB" ? "outline" : "secondary";
 };
 
 const resolveLevelBadgeClass = (value: number) => {
@@ -353,10 +346,7 @@ export function IntentListPage() {
         .map((collectionName) => knowledgeBaseNameMap.get(collectionName) || collectionName)
         .join("、") || "-";
     }
-    if (row.kind === 2) {
-      return row.mcpToolId || "-";
-    }
-    return "系统策略";
+    return "知识库检索";
   };
 
   const rangeStart = total === 0 ? 0 : startIndex + 1;

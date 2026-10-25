@@ -65,6 +65,9 @@ public class AgentMessageVO {
      */
     private String messageStatus;
 
+    /** 当前用户对该助手回答的有效反馈值，-1 表示已点踩 */
+    private Integer feedbackVote;
+
     /**
      * 本轮 run 的服务端耗时，assistant 才有，旧数据为 null
      */

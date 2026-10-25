@@ -32,12 +32,12 @@ import com.nageoffer.ai.starlineagent.rag.controller.request.AgentSkillPageReque
 import com.nageoffer.ai.starlineagent.rag.controller.request.AgentSkillSaveRequest;
 import com.nageoffer.ai.starlineagent.rag.controller.vo.AgentSkillToolOptionVO;
 import com.nageoffer.ai.starlineagent.rag.controller.vo.AgentSkillVO;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNode;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNodeRegistry;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkillCacheManager;
 import com.nageoffer.ai.starlineagent.rag.dao.entity.AgentSkillDO;
+import com.nageoffer.ai.starlineagent.rag.dao.entity.McpToolDO;
 import com.nageoffer.ai.starlineagent.rag.dao.mapper.AgentSkillMapper;
 import com.nageoffer.ai.starlineagent.rag.service.AgentSkillAdminService;
+import com.nageoffer.ai.starlineagent.rag.service.McpToolRegistryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -65,7 +65,7 @@ public class AgentSkillAdminServiceImpl implements AgentSkillAdminService {
 
     private final AgentSkillMapper agentSkillMapper;
     private final AgentSkillCacheManager cacheManager;
-    private final IntentNodeRegistry intentNodeRegistry;
+    private final McpToolRegistryService mcpToolRegistry;
     private final BizChangeLogContext bizChangeLogContext;
 
     @Override
@@ -206,15 +206,12 @@ public class AgentSkillAdminServiceImpl implements AgentSkillAdminService {
     public List<AgentSkillToolOptionVO> listToolOptions() {
         Map<String, String> ownerBySkill = referencedToolOwners();
         List<AgentSkillToolOptionVO> options = new ArrayList<>();
-        for (IntentNode node : intentNodeRegistry.listMcpToolNodes()) {
-            String toolId = StrUtil.trimToNull(node.getMcpToolId());
-            if (toolId == null) {
-                continue;
-            }
+        for (McpToolDO tool : mcpToolRegistry.listDispatchable()) {
+            String toolId = tool.getToolId();
             options.add(AgentSkillToolOptionVO.builder()
                     .toolId(toolId)
-                    .name(StrUtil.isBlank(node.getName()) ? toolId : node.getName())
-                    .description(node.getDescription())
+                    .name(StrUtil.isBlank(tool.getDisplayName()) ? toolId : tool.getDisplayName())
+                    .description(tool.getDescription())
                     .referencedBySkillName(ownerBySkill.get(toolId))
                     .build());
         }
@@ -238,19 +235,14 @@ public class AgentSkillAdminServiceImpl implements AgentSkillAdminService {
     }
 
     /**
-     * 工具必须是意图树里已启用的 MCP 节点：这批工具才是接入方真正开放给 Agent 的
+     * 工具必须是 MCP 注册表中已启用且可分发的工具。
      */
     private List<String> validateToolIds(List<String> toolIds) {
         if (toolIds == null || toolIds.isEmpty()) {
             return List.of();
         }
         LinkedHashSet<String> available = new LinkedHashSet<>();
-        intentNodeRegistry.listMcpToolNodes().forEach(node -> {
-            String toolId = StrUtil.trimToNull(node.getMcpToolId());
-            if (toolId != null) {
-                available.add(toolId);
-            }
-        });
+        mcpToolRegistry.listDispatchable().forEach(tool -> available.add(tool.getToolId()));
 
         LinkedHashSet<String> selected = new LinkedHashSet<>();
         for (String toolId : toolIds) {
@@ -259,7 +251,7 @@ public class AgentSkillAdminServiceImpl implements AgentSkillAdminService {
                 continue;
             }
             if (!available.contains(trimmed)) {
-                throw new ClientException("工具不在意图树的可用 MCP 节点中: " + trimmed);
+                throw new ClientException("工具不在 MCP 工具注册表的可分发清单中: " + trimmed);
             }
             selected.add(trimmed);
         }

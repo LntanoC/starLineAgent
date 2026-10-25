@@ -4,8 +4,6 @@ server:
     context-path: /api/starlineagent
 
 spring:
-  config:
-    import: optional:classpath:starline-application.yaml
   application:
     name: starlineagent${unique-name:}-service
 
@@ -47,6 +45,13 @@ agent:
     servers:
       - name: default
         url: http://localhost:9099
+    tool-rag:
+      enabled: true
+      vector-enabled: true
+      recall-top-k: 5
+      recall-min-score: 0.20
+      semantic-weight: 0.65
+      keyword-weight: 0.35
   chat:
     provider: deepseek   # 引用 ai.providers 下的供应商，取其 url / api-key / endpoints.chat
     model: deepseek-flash    # 直接传给 OpenAI 兼容端点的模型名
@@ -80,6 +85,41 @@ rag:
       max-rounds: 6
       max-same-tool-calls: 3
       enable-no-tool-call-rule: false
+      intake:
+        mode: 'ON'
+        daily-limit: 500
+        per-conversation-hourly-limit: 5
+        evidence-max-chars: 32000
+      detectors:
+        agent-runtime: {mode: 'ON'}
+        user-correction: {mode: 'ON'}
+        starline-business: {mode: 'ON'}
+        evaluation: {mode: 'ON'}
+        behavior: {mode: 'OFF'}
+        sampling: {mode: 'OFF'}
+      behavior:
+        repeat-window-minutes: 10
+        repeat-similarity-threshold: 0.82
+        clarification-min-rounds: 3
+        no-followup-after-hours: 24
+        daily-limit-per-rule: 50
+      sampling:
+        rate-bp: 200
+        daily-limit: 50
+        min-message-age-minutes: 30
+        measurement-weekly-limit: 20
+      auto-review:
+        enabled: false
+        tier: FAST
+        timeout-seconds: 20
+        max-input-chars: 24000
+        daily-limit: 100
+        max-retries: 2
+      alerts:
+        enabled: false
+        window-minutes: 15
+        s2-threshold: 3
+
   storage:
     type: s3  # 可选 s3（rustfs / minio）/ oss（阿里云）
     kb-bucket: starlineagent-sources        # 全局知识库桶（私有），所有知识库文档按 collectionName 目录隔离；OSS 桶名全局唯一，生产需按部署覆盖

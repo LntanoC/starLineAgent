@@ -128,8 +128,8 @@ public class IntentTreeServiceImpl implements IntentTreeService {
         }
 
         int kind = requestParam.getKind() == null ? IntentKind.KB.getCode() : requestParam.getKind();
-        if (Objects.equals(kind, IntentKind.MCP.getCode())) {
-            requireUniqueMcpToolId(StrUtil.trim(requestParam.getMcpToolId()), null);
+        if (!Objects.equals(kind, IntentKind.KB.getCode())) {
+            throw new ClientException("意图树仅用于知识路由；MCP 工具请前往 MCP 工具管理");
         }
         CollectionBinding collectionBinding = Objects.equals(kind, IntentKind.KB.getCode())
                 ? resolveCreateCollectionBinding(requestParam)
@@ -149,9 +149,8 @@ public class IntentTreeServiceImpl implements IntentTreeService {
                 .level(requestParam.getLevel())
                 .parentCode(requestParam.getParentCode())
                 .description(requestParam.getDescription())
-                .mcpToolId(Objects.equals(kind, IntentKind.MCP.getCode())
-                        ? StrUtil.trim(requestParam.getMcpToolId()) : null)
-                .requireConfirm(normalizeRequireConfirm(requestParam.getRequireConfirm(), kind))
+                .mcpToolId(null)
+                .requireConfirm(0)
                 .examples(
                         requestParam.getExamples() == null ? null : GSON.toJson(requestParam.getExamples())
                 )
@@ -165,8 +164,8 @@ public class IntentTreeServiceImpl implements IntentTreeService {
                 )
                 .createBy(UserContext.getUsername())
                 .updateBy(UserContext.getUsername())
-                .promptSnippet(Objects.equals(kind, IntentKind.MCP.getCode()) ? null : requestParam.getPromptSnippet())
-                .promptTemplate(Objects.equals(kind, IntentKind.MCP.getCode()) ? null : requestParam.getPromptTemplate())
+                .promptSnippet(requestParam.getPromptSnippet())
+                .promptTemplate(requestParam.getPromptTemplate())
                 .deleted(0)
                 .build();
 
@@ -196,6 +195,11 @@ public class IntentTreeServiceImpl implements IntentTreeService {
         }
         IntentNodeDO before = BeanUtil.copyProperties(node, IntentNodeDO.class);
 
+        if ((req.getKind() != null && !Objects.equals(req.getKind(), IntentKind.KB.getCode()))
+                || !Objects.equals(node.getKind(), IntentKind.KB.getCode())) {
+            throw new ClientException("意图树仅用于知识路由；MCP 工具请前往 MCP 工具管理");
+        }
+
         if (req.getName() != null) {
             node.setName(req.getName());
         }
@@ -211,9 +215,8 @@ public class IntentTreeServiceImpl implements IntentTreeService {
         if (req.getExamples() != null) {
             node.setExamples(GSON.toJson(req.getExamples()));
         }
-        if (req.getMcpToolId() != null) {
-            node.setMcpToolId(StrUtil.trim(req.getMcpToolId()));
-        }
+        node.setMcpToolId(null);
+        node.setRequireConfirm(0);
 
         CollectionBinding collectionBinding = null;
         if (req.getCollectionNames() != null) {
@@ -232,14 +235,8 @@ public class IntentTreeServiceImpl implements IntentTreeService {
         if (req.getKind() != null) {
             node.setKind(req.getKind());
         }
-        if (req.getRequireConfirm() != null) {
-            node.setRequireConfirm(normalizeRequireConfirm(req.getRequireConfirm(), node.getKind()));
-        }
-        if (Objects.equals(node.getKind(), IntentKind.MCP.getCode())) {
-            requireUniqueMcpToolId(node.getMcpToolId(), id);
-        } else {
-            node.setMcpToolId(null);
-            node.setRequireConfirm(0);
+        if (req.getRequireConfirm() != null && req.getRequireConfirm() != 0) {
+            throw new ClientException("意图节点不再配置工具确认策略");
         }
         if (!Objects.equals(node.getKind(), IntentKind.KB.getCode())) {
             applyCollectionBinding(node, CollectionBinding.empty());
@@ -255,13 +252,11 @@ public class IntentTreeServiceImpl implements IntentTreeService {
         if (req.getEnabled() != null) {
             node.setEnabled(req.getEnabled());
         }
-        if (!Objects.equals(node.getKind(), IntentKind.MCP.getCode())) {
-            if (req.getPromptSnippet() != null) {
-                node.setPromptSnippet(req.getPromptSnippet());
-            }
-            if (req.getPromptTemplate() != null) {
-                node.setPromptTemplate(req.getPromptTemplate());
-            }
+        if (req.getPromptSnippet() != null) {
+            node.setPromptSnippet(req.getPromptSnippet());
+        }
+        if (req.getPromptTemplate() != null) {
+            node.setPromptTemplate(req.getPromptTemplate());
         }
         node.setUpdateBy(UserContext.getUsername());
         intentNodeMapper.updateById(node);
@@ -422,32 +417,6 @@ public class IntentTreeServiceImpl implements IntentTreeService {
             throw new ClientException("节点级 TopK 必须大于 0");
         }
         return topK;
-    }
-
-    /**
-     * 一个 MCP 工具只允许一个节点：Agent 按工具名装配，节点上的确认开关就是该工具的开关，不做多节点合并
-     *
-     * @param excludeId 更新时排除自身
-     */
-    private void requireUniqueMcpToolId(String toolId, String excludeId) {
-        if (StrUtil.isBlank(toolId)) {
-            return;
-        }
-        long count = intentNodeMapper.selectCount(new LambdaQueryWrapper<IntentNodeDO>()
-                .eq(IntentNodeDO::getKind, IntentKind.MCP.getCode())
-                .eq(IntentNodeDO::getMcpToolId, toolId)
-                .eq(IntentNodeDO::getDeleted, 0)
-                .ne(excludeId != null, IntentNodeDO::getId, excludeId));
-        if (count > 0) {
-            throw new ClientException("MCP 工具已被其他节点关联，一个工具只允许配置一个节点: " + toolId);
-        }
-    }
-
-    private Integer normalizeRequireConfirm(Integer requireConfirm, Integer kind) {
-        if (!Objects.equals(kind, IntentKind.MCP.getCode())) {
-            return 0;
-        }
-        return Objects.equals(requireConfirm, 1) ? 1 : 0;
     }
 
     /**

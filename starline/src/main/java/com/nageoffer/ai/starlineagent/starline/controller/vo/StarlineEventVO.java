@@ -19,6 +19,7 @@ package com.nageoffer.ai.starlineagent.starline.controller.vo;
 
 import java.time.LocalDateTime;
 
-public record StarlineEventVO(String id, String artistName, String eventName, String infoStatus,
-        String sourceName, String sourceUrl, LocalDateTime ticketTime, String email,
-        LocalDateTime remindAt, String reminderStatus, LocalDateTime sentAt, LocalDateTime createdTime) {}
+public record StarlineEventVO(String id, String artistName, String eventName,
+        String sourceName, String sourceUrl, LocalDateTime ticketTime,
+        String reminderStatus, LocalDateTime createdTime) {
+}

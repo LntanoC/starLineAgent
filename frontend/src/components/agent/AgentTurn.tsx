@@ -10,7 +10,7 @@ import {
   type TraceChannel,
   type TraceRow
 } from "@/lib/agentTimeline";
-import { submitAgentMessageFeedback } from "@/services/agentService";
+import { cancelAgentMessageFeedback, submitAgentMessageFeedback } from "@/services/agentService";
 import { useAgentChatStore } from "@/stores/agentChatStore";
 import type { AgentBlockUI, AgentConfirmCall, AgentTurn } from "@/types/agent";
 
@@ -120,6 +120,7 @@ export function AgentTurnItem({ turn, note }: AgentTurnItemProps) {
       )
       .map((assistant) => assistant.id)
   );
+  const feedbackByMessageId = new Map(turn.assistants.map((assistant) => [assistant.id, assistant.feedbackVote]));
   const lastAnswerRowByMessageId = new Map<string, string>();
   for (const row of rows) {
     if (row.channel === "answer" && row.messageId) {
@@ -148,6 +149,7 @@ export function AgentTurnItem({ turn, note }: AgentTurnItemProps) {
               feedbackMessageIds.has(row.messageId) &&
               lastAnswerRowByMessageId.get(row.messageId) === row.key
           )}
+          feedbackVote={row.messageId ? feedbackByMessageId.get(row.messageId) : undefined}
         />
       ))}
 
@@ -158,11 +160,13 @@ export function AgentTurnItem({ turn, note }: AgentTurnItemProps) {
 function TraceRowItem({
   row,
   showTs,
-  canFeedback
+  canFeedback,
+  feedbackVote
 }: {
   row: TraceRow;
   showTs: boolean;
   canFeedback: boolean;
+  feedbackVote?: number;
 }) {
   const toolState =
     row.channel === "tool"
@@ -220,13 +224,13 @@ function TraceRowItem({
           ) : null}
           {showTs ? <span className="agent-row-ts">{row.ts}</span> : null}
         </div>
-        <RowBody row={row} canFeedback={canFeedback} />
+        <RowBody row={row} canFeedback={canFeedback} feedbackVote={feedbackVote} />
       </div>
     </div>
   );
 }
 
-function RowBody({ row, canFeedback }: { row: TraceRow; canFeedback: boolean }) {
+function RowBody({ row, canFeedback, feedbackVote }: { row: TraceRow; canFeedback: boolean; feedbackVote?: number }) {
   // 批头只是一行交代 底下各工具行自己有正文
   if (row.channel === "batch") {
     return null;
@@ -244,24 +248,27 @@ function RowBody({ row, canFeedback }: { row: TraceRow; canFeedback: boolean }) 
     return (
       <div className="agent-answer-form">
         <AgentMarkdownRenderer content={row.text ?? ""} />
-        {canFeedback && row.messageId ? <AgentDislikeButton messageId={row.messageId} /> : null}
+        {canFeedback && row.messageId ? <AgentDislikeButton messageId={row.messageId} feedbackVote={feedbackVote} /> : null}
       </div>
     );
   }
   return <div className="agent-row-text">{row.text}</div>;
 }
 
-function AgentDislikeButton({ messageId }: { messageId: string }) {
+function AgentDislikeButton({ messageId, feedbackVote }: { messageId: string; feedbackVote?: number }) {
   const [submitting, setSubmitting] = React.useState(false);
-  const [submitted, setSubmitted] = React.useState(false);
+  const [feedbackOverride, setFeedbackOverride] = React.useState<boolean | null>(null);
   const [reasonOpen, setReasonOpen] = React.useState(false);
+  const setMessageFeedback = useAgentChatStore((state) => state.setMessageFeedback);
+  const submitted = feedbackOverride ?? feedbackVote === -1;
 
   const handleSubmit = async (reason?: string, comment?: string) => {
     if (submitting || submitted) return;
     setSubmitting(true);
     try {
       await submitAgentMessageFeedback(messageId, reason, comment);
-      setSubmitted(true);
+      setFeedbackOverride(true);
+      setMessageFeedback(messageId, -1);
       toast.success("点踩反馈已记录");
     } catch (error) {
       toast.error((error as Error).message || "反馈提交失败，请重试");
@@ -270,13 +277,29 @@ function AgentDislikeButton({ messageId }: { messageId: string }) {
       setSubmitting(false);
     }
   };
+
+  const handleCancel = async () => {
+    if (submitting || !submitted) return;
+    setSubmitting(true);
+    try {
+      await cancelAgentMessageFeedback(messageId);
+      setFeedbackOverride(false);
+      setMessageFeedback(messageId, undefined);
+      toast.success("点踩已撤销");
+    } catch (error) {
+      toast.error((error as Error).message || "撤销失败，请重试");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return <>
     <button type="button"
       className="mt-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[color:var(--agent-muted)] transition-colors hover:bg-[color:var(--agent-grid)] hover:text-[color:var(--agent-ink)] disabled:cursor-not-allowed disabled:opacity-60"
-      onClick={() => setReasonOpen(true)} disabled={submitting || submitted}
-      aria-label={submitted ? "已记录点踩反馈" : "点踩"} title={submitted ? "已记录点踩反馈" : "点踩"}>
+      onClick={() => submitted ? void handleCancel() : setReasonOpen(true)} disabled={submitting}
+      aria-label={submitted ? "撤销点踩" : "点踩"} title={submitted ? "撤销点踩" : "点踩"}>
       <ThumbsDown className="h-3.5 w-3.5" />
-      <span>{submitting ? "提交中…" : submitted ? "已记录" : "点踩"}</span>
+      <span>{submitting ? (submitted ? "撤销中…" : "提交中…") : submitted ? "撤销点踩" : "点踩"}</span>
     </button>
     <DislikeReasonDialog open={reasonOpen} onOpenChange={setReasonOpen} onSubmit={handleSubmit} />
   </>;

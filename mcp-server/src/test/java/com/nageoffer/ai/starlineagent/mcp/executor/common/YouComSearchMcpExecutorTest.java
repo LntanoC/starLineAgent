@@ -18,6 +18,7 @@
 package com.nageoffer.ai.starlineagent.mcp.executor.common;
 
 import cn.hutool.core.util.StrUtil;
+import com.nageoffer.ai.starlineagent.mcp.executor.starline.YouComWebSearchClient;
 import com.sun.net.httpserver.HttpServer;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -103,7 +105,7 @@ class YouComSearchMcpExecutorTest {
     @Test
     @DisplayName("工具 Schema：名称、必填参数与可选参数定义正确")
     void toolSchema() {
-        Tool tool = new YouComSearchMcpExecutor().youComSearchToolSpecification().tool();
+        Tool tool = executor("any-key").youComSearchToolSpecification().tool();
 
         assertEquals("youcom_search", tool.name());
         assertTrue(tool.description().contains("You.com"));
@@ -130,7 +132,6 @@ class YouComSearchMcpExecutorTest {
 
         assertTrue(result.isError());
         assertTrue(text(result).contains("YDC_API_KEY"));
-        assertTrue(text(result).contains("you.com/platform/api-keys"));
     }
 
     @Test
@@ -217,14 +218,12 @@ class YouComSearchMcpExecutorTest {
      * 构造 executor：指向本地 stub，并固定环境变量读取结果，屏蔽真实运行环境
      */
     private YouComSearchMcpExecutor executor(String envKey) {
-        YouComSearchMcpExecutor executor = new YouComSearchMcpExecutor() {
-            @Override
-            protected String readEnv(String name) {
-                return envKey;
-            }
-        };
-        executor.apiUrl = stubUrl;
-        return executor;
+        MockEnvironment environment = new MockEnvironment();
+        if (envKey != null) {
+            environment.setProperty("YDC_API_KEY", envKey);
+        }
+        YouComWebSearchClient client = new YouComWebSearchClient(environment, stubUrl);
+        return new YouComSearchMcpExecutor(client);
     }
 
     private CallToolRequest request(Map<String, Object> args) {

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { applyBadCaseMapping, reviewBadCase, ROOT_CAUSES, FIX_ACTIONS, REVIEW_STATUSES, type BadCaseRecord } from "@/services/badCaseService";
+import { getEvalSamples, applyBadCaseMapping, reviewBadCase, ROOT_CAUSES, FIX_ACTIONS, REVIEW_STATUSES, type BadCaseRecord } from "@/services/badCaseService";
 
 const fieldClass = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm";
 export function BadCaseReviewForm({ item, onSaved }: { item: BadCaseRecord; onSaved: () => Promise<void> }) {
@@ -22,6 +22,10 @@ export function BadCaseReviewForm({ item, onSaved }: { item: BadCaseRecord; onSa
     if (applyMapping && (!form.rootCause || !mapping.sourceTerm.trim() || !mapping.targetTerm.trim())) { toast.error("请选择根因并填写原始词和目标词"); return; }
     setBusy(true);
     try {
+      if (!applyMapping && form.reviewStatus === "FIXED") {
+        const samples = await getEvalSamples(item.id);
+        if (samples.some(s => s.status !== "RETIRED" && s.last_result !== "PASSED")) { toast.error("关联评测尚未全部通过，请先完成回归"); return; }
+      }
       if (applyMapping) {
         await applyBadCaseMapping(item.id, { ...mapping, mappingId: form.fixRef || undefined, rootCause: form.rootCause,
           rootCauseDetail: form.rootCauseDetail, fixNote: form.fixNote, revision: item.revision });

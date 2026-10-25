@@ -1,0 +1,58 @@
+[
+  {
+    "id": "starline-basic",
+    "tags": ["starline", "retrieval", "quick"],
+    "description": "演出查询工具调用、来源等级区分和记忆保持。",
+    "turns": [
+      {
+        "id": "t01",
+        "question": "帮我查一下薛之谦最近有什么演出，只要确定的信息。",
+        "expectTools": ["search_artist_events"]
+      },
+      {
+        "id": "t02",
+        "question": "你刚才查到的这些来源，哪些是官方渠道，哪些是没核实的？"
+      },
+      {
+        "id": "t03",
+        "question": "回到最开始那个问题：我刚才问的是哪位艺人的演出？只回答艺人名，不要查资料。",
+        "expectAll": ["薛之谦"],
+        "forbidTools": ["search_artist_events"]
+      }
+    ]
+  },
+  {
+    "id": "starline-model-boundary",
+    "tags": ["starline", "boundary", "negative"],
+    "description": "艺人生日问题不应调用演出查询工具。",
+    "turns": [
+      {
+        "id": "t01",
+        "question": "薛之谦的生日是哪天？",
+        "forbidTools": ["search_artist_events"]
+      },
+      {
+        "id": "t02",
+        "question": "那他有确定的演出安排吗？",
+        "expectTools": ["search_artist_events"]
+      }
+    ]
+  },
+  {
+    "id": "starline-relative-time",
+    "tags": ["starline", "time"],
+    "description": "相对时间应先获取当前日期。",
+    "turns": [
+      {
+        "id": "t01",
+        "question": "这个月还有哪些演唱会在开票？先告诉我你按哪个时间段查的。",
+        "expectTools": ["current_date", "search_artist_events"]
+      },
+      {
+        "id": "t02",
+        "question": "你刚才查的是哪段时间？只回答起止日期，不要重新检索。",
+        "forbidTools": ["search_artist_events"]
+      }
+    ]
+  }
+]
