@@ -948,3 +948,34 @@
 
 - 本次变更记录文件自身：`docs/git-push-record.md`，包含以上全量清单与范围说明。
 
+
+## 2026-10-25 本地改动推送记录
+
+### 推送范围
+
+用户授权将当前本地 `main` 相对 `origin/main` 的项目改动推送到远端。推送前保留应用代码、项目配置、初始化/回归资源及项目文档；服务器命令和操作明细留在本地。`docs/server-operations.md` 与 `docs/server-operations/2026-10-25.md` 不纳入本次提交。Git 差异中没有 `target/`、`dist/`、`node_modules/`、JAR、压缩包等生成构建产物；`.local-backups/` 由忽略规则排除。
+
+### 本次新增工作区改动摘要
+
+- `pom.xml`：排除 AgentScope Core 传递引入、项目源码未使用的 `sqlite-jdbc`。
+- `framework/pom.xml`：排除 RocketMQ 依赖链中未使用的 `netty-codec-native-quic` 原生 QUIC 组件。
+- `docs/change-log.md`：更新 2026-10-25 项目改动索引。
+- `docs/change-log/2026-10-25.md`：记录本次项目瘦身、验证与发布概况。
+- `docs/maintenance/project-artifact-policy.md`：新增构建产物、源码备份与凭据的本地维护策略。
+- `.workbuddy-ai/memory/项目瘦身方案.md`：归档项目体积分析与分阶段瘦身方案。
+- `.workbuddy-ai/memory/2026-10-25.md`：补充本次项目分析和处理摘要。
+- `docs/git-push-record.md`：登记本次推送范围与排除项。
+
+此前已提交但尚未推送的项目代码变更，逐项内容与路径清单见本文件前面的 2026-10-24、2026-10-25 推送记录及 `docs/change-log/2026-10-25.md`。推送前将复核实际暂存路径并再次确认排除项。
+
+### 推送状态
+
+目标：`origin/main`。推送结果将在 Git 命令返回后补记。服务器操作日志及生成构建产物不进入此次提交。
+
+暂存复核结果：暂存区共 497 个路径；服务器操作记录路径为 0；`target/`、`dist/`、`node_modules/`、JAR、ZIP、TAR、GZ 等生成构建产物为 0。`docs/server-operations.md` 和 `docs/server-operations/2026-10-25.md` 保持在本地工作区，未暂存。
+
+推送执行结果：提交 `eb9b1e75` 已在本地生成。HTTPS 推送因 GitHub 连接重置失败，HTTP/1.1 重试超时；只读远端查询返回空响应，SSH 端口 22 也超时，因此无法确认远端已更新。服务器操作日志仍只保留在本地。待网络恢复后可再次执行 `git push origin main`；当前提交未推送。
+
+## 2026-10-25 推送重试补充
+
+抓取远端后，`origin/main` 位于 `7956e49c`；该提交与本地筛选分支并行，树差异为 11 个路径，其中 2 个是服务器操作记录。为避免改写远端历史，本次重试将以远端当前提交为父提交，只提交项目瘦身方案、变更摘要、维护策略及 Maven 依赖配置；服务器操作记录、部署脚本更新和生成构建产物不纳入本次提交。此前尚未推送的筛选提交保留在本地备份分支。
