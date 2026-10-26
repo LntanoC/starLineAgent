@@ -212,14 +212,19 @@ function EventCard({ item }: { item: EventCardData }) {
         </a>
         <div className="flex items-center gap-3">
           {canAddReminder ? (
+            <>
             <button
               type="button"
               disabled={saving}
               onClick={() => void addReminder()}
-              className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-60"
+              className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-60 md:hidden"
             >
               {saving ? "添加中…" : "添加提醒"}
             </button>
+            <span className="hidden text-xs text-slate-500 md:inline">
+              请在手机端添加日历提醒
+            </span>
+            </>
           ) : item.stage !== "ENDED" && !item.saleStartTime ? (
             <span className="text-xs text-slate-500">暂无准确开票时间，无法设置提醒</span>
           ) : item.isStale || item.conflict ? (

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ export function LoginPage() {
   const { login, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = React.useState(false);
   const [remember, setRemember] = React.useState(true);
-  const [form, setForm] = React.useState({ username: "admin", password: "admin" });
+  const [form, setForm] = React.useState({ username: "", password: "" });
   const [error, setError] = React.useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -23,7 +23,7 @@ export function LoginPage() {
       return;
     }
     try {
-      await login(form.username.trim(), form.password.trim());
+      await login(form.username.trim(), form.password);
       if (!remember) {
         // 如需仅在内存中保存登录态，可在此扩展。
       }
@@ -88,7 +88,9 @@ export function LoginPage() {
               <Checkbox checked={remember} onCheckedChange={(value) => setRemember(Boolean(value))} />
               记住我
             </label>
-            <span className="text-xs text-muted-foreground">账号由管理员初始化</span>
+            <Link to="/register" className="text-xs font-medium text-primary hover:underline">
+              创建新账号
+            </Link>
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <Button type="submit" className="w-full" disabled={isLoading}>

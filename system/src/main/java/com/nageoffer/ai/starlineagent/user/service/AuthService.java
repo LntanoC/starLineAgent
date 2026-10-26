@@ -18,11 +18,14 @@
 package com.nageoffer.ai.starlineagent.user.service;
 
 import com.nageoffer.ai.starlineagent.user.controller.request.LoginRequest;
+import com.nageoffer.ai.starlineagent.user.controller.request.RegisterRequest;
 import com.nageoffer.ai.starlineagent.user.controller.vo.LoginVO;
 
 public interface AuthService {
 
     LoginVO login(LoginRequest requestParam);
+
+    LoginVO register(RegisterRequest requestParam);
 
     void logout();
 }

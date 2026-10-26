@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 
 import { LoginPage } from "@/pages/LoginPage";
+import { RegisterPage } from "@/pages/RegisterPage";
 import { EngineGate } from "@/components/common/EngineGate";
 import { ChangeLogsPage } from "@/pages/ChangeLogsPage";
 import { DocPreviewPage } from "@/pages/DocPreviewPage";
@@ -78,6 +79,14 @@ export const router = createBrowserRouter([
     element: (
       <RedirectIfAuth>
         <LoginPage />
+      </RedirectIfAuth>
+    )
+  },
+  {
+    path: "/register",
+    element: (
+      <RedirectIfAuth>
+        <RegisterPage />
       </RedirectIfAuth>
     )
   },

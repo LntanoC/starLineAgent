@@ -57,7 +57,7 @@ public class MilvusVectorRetrieverService implements VectorRetrieverService {
     @Override
     public List<RetrievedChunk> retrieveByVector(float[] vector, RetrieveRequest retrieveParam) {
         // 单个或多个逻辑库都在共享物理 Collection 中一次过滤，topK 是整个过滤范围的总预算
-        String filter = buildCollectionFilter(retrieveParam.getEffectiveCollectionNames());
+        String filter = buildFilter(retrieveParam.getEffectiveCollectionNames(), retrieveParam.getMetadataFilters());
         return searchShared(vector, filter, retrieveParam.getTopK());
     }
 
@@ -83,6 +83,21 @@ public class MilvusVectorRetrieverService implements VectorRetrieverService {
                 .map(value -> "\"" + value + "\"")
                 .collect(Collectors.joining(", "));
         return "collection_name in [" + inList + "]";
+    }
+
+    private String buildFilter(List<String> collectionNames, Map<String, Object> metadataFilters) {
+        List<String> filters = new java.util.ArrayList<>();
+        String collectionFilter = buildCollectionFilter(collectionNames);
+        if (StrUtil.isNotBlank(collectionFilter)) {
+            filters.add(collectionFilter);
+        }
+        String metadataFilter = MetadataFilterSupport.toMilvusExpression(metadataFilters);
+        if (StrUtil.isNotBlank(metadataFilter)) {
+            filters.add(metadataFilter);
+        }
+        return filters.isEmpty() ? null : String.join(" and ", filters.stream()
+                .map(filter -> "(" + filter + ")")
+                .toList());
     }
 
     private String escapeFilterValue(String value) {

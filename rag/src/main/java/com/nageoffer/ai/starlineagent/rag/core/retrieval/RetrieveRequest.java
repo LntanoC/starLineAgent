@@ -30,7 +30,7 @@ import java.util.Map;
  * 向量检索请求参数：
  * - 支持基础 query + topK
  * - 支持指定 Milvus collectionName
- * - 支持简单的 metadata 等值过滤（扩展用）
+ * - 支持 metadata 标量等值过滤
  */
 @Data
 @NoArgsConstructor
@@ -63,10 +63,9 @@ public class RetrieveRequest {
     private List<String> collectionNames;
 
     /**
-     * 元数据等值过滤条件（扩展项）：
+     * 元数据标量等值过滤条件：
      * - key 为 metadata 字段名
-     * - value 为匹配值
-     * 实现层可以根据 Map 自动拼接 Milvus Expr（AND 连接）。
+     * - value 仅支持字符串、数字和布尔值；多个条件以 AND 组合
      * <p>
      * 例如：
      * {"biz_type": "ATTENDANCE", "env": "TEST"}

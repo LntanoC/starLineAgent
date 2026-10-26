@@ -25,8 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -38,19 +41,21 @@ public class PgVectorRetrieverService implements VectorRetrieverService {
     private final EmbeddingService embeddingService;
 
     @Override
+    @Transactional(readOnly = true)
     public List<RetrievedChunk> retrieve(RetrieveRequest request) {
         float[] vector = embedAndNormalize(request.getQuery());
         return retrieveByVector(vector, request);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RetrievedChunk> retrieveByVector(float[] vector, RetrieveRequest request) {
         List<String> collectionNames = request.getEffectiveCollectionNames();
         if (collectionNames.isEmpty()) {
             return List.of();
         }
         // 单个或多个逻辑库都通过一条 SQL 过滤，LIMIT 是整个范围的总 TopK
-        return queryByCollections(vector, collectionNames, request.getTopK());
+        return queryByCollections(vector, collectionNames, request.getTopK(), request.getMetadataFilters());
     }
 
     @Override
@@ -68,33 +73,39 @@ public class PgVectorRetrieverService implements VectorRetrieverService {
      * <p>
      * 单库与全局共用此方法：单库传单元素列表，全局传多元素列表
      */
-    private List<RetrievedChunk> queryByCollections(float[] vector, List<String> collectionNames, int limit) {
-        // 提升召回率；迭代扫描保证过滤后仍能填满 LIMIT，消除过滤向量检索的召回悬崖（pgvector >= 0.8）
+    private List<RetrievedChunk> queryByCollections(float[] vector,
+                                                    List<String> collectionNames,
+                                                    int limit,
+                                                    Map<String, Object> requestedMetadataFilters) {
+        // SET LOCAL 与查询处于同一只读事务连接，避免连接池换连接导致设置丢失或会话参数泄漏
         // noinspection SqlDialectInspection,SqlNoDataSourceInspection
-        jdbcTemplate.execute("SET hnsw.ef_search = 200");
+        jdbcTemplate.execute("SET LOCAL hnsw.ef_search = 200");
         // noinspection SqlDialectInspection,SqlNoDataSourceInspection
-        jdbcTemplate.execute("SET hnsw.iterative_scan = relaxed_order");
+        jdbcTemplate.execute("SET LOCAL hnsw.iterative_scan = relaxed_order");
 
         String vectorLiteral = toVectorLiteral(vector);
         String placeholders = collectionNames.stream().map(c -> "?").collect(java.util.stream.Collectors.joining(", "));
+        Map<String, Object> metadataFilters = MetadataFilterSupport.normalize(requestedMetadataFilters);
+        String metadataClause = metadataFilters.isEmpty() ? "" : " AND metadata @> ?::jsonb";
 
-        Object[] args = new Object[collectionNames.size() + 3];
-        args[0] = vectorLiteral;
-        for (int i = 0; i < collectionNames.size(); i++) {
-            args[i + 1] = collectionNames.get(i);
+        List<Object> args = new ArrayList<>(collectionNames.size() + 4);
+        args.add(vectorLiteral);
+        args.addAll(collectionNames);
+        if (!metadataFilters.isEmpty()) {
+            args.add(MetadataFilterSupport.toJson(metadataFilters));
         }
-        args[collectionNames.size() + 1] = vectorLiteral;
-        args[collectionNames.size() + 2] = limit;
+        args.add(vectorLiteral);
+        args.add(limit);
 
         // noinspection SqlDialectInspection,SqlNoDataSourceInspection
-        return jdbcTemplate.query("SELECT id, content, collection_name, 1 - (embedding <=> ?::vector) AS score FROM t_knowledge_vector WHERE collection_name IN (" + placeholders + ") ORDER BY embedding <=> ?::vector LIMIT ?",
+        return jdbcTemplate.query("SELECT id, content, collection_name, 1 - (embedding <=> ?::vector) AS score FROM t_knowledge_vector WHERE collection_name IN (" + placeholders + ")" + metadataClause + " ORDER BY embedding <=> ?::vector LIMIT ?",
                 (rs, rowNum) -> RetrievedChunk.builder()
                         .id(rs.getString("id"))
                         .text(rs.getString("content"))
                         .collectionName(rs.getString("collection_name"))
                         .score(rs.getFloat("score"))
                         .build(),
-                args
+                args.toArray()
         );
     }
 

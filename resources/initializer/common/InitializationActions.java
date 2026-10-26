@@ -846,8 +846,6 @@ final class InitializationActions {
         String sql = "SELECT "
                 + "(SELECT COUNT(*) FROM t_knowledge_document WHERE lower(status)='running' "
                 + "AND update_time >= NOW() - INTERVAL '" + interval + "') + "
-                + "(SELECT COUNT(*) FROM t_rag_trace_run WHERE upper(status)='RUNNING' "
-                + "AND update_time >= NOW() - INTERVAL '" + interval + "') + "
                 + "(SELECT COUNT(*) FROM t_ingestion_task WHERE lower(status)='running' "
                 + "AND update_time >= NOW() - INTERVAL '" + interval + "')";
         long runningRows = context.jdbc().queryLong(sql);

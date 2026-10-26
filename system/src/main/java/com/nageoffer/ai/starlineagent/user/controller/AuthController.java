@@ -18,6 +18,7 @@
 package com.nageoffer.ai.starlineagent.user.controller;
 
 import com.nageoffer.ai.starlineagent.user.controller.request.LoginRequest;
+import com.nageoffer.ai.starlineagent.user.controller.request.RegisterRequest;
 import com.nageoffer.ai.starlineagent.user.controller.vo.LoginVO;
 import com.nageoffer.ai.starlineagent.framework.convention.Result;
 import com.nageoffer.ai.starlineagent.framework.web.Results;
@@ -43,6 +44,14 @@ public class AuthController {
     @PostMapping("/auth/login")
     public Result<LoginVO> login(@RequestBody LoginRequest requestParam) {
         return Results.success(authService.login(requestParam));
+    }
+
+    /**
+     * 自助注册普通用户账号并建立登录会话。
+     */
+    @PostMapping("/auth/register")
+    public Result<LoginVO> register(@RequestBody RegisterRequest requestParam) {
+        return Results.success(authService.register(requestParam));
     }
 
     /**

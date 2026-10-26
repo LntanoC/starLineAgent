@@ -17,7 +17,6 @@
 
 package com.nageoffer.ai.starlineagent.rag.core.vector;
 
-import com.nageoffer.ai.starlineagent.rag.config.RAGDefaultProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,25 +29,30 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "rag.vector.type", havingValue = "pg")
 public class PgVectorStoreAdmin implements VectorStoreAdmin {
 
+    private static final String HNSW_INDEX_NAME = "idx_kv_embedding";
 
     private final JdbcTemplate jdbcTemplate;
-    private final RAGDefaultProperties ragDefaultProperties;
 
     @Override
     public void ensureVectorSpace(VectorSpaceSpec spec) {
-        String indexName = "idx_kv_embedding_hnsw";
-
         // noinspection SqlDialectInspection,SqlNoDataSourceInspection
-        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM pg_indexes WHERE indexname = ?", Integer.class, indexName);
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM pg_indexes WHERE schemaname = current_schema() "
+                        + "AND tablename = 't_knowledge_vector' AND indexname = ?",
+                Integer.class,
+                HNSW_INDEX_NAME
+        );
 
         if (count != null && count > 0) {
-            log.debug("HNSW索引已存在: {}", indexName);
+            log.debug("HNSW索引已存在: {}", HNSW_INDEX_NAME);
             return;
         }
 
-        int dimension = ragDefaultProperties.getDimension();
-        log.info("创建pgvector HNSW索引，维度: {}", dimension);
-        jdbcTemplate.execute(String.format("CREATE INDEX IF NOT EXISTS %s ON t_knowledge_vector USING hnsw (embedding vector_cosine_ops)", indexName));
+        log.info("创建pgvector HNSW索引: {}", HNSW_INDEX_NAME);
+        jdbcTemplate.execute(String.format(
+                "CREATE INDEX IF NOT EXISTS %s ON t_knowledge_vector USING hnsw (embedding vector_cosine_ops)",
+                HNSW_INDEX_NAME
+        ));
     }
 
     @Override
