@@ -1009,3 +1009,23 @@ GitHub 页面截图显示 `main` 最新提交仍为 `7956e49`。本地 `main` �
 - 仍排除本地服务器操作记录、部署脚本改动、个人工作记忆记录和构建产物。
 
 推送结果待 SSH over 443 命令返回后补记。
+
+### SSH over 443 推送结果
+
+推送成功：`7956e49c..ac1c418d main -> main`。随后通过同一 SSH URL 执行只读核验，远端 `main`=`ac1c418dd8c0e887bf6e2dcdfa626c317aa5bca1`，与本地 `HEAD` 完全一致。服务器操作记录、部署脚本改动、个人工作记忆记录及构建产物仍保留在本地，未随本次推送上传。
+
+## 2026-10-26 移除服务器操作日志与一次性部署脚本
+
+### 推送范围
+
+按用户确认，仅从 Git 跟踪中移除服务器操作日志和一次性部署脚本；文件副本保留在本地，并在 `.gitignore` 增加规则防止重新跟踪。保留 Compose、Nginx、服务栈、数据库初始化/迁移配置以及其他可复现部署所需配置。
+
+### 文件摘要
+
+- `.gitignore`：忽略 `docs/server-operations*`、`scripts/deploy-*` 和历史发布目录中的 `deploy-*.sh`。
+- `docs/change-log.md`：增加 2026-10-26 变更索引。
+- `docs/change-log/2026-10-26.md`：记录 21 个文件从 Git 跟踪移除并保留本地的范围。
+- `docs/git-push-record.md`：登记本次删除范围和待推送状态。
+- 删除 Git 跟踪：`docs/server-operations.md`、`docs/server-operations/2026-10-21.md` 至 `2026-10-25.md`；`scripts/deploy-agent-audit-server.sh`、`scripts/deploy-badcase-candidate-pool.ps1`、`scripts/deploy-badcase-candidate-pool.sh`、`scripts/deploy-badcase-mode-hardening.sh`、`scripts/deploy-feedback-withdrawal.sh`、`scripts/deploy-mcp-tool-rag.sh`、`scripts/deploy-starline-ical.sh`、`scripts/deploy-workflow-retirement.sh`；`resources/docker/server/releases/starline-20261022/deploy-agent-audit-server.sh`、`deploy-badcase-candidate-pool.sh`、`deploy-badcase-mode-hardening.sh`、`deploy-feedback-withdrawal.sh`、`deploy-mcp-server.sh`、`deploy-starline-ical.sh`、`deploy-workflow-retirement.sh`。
+
+推送前核对暂存文件，仅包含上述 21 个删除和 4 个记录/忽略规则文件；构建产物不纳入。推送结果待命令返回后补记。

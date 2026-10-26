@@ -8,3 +8,4 @@
 | 2026-10-23 | Docker 配置与星序初始化数据适配 | [查看当日记录](change-log/2026-10-23.md) |
 | 2026-10-24 | 首页示例、中文 reasoning、Agent bad case 规则改造、Langfuse/旧 OTel Trace 退役与备份清理、自建 Agent 审计、workflow 下线、日志持久化与 404 降噪 | [查看当日记录](change-log/2026-10-24.md) |
 | 2026-10-25 | Bad Case 候选池、MCP Tool RAG 与项目瘦身 | [查看当日记录](change-log/2026-10-25.md) |
+| 2026-10-26 | 从 Git 跟踪中移除服务器操作日志和一次性部署脚本，保留本地副本及部署配置 | [查看当日记录](change-log/2026-10-26.md) |

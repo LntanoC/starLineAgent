@@ -55,3 +55,10 @@ docs/temp
 
 # Local rollback source snapshots (never commit).
 .local-backups/
+
+# Keep server operation logs and one-off deployment scripts local.
+/docs/server-operations.md
+/docs/server-operations/
+/scripts/deploy-*.sh
+/scripts/deploy-*.ps1
+/resources/docker/server/releases/**/deploy-*.sh
