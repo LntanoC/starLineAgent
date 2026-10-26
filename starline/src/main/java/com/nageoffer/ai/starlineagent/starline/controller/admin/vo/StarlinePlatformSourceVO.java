@@ -23,6 +23,7 @@ public record StarlinePlatformSourceVO(
         String id,
         String platformName,
         String officialDomain,
+        String sourceTier,
         Boolean publicAccessible,
         Boolean activityFieldsAvailable,
         Boolean ticketTimeAvailable,
@@ -32,11 +33,6 @@ public record StarlinePlatformSourceVO(
         String updateFrequency,
         String accessBoundary,
         String status,
-        ReviewVO productReview,
-        ReviewVO engineeringReview,
         LocalDateTime createdTime,
         LocalDateTime updateTime) {
-
-    public record ReviewVO(String reviewerName, Boolean passed, String reviewNote, LocalDateTime reviewedTime) {
-    }
 }

@@ -1029,3 +1029,123 @@ GitHub 页面截图显示 `main` 最新提交仍为 `7956e49`。本地 `main` �
 - 删除 Git 跟踪：`docs/server-operations.md`、`docs/server-operations/2026-10-21.md` 至 `2026-10-25.md`；`scripts/deploy-agent-audit-server.sh`、`scripts/deploy-badcase-candidate-pool.ps1`、`scripts/deploy-badcase-candidate-pool.sh`、`scripts/deploy-badcase-mode-hardening.sh`、`scripts/deploy-feedback-withdrawal.sh`、`scripts/deploy-mcp-tool-rag.sh`、`scripts/deploy-starline-ical.sh`、`scripts/deploy-workflow-retirement.sh`；`resources/docker/server/releases/starline-20261022/deploy-agent-audit-server.sh`、`deploy-badcase-candidate-pool.sh`、`deploy-badcase-mode-hardening.sh`、`deploy-feedback-withdrawal.sh`、`deploy-mcp-server.sh`、`deploy-starline-ical.sh`、`deploy-workflow-retirement.sh`。
 
 推送前核对暂存文件，仅包含上述 21 个删除和 4 个记录/忽略规则文件；构建产物不纳入。推送结果待命令返回后补记。
+
+### 推送结果
+
+提交 `9ac01792` 已通过 SSH over 443 推送成功（`ac1c418d..9ac01792 main -> main`）。远端 `main` 查询结果为 `9ac01792f5ca2791d73b72fe96a713f05a9f2857`，与本地提交一致。远端当前树中服务器操作日志和一次性部署脚本为 0 个；21 个原文件均保留在本地。Compose、Nginx 等基础设施配置仍在 Git 跟踪中。
+
+## 2026-10-26 全量本地变更推送准备
+
+本次按用户授权推送当前项目全部已暂存改动。主要内容：
+
+- 演出查询业务：MCP 查询结果支持结构化演出卡片；查询执行器接入官网白名单校验，并从管理接口读取实时生效的平台来源配置。
+- 白名单管理：调整管理员配置与启停逻辑，移除旧审核状态模型；补充服务端内部配置接口及权限控制。
+- 数据库与初始化：新增 Agent 提示词兼容、演出卡片、白名单管理迁移；同步初始化数据、schema、Starline initializer 资源及服务器发布快照。
+- 文档整理：增加 `docs/README.md` 和部署快速启动手册，将数据库、部署、初始化、Bad Case、审计追踪、可观测性、测试等说明归入 `docs/` 对应分类，并更新文档链接和变更日志。
+- 项目清理：删除旧电商知识样例与不再保留的项目工作记忆资料。
+
+暂存区检查：102 个变更路径；`git diff --cached --check` 通过。未纳入本次提交的有本地服务器操作日志、忽略的构建产物、环境变量文件和凭据。提交前再次核对完整暂存清单如下。
+
+### 暂存路径清单
+    D	.workbuddy-ai/memory/2026-10-23.md
+    D	.workbuddy-ai/memory/2026-10-24.md
+    D	.workbuddy-ai/memory/2026-10-25.md
+    D	.workbuddy-ai/memory/MCP调用改造方案-ToolRAG与懒加载.md
+    D	.workbuddy-ai/memory/MEMORY.md
+    D	.workbuddy-ai/memory/agent-链路追踪自建方案.md
+    D	.workbuddy-ai/memory/badcase-分析链路实施方案.md
+    D	.workbuddy-ai/memory/badcase-逻辑详解.md
+    D	.workbuddy-ai/memory/badcase多入口改造技术方案.md
+    D	.workbuddy-ai/memory/badcase统一候选池与分级入口技术方案.md
+    D	.workbuddy-ai/memory/badcase规则Agent化改造方案.md
+    D	.workbuddy-ai/memory/create_reminder工具设计.md
+    D	.workbuddy-ai/memory/iCal日历订阅改造方案.md
+    D	.workbuddy-ai/memory/mcp-server精简与演出查询实现方案.md
+    D	.workbuddy-ai/memory/workflow-下线改造技术方案.md
+    D	.workbuddy-ai/memory/已批未宣场景改造方案.md
+    D	.workbuddy-ai/memory/方案B-彻底清理电商资产与星序落位.md
+    D	.workbuddy-ai/memory/日志持久化与降噪技术方案.md
+    D	.workbuddy-ai/memory/演出查询MCP工具设计方案-v2.md
+    D	.workbuddy-ai/memory/演出查询MCP工具设计方案.md
+    D	.workbuddy-ai/memory/票务查询MCP方案-豆包模式.md
+    D	.workbuddy-ai/memory/简历改写-大厂Agent岗.md
+    D	.workbuddy-ai/memory/自研ToolSearch实现方案.md
+    D	.workbuddy-ai/memory/项目描述-RAG与ToolRAG与评测.md
+    D	.workbuddy-ai/memory/项目瘦身方案.md
+    A	docs/README.md
+    R100	docs/agent-audit-usage.md	docs/agent/audit-usage.md
+    R100	docs/bad-case-candidate-pool-usage.md	docs/bad-case/candidate-pool-usage.md
+    R097	docs/design/bad-case-analysis.md	docs/bad-case/design/analysis.md
+    R100	docs/design/bad-case-candidate-pool.md	docs/bad-case/design/candidate-pool.md
+    R100	docs/design/offline-bad-case-plan.md	docs/bad-case/design/offline-analysis.md
+    M	docs/change-log.md
+    M	docs/change-log/2026-10-26.md
+    R051	resources/database/README.md	docs/database/postgres.md
+    A	docs/deployment/README.md
+    R100	resources/docker/graphrag/README.md	docs/deployment/optional-stacks/graphrag.md
+    R093	resources/docker/lightweight/README.md	docs/deployment/optional-stacks/lightweight.md
+    A	docs/deployment/quick-start.md
+    R100	resources/docker/server/README.md	docs/deployment/server-config.md
+    M	docs/design/agent-audit-tracing-design.md
+    M	docs/examples/pdf-ingestion-example.md
+    M	docs/git-push-record.md
+    R086	resources/initializer/README.md	docs/initialization/README.md
+    R062	resources/initializer/starline-events/README.md	docs/initialization/starline-events.md
+    R100	docs/dashboard-statistics.md	docs/observability/dashboard-statistics.md
+    M	docs/product/starline-business-slice-setup.md
+    R097	frontend/TESTING.md	docs/testing/frontend.md
+    R092	rag/src/test/resources/fixtures/chunking/README.md	docs/testing/rag-chunking-fixtures.md
+    R090	resources/regression/README.md	docs/testing/regression/README.md
+    R100	resources/regression/agent-compaction/README.md	docs/testing/regression/agent-compaction/README.md
+    R100	resources/regression/agent-long-term-memory/README.md	docs/testing/regression/agent-long-term-memory/README.md
+    R097	resources/regression/agent-memory-audit/README.md	docs/testing/regression/agent-memory-audit/README.md
+    R100	resources/regression/agent-memory-audit/results/2026-09-27/management-results.md	docs/testing/regression/agent-memory-audit/results/2026-09-27/management-results.md
+    R085	resources/regression/agent-memory-audit/results/2026-09-27/report.md	docs/testing/regression/agent-memory-audit/results/2026-09-27/report.md
+    R100	resources/regression/agent-memory-audit/results/2026-09-27/revival-results.md	docs/testing/regression/agent-memory-audit/results/2026-09-27/revival-results.md
+    R089	resources/regression/agent-memory-audit/results/2026-09-27/summary-results.md	docs/testing/regression/agent-memory-audit/results/2026-09-27/summary-results.md
+    R100	resources/regression/agent-memory-evaluation/README.md	docs/testing/regression/agent-memory-evaluation/README.md
+    R100	resources/regression/agent-memory-evaluation/datasets/README.md	docs/testing/regression/agent-memory-evaluation/datasets/README.md
+    R100	resources/regression/agent-memory/README.md	docs/testing/regression/agent-memory/README.md
+    R100	resources/regression/agent-run-gate-audit/README.md	docs/testing/regression/agent-run-gate-audit/README.md
+    M	frontend/src/components/agent/AgentTurn.tsx
+    A	frontend/src/components/agent/StarlineEventCards.tsx
+    M	frontend/src/pages/admin/starline/PlatformSourceRegistryPage.tsx
+    M	frontend/src/services/starlinePlatformSourceService.ts
+    M	mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/ArtistEventSearchMcpExecutor.java
+    M	mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/ArtistEventSearchProperties.java
+    A	mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/OfficialSourceRegistryClient.java
+    M	resources/database/init_data_pg.sql
+    A	resources/database/migrations/20261026_starline_agent_prompt_compat.sql
+    A	resources/database/migrations/20261026_starline_event_cards.sql
+    A	resources/database/migrations/20261026_starline_whitelist_admin_control.sql
+    M	resources/database/schema_pg.sql
+    D	resources/deployment/README.md
+    A	resources/docker/server/releases/starline-20261022/20261026_starline_agent_prompt_compat.sql
+    A	resources/docker/server/releases/starline-20261022/20261026_starline_event_cards.sql
+    M	resources/docker/server/releases/starline-20261022/init_data_pg.sql
+    M	resources/docker/server/releases/starline-20261022/nginx.conf
+    M	resources/docker/server/releases/starline-20261022/schema_pg.sql
+    M	resources/docker/server/releases/starline-20261022/starline-app.compose.yaml
+    D	resources/docs/knowledge/biz/biz-ins/互联网保险系统数据安全规范.md
+    D	resources/docs/knowledge/biz/biz-oa/OA系统数据安全规范文档.md
+    D	resources/docs/knowledge/group/group-finance/开票信息.md
+    D	resources/docs/knowledge/group/hr/人事制度.md
+    D	resources/docs/knowledge/group/hr/公司规章制度.md
+    D	resources/docs/knowledge/group/hr/员工培训.md
+    D	resources/docs/knowledge/group/hr/招聘信息.md
+    D	resources/docs/knowledge/group/hr/薪资与福利政策.md
+    D	resources/docs/knowledge/group/it/IT支持.md
+    M	resources/initializer/starline-events/agent-profile.properties
+    M	resources/initializer/starline-events/checksums.sha256
+    M	resources/initializer/starline-events/mcp-tools/search_artist_events.properties
+    M	resources/initializer/starline-events/prompts/agent-main.txt
+    M	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/controller/admin/StarlinePlatformSourceAdminController.java
+    A	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/controller/admin/StarlinePlatformSourceInternalController.java
+    M	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/controller/admin/request/SaveStarlinePlatformSourceRequest.java
+    R083	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/controller/admin/request/ReviewStarlinePlatformSourceRequest.java	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/controller/admin/request/SetStarlinePlatformSourceEnabledRequest.java
+    M	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/controller/admin/vo/StarlinePlatformSourceVO.java
+    M	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/dao/entity/StarlinePlatformSourceDO.java
+    D	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/dao/entity/StarlineSourceReviewDO.java
+    D	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/dao/mapper/StarlineSourceReviewMapper.java
+    M	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/service/StarlinePlatformSourceService.java
+    M	system/src/main/java/com/nageoffer/ai/starlineagent/user/config/SaTokenConfig.java

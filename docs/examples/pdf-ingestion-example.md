@@ -274,11 +274,9 @@ curl -X POST "http://localhost:8080/api/starlineagent/ingestion/pipelines" \
 
 ---
 
-## 📚 相关文档
+## 说明
 
-- [配置指南](../ingestion-pipeline-config-guide.md)
-- [执行示例](../pipeline-execution-guide.md)
-- [领域提示词库](../domain-specific-prompts-guide.md)
+本文是独立的 PDF 入库流程示例，配置结构和节点说明均在本文内。
 
 ---
 

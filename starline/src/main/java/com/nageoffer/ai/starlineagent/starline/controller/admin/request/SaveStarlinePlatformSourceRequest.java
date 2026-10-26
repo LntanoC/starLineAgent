@@ -23,6 +23,7 @@ import lombok.Data;
 public class SaveStarlinePlatformSourceRequest {
     private String platformName;
     private String officialDomain;
+    private String sourceTier;
     private Boolean publicAccessible;
     private Boolean activityFieldsAvailable;
     private Boolean ticketTimeAvailable;

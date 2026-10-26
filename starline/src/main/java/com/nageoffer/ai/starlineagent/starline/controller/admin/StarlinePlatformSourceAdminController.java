@@ -20,7 +20,7 @@ package com.nageoffer.ai.starlineagent.starline.controller.admin;
 import cn.dev33.satoken.stp.StpUtil;
 import com.nageoffer.ai.starlineagent.framework.convention.Result;
 import com.nageoffer.ai.starlineagent.framework.web.Results;
-import com.nageoffer.ai.starlineagent.starline.controller.admin.request.ReviewStarlinePlatformSourceRequest;
+import com.nageoffer.ai.starlineagent.starline.controller.admin.request.SetStarlinePlatformSourceEnabledRequest;
 import com.nageoffer.ai.starlineagent.starline.controller.admin.request.SaveStarlinePlatformSourceRequest;
 import com.nageoffer.ai.starlineagent.starline.controller.admin.vo.StarlinePlatformSourceVO;
 import com.nageoffer.ai.starlineagent.starline.service.StarlinePlatformSourceService;
@@ -53,10 +53,11 @@ public class StarlinePlatformSourceAdminController {
         return Results.success();
     }
 
-    @PostMapping("/{id}/reviews")
-    public Result<Void> review(@PathVariable String id, @RequestBody ReviewStarlinePlatformSourceRequest request) {
+    @PutMapping("/{id}/enabled")
+    public Result<Void> setEnabled(@PathVariable String id,
+                                  @RequestBody SetStarlinePlatformSourceEnabledRequest request) {
         StpUtil.checkRole("admin");
-        service.review(id, request);
+        service.setEnabled(id, request);
         return Results.success();
     }
 }

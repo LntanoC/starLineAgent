@@ -21,16 +21,13 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
 @Component
 @ConfigurationProperties(prefix = "starlineagent.artist-event-search")
 public class ArtistEventSearchProperties {
 
-    private List<String> officialDomains = new ArrayList<>(List.of(
-            "damai.cn", "maoyan.com", "showstart.com", "piaoxingqiu.com", "228.com.cn"));
+    private String sourceRegistryUrl = "http://starline-api:9090/api/starlineagent/internal/starline/platform-sources/whitelist";
+    private long sourceRegistryTimeoutMillis = 3000;
     private long staleHours = 168;
     private int maxItems = 10;
 }

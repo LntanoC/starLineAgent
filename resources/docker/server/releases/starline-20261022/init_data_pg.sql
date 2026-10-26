@@ -361,4 +361,34 @@ WHERE p.agent_id IN (
   AND p.slot_key = 'AGENT_MAIN'
   AND p.deleted = 0;
 
+-- 首期官方来源白名单：只插入缺少的域名，不覆盖管理员后续编辑或停用状态。
+INSERT INTO t_starline_platform_source (
+    id, platform_name, official_domain, source_tier,
+    public_accessible, activity_fields_available,
+    ticket_time_available, ticket_status_available,
+    field_stability, official_identity_evidence,
+    update_frequency, access_boundary, source_status
+) VALUES
+    ('src_gov_cn', '文旅许可公示', 'gov.cn', 'GOV',
+     true, true, false, false,
+     'STABLE', '政府 gov.cn 域名下的营业性演出许可公示页面',
+     '按公示发布，不定期', '公开访问，按当前白名单域名及活动相关性过滤', 'ACTIVE'),
+    ('src_damai', '大麦网', 'damai.cn', 'TICKETING',
+     true, true, true, true,
+     'PARTIAL', '大麦官方票务平台域名',
+     '以平台页面更新为准', '公开访问；不绕过登录或访问控制', 'ACTIVE'),
+    ('src_maoyan', '猫眼演出', 'maoyan.com', 'TICKETING',
+     true, true, true, true,
+     'PARTIAL', '猫眼官方平台域名',
+     '以平台页面更新为准', '公开访问；不绕过登录或访问控制', 'ACTIVE'),
+    ('src_showstart', '秀动', 'showstart.com', 'TICKETING',
+     true, true, true, true,
+     'PARTIAL', '秀动官方票务平台域名',
+     '以平台页面更新为准', '公开访问；不绕过登录或访问控制', 'ACTIVE'),
+    ('src_piaoxingqiu', '票星球', 'piaoxingqiu.com', 'TICKETING',
+     true, true, true, true,
+     'PARTIAL', '票星球官方票务平台域名',
+     '以平台页面更新为准', '公开访问；不绕过登录或访问控制', 'ACTIVE')
+ON CONFLICT (official_domain) DO NOTHING;
+
 COMMIT;

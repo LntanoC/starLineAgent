@@ -6,7 +6,7 @@
 
 方案只使用星序已有的 Spring Boot 服务和 PostgreSQL，不增加外部追踪平台、容器、端口或 API key。成本包括数据库存储、写入 I/O 和采集缓冲；完整 prompt 采集不可能做到零资源开销，因此必须设置上限、保留期和访问控制。
 
-2026-10-24：审计表、AgentScope 采集、异步写入、管理员 API、前端列表/瀑布详情及 Bad case 消息关联已实现。使用方法见 ../agent-audit-usage.md；部署与实际验收结果见 ../server-operations.md。旧 OTel 集成已从 Agent 主流程和依赖中移除。
+2026-10-24：审计表、AgentScope 采集、异步写入、管理员 API、前端列表/瀑布详情及 Bad case 消息关联已实现。使用方法见 ../agent/audit-usage.md；部署与实际验收结果见 ../server-operations.md。旧 OTel 集成已从 Agent 主流程和依赖中移除。
 
 ## 2. 当前项目基础与方案边界
 

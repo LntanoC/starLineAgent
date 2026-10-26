@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { DislikeReasonDialog } from "@/components/common/DislikeReasonDialog";
 import { AgentMarkdownRenderer } from "@/components/agent/AgentMarkdownRenderer";
+import { parseStarlineEventSearchResult, StarlineEventCards } from "@/components/agent/StarlineEventCards";
 import {
   buildTimelineRows,
   formatDuration,
@@ -497,6 +498,12 @@ function ToolCallBox({ block, messageId }: { block: AgentBlockUI; messageId?: st
   const failed = block.status === "failed";
   const raw = block.result ?? "";
   const parsed = React.useMemo(() => tryParse(raw), [raw]);
+  const eventSearch = React.useMemo(
+    () => block.name === "search_artist_events" && block.status === "done"
+      ? parseStarlineEventSearchResult(raw)
+      : null,
+    [block.name, block.status, raw]
+  );
 
   if (block.status === "running") {
     return (
@@ -516,6 +523,18 @@ function ToolCallBox({ block, messageId }: { block: AgentBlockUI; messageId?: st
   // 中断且无结果也不展开
   if (block.status === "interrupted" && !raw) {
     return null;
+  }
+
+  if (eventSearch) {
+    return (
+      <div className="agent-toolbox space-y-3">
+        <StarlineEventCards data={eventSearch} />
+        <details className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+          <summary className="cursor-pointer text-xs text-slate-500">查看原始工具返回</summary>
+          <pre className="agent-pre mt-2">{stringify(eventSearch)}</pre>
+        </details>
+      </div>
+    );
   }
 
   const summary = failed ? errorSummary(raw) : summarize(parsed, raw);

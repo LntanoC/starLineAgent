@@ -1080,11 +1080,12 @@ COMMENT ON TABLE t_starline_calendar_token IS
 CREATE INDEX IF NOT EXISTS idx_starline_user_created
     ON t_starline_event_reminder (user_id, created_time DESC);
 
--- Starline official source survey and review registry
+-- Starline administrator-managed official source allowlist
 CREATE TABLE IF NOT EXISTS t_starline_platform_source (
     id                          VARCHAR(64) PRIMARY KEY,
     platform_name               VARCHAR(160) NOT NULL,
     official_domain              VARCHAR(255) NOT NULL UNIQUE,
+    source_tier                 VARCHAR(16) NOT NULL DEFAULT 'TICKETING' CHECK (source_tier IN ('GOV', 'TICKETING')),
     public_accessible            BOOLEAN NOT NULL,
     activity_fields_available    BOOLEAN NOT NULL,
     ticket_time_available        BOOLEAN NOT NULL,
@@ -1093,7 +1094,7 @@ CREATE TABLE IF NOT EXISTS t_starline_platform_source (
     official_identity_evidence   TEXT NOT NULL,
     update_frequency             VARCHAR(160) NOT NULL,
     access_boundary              TEXT NOT NULL,
-    source_status                VARCHAR(24) NOT NULL DEFAULT 'PENDING' CHECK (source_status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    source_status                VARCHAR(24) NOT NULL DEFAULT 'ACTIVE' CHECK (source_status IN ('ACTIVE', 'DISABLED')),
     created_time                 TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_time                  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -1101,6 +1102,7 @@ CREATE TABLE IF NOT EXISTS t_starline_platform_source (
 CREATE INDEX IF NOT EXISTS idx_starline_platform_source_status
     ON t_starline_platform_source (source_status, official_domain);
 
+-- Legacy review table retained for installations upgraded from V002; whitelist behavior does not use it.
 CREATE TABLE IF NOT EXISTS t_starline_source_review (
     id              VARCHAR(64) PRIMARY KEY,
     source_id       VARCHAR(64) NOT NULL REFERENCES t_starline_platform_source(id) ON DELETE CASCADE,

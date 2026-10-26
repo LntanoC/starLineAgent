@@ -76,7 +76,8 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 // 拦截所有路径
                 .addPathPatterns("/**")
                 // 排除认证相关路径和错误页面
-                .excludePathPatterns("/auth/**", "/starline/calendar.ics", "/error")
+                .excludePathPatterns("/auth/**", "/starline/calendar.ics",
+                        "/internal/starline/platform-sources/**", "/error")
                 .order(ORDER_LOGIN);
 
         // 注册用户上下文拦截器
@@ -84,7 +85,8 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 // 拦截所有路径
                 .addPathPatterns("/**")
                 // 排除认证相关路径和错误页面
-                .excludePathPatterns("/auth/**", "/starline/calendar.ics", "/error")
+                .excludePathPatterns("/auth/**", "/starline/calendar.ics",
+                        "/internal/starline/platform-sources/**", "/error")
                 .order(ORDER_USER_CONTEXT);
     }
 }

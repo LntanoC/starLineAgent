@@ -31,6 +31,7 @@ public class StarlinePlatformSourceDO {
     private String id;
     private String platformName;
     private String officialDomain;
+    private String sourceTier;
     private Boolean publicAccessible;
     private Boolean activityFieldsAvailable;
     private Boolean ticketTimeAvailable;
