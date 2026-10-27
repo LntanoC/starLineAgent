@@ -1149,3 +1149,56 @@ GitHub 页面截图显示 `main` 最新提交仍为 `7956e49`。本地 `main` �
     D	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/dao/mapper/StarlineSourceReviewMapper.java
     M	starline/src/main/java/com/nageoffer/ai/starlineagent/starline/service/StarlinePlatformSourceService.java
     M	system/src/main/java/com/nageoffer/ai/starlineagent/user/config/SaTokenConfig.java
+
+## 2026-10-27：注册、RAG 与提醒功能更新
+
+### 本次推送说明
+
+本次推送包含功能提交 `4ce56386` 和本中文说明。本次功能提交包含 31 个项目文件，其中修改 24 个、新增 7 个；本说明会随推送一并提交。中文摘要如下：
+
+- **新增用户注册**：增加普通用户注册 API 和注册页面；新用户只能获得 `USER` 角色，注册成功后自动登录；密码使用 BCrypt 保存，并兼容旧明文账户登录后的渐进升级；移除登录页预填的管理员凭据。
+- **完善 RAG 检索**：补齐 PostgreSQL 和 Milvus 的 metadata 标量过滤；修正 PostgreSQL 检索事务内的向量参数设置；更新意图检索提示片段与初始化校验配置，避免导入时覆盖同名文档。
+- **优化提醒展示**：演出提醒卡片在手机端显示添加提醒入口，在桌面端提示使用手机操作。
+- **整理初始化与文档**：修正退役 Trace 表的初始化预检引用，清除主 schema 中重复的 iCal 表结构，并记录本轮修改与部署结果。
+
+### 新增文件（7 个）
+
+- `frontend/src/pages/RegisterPage.tsx`：注册表单和注册成功后的自动进入聊天流程。
+- `rag/src/main/java/com/nageoffer/ai/starlineagent/rag/core/vector/MetadataFilterSupport.java`：metadata 条件校验、JSON 序列化及 Milvus 表达式构造。
+- `resources/initializer/starline-events/prompts/intent-snippets/platform-capability.txt`：平台能力意图的检索提示片段。
+- `resources/initializer/starline-events/prompts/intent-snippets/reminder-rules.txt`：提醒规则意图的检索提示片段。
+- `resources/initializer/starline-events/prompts/intent-snippets/source-check.txt`：来源核验意图的检索提示片段。
+- `system/src/main/java/com/nageoffer/ai/starlineagent/user/controller/request/RegisterRequest.java`：注册请求模型。
+- `system/src/main/java/com/nageoffer/ai/starlineagent/user/service/UserPasswordService.java`：BCrypt 密码编码、旧密码验证和升级判定。
+
+### 修改文件（24 个）
+
+- `docs/change-log.md`、`docs/change-log/2026-10-26.md`：补充变更索引、RAG/提醒/注册实现及构建部署结果。
+- `docs/initialization/starline-events.md`：补充分步初始化说明。
+- `frontend/src/components/agent/StarlineEventCards.tsx`：按设备宽度调整提醒入口显示。
+- `frontend/src/pages/LoginPage.tsx`：增加注册入口并移除预填管理员账号密码。
+- `frontend/src/router.tsx`：注册 `/register` 路由。
+- `frontend/src/services/authService.ts`：接入注册 API。
+- `frontend/src/stores/authStore.ts`：保存注册后的登录状态。
+- `rag/src/main/java/com/nageoffer/ai/starlineagent/rag/core/retrieval/RetrieveRequest.java`：声明 metadata 标量过滤条件。
+- `rag/src/main/java/com/nageoffer/ai/starlineagent/rag/core/vector/MilvusVectorRetrieverService.java`：将过滤条件下推到 Milvus 查询。
+- `rag/src/main/java/com/nageoffer/ai/starlineagent/rag/core/vector/PgVectorRetrieverService.java`：参数化 JSONB 过滤，并在只读事务中设置检索参数。
+- `rag/src/main/java/com/nageoffer/ai/starlineagent/rag/core/vector/PgVectorStoreAdmin.java`：统一 HNSW 索引名并按当前 schema 校验。
+- `resources/database/schema_pg.sql`：删除重复的 iCal 日历 token 表定义。
+- `resources/initializer/common/InitializationActions.java`：移除对已退役 Trace 表的预检引用。
+- `resources/initializer/starline-events/checksums.sha256`：同步初始化资源校验和。
+- `resources/initializer/starline-events/initializer.properties`：设置同名文档默认不覆盖。
+- `resources/initializer/starline-events/intents/210-reminder-rules.properties`：使用默认召回预算并加载提醒规则提示片段。
+- `resources/initializer/starline-events/intents/300-source-check.properties`：使用默认召回预算并加载来源核验提示片段。
+- `resources/initializer/starline-events/intents/410-platform-capability.properties`：使用默认召回预算并加载平台能力提示片段。
+- `system/pom.xml`：添加 Spring Security Crypto 依赖。
+- `system/src/main/java/com/nageoffer/ai/starlineagent/user/controller/AuthController.java`：公开 `POST /auth/register`。
+- `system/src/main/java/com/nageoffer/ai/starlineagent/user/service/AuthService.java`：增加注册服务定义。
+- `system/src/main/java/com/nageoffer/ai/starlineagent/user/service/impl/AuthServiceImpl.java`：注册校验、普通用户创建、重复用户名处理、注册后登录及旧密码升级。
+- `system/src/main/java/com/nageoffer/ai/starlineagent/user/service/impl/UserServiceImpl.java`：让管理端建号、重置密码和用户改密保存哈希。
+
+### 本次排除项
+
+- `resources/docker/server/releases/starline-20261022/schema_pg.sql`：服务器发布快照，按要求不推送。
+- `.workbuddy-ai/`：本地工作记忆，不属于项目交付文件。
+- 服务器操作日志、`target/` 构建产物及临时部署包：均不进入 Git。
