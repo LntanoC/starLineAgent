@@ -20,34 +20,28 @@ package com.nageoffer.ai.starlineagent.rag.core.retrieval;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.nageoffer.ai.starlineagent.framework.convention.RetrievedChunk;
+import com.nageoffer.ai.starlineagent.framework.convention.RetrievedChunkKey;
 import com.nageoffer.ai.starlineagent.framework.trace.RagTraceNode;
 import com.nageoffer.ai.starlineagent.rag.config.SearchChannelProperties;
-import com.nageoffer.ai.starlineagent.rag.core.intent.NodeScore;
-import com.nageoffer.ai.starlineagent.rag.core.intent.NodeScoreFilters;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.ContextFormatter;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.PromptTemplateLoader;
+import com.nageoffer.ai.starlineagent.rag.core.rewrite.RewriteResult;
 import com.nageoffer.ai.starlineagent.rag.dto.KbResult;
 import com.nageoffer.ai.starlineagent.rag.dto.RetrievalContext;
-import com.nageoffer.ai.starlineagent.rag.dto.SubQuestionIntent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 import static com.nageoffer.ai.starlineagent.rag.constant.RAGConstant.CONTEXT_FORMAT_PATH;
-import static com.nageoffer.ai.starlineagent.rag.constant.RAGConstant.MULTI_CHANNEL_KEY;
 
 /**
- * 检索引擎
- * 按子问题执行知识库检索，并组装回答所需的上下文
+ * 检索引擎：对改写后的主问题及拆分问题执行全局多通道检索，并组装回答上下文。
  */
 @Slf4j
 @Service
@@ -61,81 +55,66 @@ public class RetrievalEngine {
     private final Executor ragContextExecutor;
 
     @RagTraceNode(name = "retrieval-engine", type = "RETRIEVE")
-    public RetrievalContext retrieve(List<SubQuestionIntent> subIntents) {
-        if (CollUtil.isEmpty(subIntents)) {
-            return RetrievalContext.builder()
-                    .intentChunks(Map.of())
-                    .build();
+    public RetrievalContext retrieve(RewriteResult rewriteResult) {
+        if (rewriteResult == null || StrUtil.isBlank(rewriteResult.rewrittenQuestion())) {
+            return RetrievalContext.builder().build();
         }
 
-        // 所有子问题共用同一份检索预算
+        List<String> questions = CollUtil.isEmpty(rewriteResult.subQuestions())
+                ? List.of(rewriteResult.rewrittenQuestion())
+                : rewriteResult.subQuestions().stream().filter(StrUtil::isNotBlank).toList();
+        if (questions.isEmpty()) {
+            questions = List.of(rewriteResult.rewrittenQuestion());
+        }
+
         int contextTopK = searchProperties.getDefaultTopK();
         RetrievalBudget budget = new RetrievalBudget(
                 searchProperties.resolveRecallBudget(contextTopK),
                 searchProperties.getFusion().getRerankCandidateLimit(),
                 contextTopK
         );
-        List<CompletableFuture<SubQuestionContext>> tasks = subIntents.stream()
-                .map(intent -> CompletableFuture.supplyAsync(
-                        () -> {
-                            try {
-                                return buildSubQuestionContext(intent, budget);
-                            } catch (Exception e) {
-                                log.error("子问题上下文构建失败，降级为空上下文，question：{}", intent.subQuestion(), e);
-                                return new SubQuestionContext(
-                                        intent.subQuestion(), "", Map.of(),
-                                        KnowledgeRetrievalResult.empty().eligibleIntentIds(
-                                                NodeScoreFilters.kb(intent.nodeScores())));
-                            }
-                        },
-                        ragContextExecutor
-                ))
-                .toList();
-        List<SubQuestionContext> contexts = tasks.stream()
-                .map(CompletableFuture::join)
-                .toList();
-
-        Map<String, List<RetrievedChunk>> mergedIntentChunks = new LinkedHashMap<>();
-        Set<String> eligibleIntentIds = new LinkedHashSet<>();
-        for (SubQuestionContext context : contexts) {
-            eligibleIntentIds.addAll(context.eligibleIntentIds());
-            if (CollUtil.isNotEmpty(context.intentChunks())) {
-                context.intentChunks().forEach((intentId, chunks) -> {
-                    if (CollUtil.isNotEmpty(chunks)) {
-                        mergedIntentChunks
-                                .computeIfAbsent(intentId, ignored -> new ArrayList<>())
-                                .addAll(chunks);
+        List<CompletableFuture<SubQuestionContext>> tasks = questions.stream()
+                .map(question -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return buildSubQuestionContext(question, budget);
+                    } catch (Exception e) {
+                        log.error("子问题上下文构建失败，降级为空上下文，question：{}", question, e);
+                        return new SubQuestionContext(question, "", List.of());
                     }
-                });
-            }
-        }
+                }, ragContextExecutor))
+                .toList();
+        List<SubQuestionContext> contexts = tasks.stream().map(CompletableFuture::join).toList();
 
         String kbContext;
         if (contexts.size() == 1) {
             kbContext = StrUtil.emptyIfNull(contexts.get(0).kbContext()).trim();
         } else {
-            StringBuilder kbBuilder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             int globalIndex = 0;
             for (SubQuestionContext context : contexts) {
                 if (StrUtil.isNotBlank(context.kbContext())) {
-                    appendSection(kbBuilder, ++globalIndex, context.question(), context.kbContext());
+                    appendSection(builder, ++globalIndex, context.question(), context.kbContext());
                 }
             }
-            kbContext = kbBuilder.toString().trim();
+            kbContext = builder.toString().trim();
         }
+
+        Map<String, RetrievedChunk> uniqueChunks = new LinkedHashMap<>();
+        contexts.stream()
+                .flatMap(context -> context.chunks().stream())
+                .forEach(chunk -> uniqueChunks.putIfAbsent(RetrievedChunkKey.of(chunk), chunk));
 
         return RetrievalContext.builder()
                 .kbContext(kbContext)
-                .intentChunks(mergedIntentChunks)
-                .eligibleIntentIds(Set.copyOf(eligibleIntentIds))
+                .chunks(List.copyOf(uniqueChunks.values()))
                 .build();
     }
 
-    private SubQuestionContext buildSubQuestionContext(SubQuestionIntent intent, RetrievalBudget budget) {
-        List<NodeScore> kbIntents = NodeScoreFilters.kb(intent.nodeScores());
-        KbResult kbResult = retrieveAndRerank(intent, kbIntents, budget);
-        return new SubQuestionContext(intent.subQuestion(), kbResult.groupedContext(),
-                kbResult.intentChunks(), kbResult.eligibleIntentIds());
+    private SubQuestionContext buildSubQuestionContext(String question, RetrievalBudget budget) {
+        KnowledgeRetrievalResult result = multiChannelRetrievalEngine.retrieveKnowledgeChannels(question, budget);
+        List<RetrievedChunk> chunks = result.chunks();
+        String formattedContext = contextFormatter.formatKbContext(chunks, budget.contextTopK());
+        return new SubQuestionContext(question, formattedContext, chunks);
     }
 
     private void appendSection(StringBuilder builder, int index, String question, String context) {
@@ -149,23 +128,6 @@ public class RetrievalEngine {
         )));
     }
 
-    private KbResult retrieveAndRerank(SubQuestionIntent intent, List<NodeScore> kbIntents, RetrievalBudget budget) {
-        KnowledgeRetrievalResult retrievalResult = multiChannelRetrievalEngine.retrieveKnowledgeChannels(intent, budget);
-        List<RetrievedChunk> chunks = retrievalResult.chunks();
-        Set<String> eligibleIntentIds = retrievalResult.eligibleIntentIds(kbIntents);
-        if (CollUtil.isEmpty(chunks)) {
-            return new KbResult("", Map.of(), eligibleIntentIds);
-        }
-
-        Map<String, List<RetrievedChunk>> intentChunks = retrievalResult.groupByIntent(MULTI_CHANNEL_KEY);
-        String groupedContext = contextFormatter.formatKbContext(
-                kbIntents, eligibleIntentIds, chunks, budget.contextTopK());
-        return new KbResult(groupedContext, intentChunks, eligibleIntentIds);
-    }
-
-    private record SubQuestionContext(String question,
-                                      String kbContext,
-                                      Map<String, List<RetrievedChunk>> intentChunks,
-                                      Set<String> eligibleIntentIds) {
+    private record SubQuestionContext(String question, String kbContext, List<RetrievedChunk> chunks) {
     }
 }

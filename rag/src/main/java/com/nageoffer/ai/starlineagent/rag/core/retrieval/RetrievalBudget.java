@@ -21,7 +21,7 @@ package com.nageoffer.ai.starlineagent.rag.core.retrieval;
  * 检索漏斗的三段预算
  * <p>
  * 一条 {@code retrieve → fuse → rerank → render} 链路本有三个方向与成本各异、须各自独立的预算，
- * 以往被一个 {@code topK} 复用（且被意图节点 topK 的 max 进一步耦合），调一处误动三处。
+ * 以往被一个 {@code topK} 复用，调一处容易误动多个阶段。
  * 这里显式拆成三段、一次算好、各阶段只读属于自己的那一段，杜绝「一个 int 三义」：
  * <ul>
  *   <li>{@code recallBudget}   — 每通道 fan-out 基数（想大、保召回；各通道再乘自身倍率）</li>

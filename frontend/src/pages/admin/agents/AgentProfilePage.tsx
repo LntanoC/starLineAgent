@@ -314,7 +314,7 @@ export function AgentProfilePage() {
             <DialogTitle>{dialog.target ? "编辑智能体" : "新建智能体"}</DialogTitle>
             {/* 「知识库不随人设走」是刻意设计，放这儿——用户真正会踩坑的是建号那一刻，不是每次进列表页 */}
             <DialogDescription>
-              新建后整套沿用「默认助手」，你改哪条生效哪条；知识库与工具边界仍由意图树决定，不随人设走
+              新建后整套沿用「默认助手」，你改哪条生效哪条；知识检索覆盖全部有效知识库，工具边界由 MCP 工具注册表和技能配置决定
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

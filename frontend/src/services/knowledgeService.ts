@@ -108,6 +108,25 @@ export interface KnowledgeDocumentUploadPayload {
   pipelineId?: string | null;
 }
 
+export interface KnowledgeDocumentChunkPreviewItem {
+  index: number;
+  content: string;
+  embeddingText: string;
+  contentCharCount: number;
+  embeddingCharCount: number;
+  outlinePath: string[];
+}
+
+export interface KnowledgeDocumentChunkPreview {
+  fileName: string;
+  mimeType: string;
+  parserType: string;
+  blockCount: number;
+  chunkCount: number;
+  warnings: string[];
+  chunks: KnowledgeDocumentChunkPreviewItem[];
+}
+
 export interface KnowledgeChunkPageParams {
   current?: number;
   size?: number;
@@ -264,6 +283,21 @@ export const uploadDocument = async (
       "Content-Type": "multipart/form-data"
     }
   });
+};
+
+export const previewDocumentChunks = async (
+  kbId: string,
+  file: File,
+  ingestionSpec: string
+): Promise<KnowledgeDocumentChunkPreview> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("ingestionSpec", ingestionSpec);
+  return api.post<KnowledgeDocumentChunkPreview, KnowledgeDocumentChunkPreview>(
+    `/knowledge-base/${kbId}/docs/chunk-preview`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
 };
 
 export const getDocument = async (docId: string): Promise<KnowledgeDocument> => {

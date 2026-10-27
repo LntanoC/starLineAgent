@@ -17,7 +17,6 @@
 
 package com.nageoffer.ai.starlineagent.rag.config;
 
-import com.nageoffer.ai.starlineagent.rag.constant.RAGConstant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -71,41 +70,6 @@ class SearchChannelPropertiesTest {
         SearchChannelProperties props = new SearchChannelProperties();
         props.getFusion().setRerankCandidateLimit(0);  // 不截断
         assertDoesNotThrow(props::afterPropertiesSet);
-    }
-
-    @Test
-    @DisplayName("minIntentScore 低于上游意图过滤下限时不会生效，启动即抛")
-    void minIntentScoreBelowUpstreamGateThrows() {
-        SearchChannelProperties props = new SearchChannelProperties();
-        props.getScope().setMinIntentScore(RAGConstant.INTENT_MIN_SCORE - 0.05);
-        assertThrows(IllegalStateException.class, props::afterPropertiesSet);
-
-        props.getScope().setMinIntentScore(RAGConstant.INTENT_MIN_SCORE);
-        assertDoesNotThrow(props::afterPropertiesSet, "等于下限时该配置仍有意义，不应拦截");
-    }
-
-    @Test
-    @DisplayName("confidenceThreshold 不高于 minIntentScore 或大于 1 时有一整条分支变死代码，启动即抛")
-    void confidenceThresholdOutsideGateRangeThrows() {
-        SearchChannelProperties props = new SearchChannelProperties();
-        props.getScope().setConfidenceThreshold(props.getScope().getMinIntentScore());
-        assertThrows(IllegalStateException.class, props::afterPropertiesSet,
-                "意图分已被 minIntentScore 过滤过一道，阈值不高于它则「低置信退化为全局」永不触发");
-
-        props.getScope().setConfidenceThreshold(1.5);
-        assertThrows(IllegalStateException.class, props::afterPropertiesSet,
-                "意图分按 0~1 输出，阈值大于 1 则定向路与补充路一起不可达");
-    }
-
-    @Test
-    @DisplayName("supplementRatio 取满 1 会把主路名额清零，启动即抛")
-    void supplementRatioAtOrAboveOneThrows() {
-        SearchChannelProperties props = new SearchChannelProperties();
-        props.getScope().setSupplementRatio(1.0);
-        assertThrows(IllegalStateException.class, props::afterPropertiesSet);
-
-        props.getScope().setSupplementRatio(0);
-        assertDoesNotThrow(props::afterPropertiesSet, "置零是关闭补充路的回退路径，不应拦截");
     }
 
     @Test

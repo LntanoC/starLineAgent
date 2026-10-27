@@ -20,9 +20,6 @@ package com.nageoffer.ai.starlineagent.rag.service;
 import com.nageoffer.ai.starlineagent.framework.convention.ChatMessage;
 import com.nageoffer.ai.starlineagent.framework.convention.ChatRequest;
 import com.nageoffer.ai.starlineagent.infra.chat.LLMService;
-import com.nageoffer.ai.starlineagent.rag.core.guidance.GuidanceDecision;
-import com.nageoffer.ai.starlineagent.rag.core.guidance.IntentGuidanceService;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentResolver;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.PromptContext;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.RAGPromptService;
 import com.nageoffer.ai.starlineagent.rag.core.retrieval.RetrievalEngine;
@@ -30,7 +27,6 @@ import com.nageoffer.ai.starlineagent.rag.core.rewrite.QueryRewriteService;
 import com.nageoffer.ai.starlineagent.rag.core.rewrite.RewriteResult;
 import com.nageoffer.ai.starlineagent.rag.core.source.CitationContextEnricher;
 import com.nageoffer.ai.starlineagent.rag.dto.RetrievalContext;
-import com.nageoffer.ai.starlineagent.rag.dto.SubQuestionIntent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,7 +35,7 @@ import java.util.List;
 
 /**
  * 知识检索门面：Agent 模式下 rag 对外的唯一检索窄口
- * 改写 -> KB 意图解析 -> 歧义引导 -> 多通道检索 -> KB_ANSWER 合成，返回可直接引用的答案文本
+ * 改写 -> 多通道全局检索 -> KB_ANSWER 合成，返回可直接引用的答案文本
  * 引用/来源装配定死不走，与 rag.citation.enabled 无关
  * 不带任何会话历史：主 Agent 已消解过指代，合成阶段也只依据本次证据
  */
@@ -51,8 +47,6 @@ public class KnowledgeSearchFacade {
     private static final String EMPTY_RESULT = "未在知识库中检索到与该问题相关的内容。";
 
     private final QueryRewriteService queryRewriteService;
-    private final IntentResolver intentResolver;
-    private final IntentGuidanceService guidanceService;
     private final RetrievalEngine retrievalEngine;
     private final CitationContextEnricher citationContextEnricher;
     private final RAGPromptService promptService;
@@ -64,17 +58,7 @@ public class KnowledgeSearchFacade {
     public String search(String query) {
         // 不喂历史：主 Agent 手握完整对话，传进来的已是消解过、且被它有意收窄的查询
         RewriteResult rewriteResult = queryRewriteService.rewriteWithSplit(query, List.of());
-        List<SubQuestionIntent> subIntents = intentResolver.resolve(rewriteResult);
-
-        GuidanceDecision guidance = guidanceService.detectAmbiguity(
-                rewriteResult.rewrittenQuestion(), subIntents);
-        if (guidance.isPrompt()) {
-            log.info("Agent 知识库检索命中歧义引导，跳过检索与答案合成, question={}",
-                    rewriteResult.rewrittenQuestion());
-            return guidance.getPrompt();
-        }
-
-        RetrievalContext retrievalCtx = retrievalEngine.retrieve(subIntents);
+        RetrievalContext retrievalCtx = retrievalEngine.retrieve(rewriteResult);
         if (!retrievalCtx.hasKb()) {
             return EMPTY_RESULT;
         }
@@ -84,8 +68,6 @@ public class KnowledgeSearchFacade {
 
         PromptContext promptContext = PromptContext.builder()
                 .kbContext(kbContext)
-                .kbIntents(intentResolver.mergeKbIntents(subIntents))
-                .eligibleIntentIds(retrievalCtx.getEligibleIntentIds())
                 .build();
         List<ChatMessage> messages = promptService.buildStructuredMessages(
                 promptContext, List.of(), rewriteResult.rewrittenQuestion(), rewriteResult.subQuestions(), false);

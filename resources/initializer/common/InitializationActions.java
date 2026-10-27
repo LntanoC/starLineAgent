@@ -43,7 +43,6 @@ final class InitializationActions {
         int expectedDocuments = context.config().getInt("verification.document-count", documentCount);
         int expectedKnowledgeBases = context.config().getInt("verification.knowledge-base-count",
                 context.dataset().knowledgeBases().size());
-        int expectedIntents = context.config().getInt("verification.intent-count", context.dataset().intents().size());
         int expectedMcpTools = context.config().getInt("verification.mcp-tool-count", context.dataset().mcpTools().size());
         int expectedQuestions = context.config().getInt("verification.question-count",
                 context.dataset().questions().size());
@@ -51,8 +50,6 @@ final class InitializationActions {
                 "文档数量与配置不一致，expected=" + expectedDocuments + ", actual=" + documentCount);
         require(context.dataset().knowledgeBases().size() == expectedKnowledgeBases,
                 "知识库数量与配置不一致");
-        require(context.dataset().intents().size() == expectedIntents,
-                "意图数量与配置不一致");
         require(context.dataset().mcpTools().size() == expectedMcpTools,
                 "MCP 工具数量与配置不一致");
         require(context.dataset().questions().size() == expectedQuestions,
@@ -77,8 +74,8 @@ final class InitializationActions {
         verifyBackendSettings(context, settings);
         assertIdle(context);
 
-        System.out.printf("[preflight] 通过：knowledgeBases=%d, documents=%d, intents=%d, questions=%d, dryRun=%s%n",
-                context.dataset().knowledgeBases().size(), documentCount, context.dataset().intents().size(),
+        System.out.printf("[preflight] 通过：knowledgeBases=%d, documents=%d, questions=%d, dryRun=%s%n",
+                context.dataset().knowledgeBases().size(), documentCount,
                 context.dataset().questions().size(), context.dryRun());
     }
 
@@ -278,50 +275,7 @@ final class InitializationActions {
         }
     }
 
-    static void initializeIntentTree(InitializerContext context) throws Exception {
-        if (context.dryRun()) {
-            for (InitializerDataset.IntentDefinition intent : context.dataset().intents()) {
-                System.out.printf("[intent][dry-run] create knowledge route code=%s parent=%s kbRef=%s%n",
-                        intent.code(), intent.parentCode(), intent.knowledgeBaseRef());
-            }
-            return;
-        }
-        ensureKnowledgeBaseRuntime(context);
-        List<Map<String, Object>> existing = flattenIntentTree(context.http().get("/intent-tree/trees"));
-        if (!existing.isEmpty()) {
-            List<String> ids = existing.stream().map(item -> SimpleJson.string(item, "id")).toList();
-            context.http().postJson("/intent-tree/batch/delete", Map.of("ids", ids));
-            System.out.println("[intent] 已清理旧意图节点: " + ids.size());
-        }
-
-        for (InitializerDataset.IntentDefinition intent : context.dataset().intents()) {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("intentCode", intent.code());
-            payload.put("name", intent.name());
-            payload.put("level", intent.level());
-            putIfNotNull(payload, "parentCode", intent.parentCode());
-            putIfNotNull(payload, "description", intent.description());
-            if (!intent.examples().isEmpty()) {
-                payload.put("examples", intent.examples());
-            }
-            putIfNotNull(payload, "topK", intent.topK());
-            payload.put("kind", intent.kind());
-            payload.put("sortOrder", intent.sortOrder());
-            payload.put("enabled", intent.enabled() ? 1 : 0);
-            putIfNotNull(payload, "promptSnippet", intent.promptSnippet());
-            putIfNotNull(payload, "promptTemplate", intent.promptTemplate());
-            if (intent.knowledgeBaseRef() != null) {
-                InitializerContext.KnowledgeBaseRuntime runtime =
-                        context.knowledgeBases().get(intent.knowledgeBaseRef());
-                payload.put("kbId", runtime.id());
-                payload.put("collectionNames", List.of(runtime.collectionName()));
-            }
-            Object id = context.http().postJson("/intent-tree", payload);
-            System.out.println("[intent] 已创建: " + intent.code() + " (" + id + ")");
-        }
-    }
-
-    /** Configure the reviewed MCP manifest independently from the knowledge intent tree. */
+    /** Configure the reviewed MCP manifest through the independent tool registry. */
     static void initializeMcpTools(InitializerContext context) throws Exception {
         List<InitializerDataset.McpToolDefinition> tools = context.dataset().mcpTools();
         if (tools.isEmpty()) {
@@ -379,9 +333,7 @@ final class InitializationActions {
         }
     }
 
-    /**
-     * 必须排在意图树之后：技能的 tool-ids 只能引用意图树里已启用的 MCP 节点，先播技能会被服务端直接拒掉
-     */
+    /** Must run after MCP tool configuration because skills can reference only registered tool IDs. */
     static void initializeSkills(InitializerContext context) throws Exception {
         List<InitializerDataset.SkillDefinition> skills = context.dataset().skills();
         if (skills.isEmpty()) {
@@ -552,7 +504,7 @@ final class InitializationActions {
     }
 
     /**
-     * 预热只补对话数据，跳过的轮次不影响已经建好的知识库、文档和意图，因此汇报完照常按成功收尾
+     * 预热只补对话数据，跳过的轮次不影响已经建好的知识库与文档，因此汇报完照常按成功收尾
      */
     private static void reportWarmup(WarmupRun run, int questionCount, int totalTurns) {
         if (run.skippedTurns.isEmpty()) {
@@ -689,9 +641,6 @@ final class InitializationActions {
                         context.dataset().documentCount()),
                 "文档总数校验失败，actual=" + documentCount);
 
-        List<Map<String, Object>> intents = flattenIntentTree(context.http().get("/intent-tree/trees"));
-        require(intents.size() == context.config().getInt("verification.intent-count", context.dataset().intents().size()),
-                "意图节点总数校验失败，actual=" + intents.size());
         List<Map<String, Object>> registeredTools = SimpleJson.array(
                 context.http().get("/admin/mcp-tools")).stream().map(SimpleJson::object).toList();
         Set<String> registeredToolIds = registeredTools.stream()
@@ -701,18 +650,6 @@ final class InitializationActions {
         require(registeredToolIds.containsAll(expectedToolIds),
                 "MCP 工具注册表缺少模板工具: " + expectedToolIds.stream()
                         .filter(toolId -> !registeredToolIds.contains(toolId)).toList());
-        Map<String, Map<String, Object>> intentByCode = new HashMap<>();
-        intents.forEach(intent -> intentByCode.put(SimpleJson.string(intent, "intentCode"), intent));
-        for (InitializerDataset.IntentDefinition definition : context.dataset().intents()) {
-            Map<String, Object> actual = intentByCode.get(definition.code());
-            require(actual != null, "缺少意图节点: " + definition.code());
-            if (definition.knowledgeBaseRef() != null) {
-                String expectedCollection = context.dataset().knowledgeBase(definition.knowledgeBaseRef()).collectionName();
-                List<Object> collections = SimpleJson.array(actual.get("collectionNames"));
-                require(collections.stream().map(String::valueOf).anyMatch(expectedCollection::equals),
-                        "意图没有绑定预期知识库: " + definition.code());
-            }
-        }
         List<Map<String, Object>> questions = fetchAllPages(context, "/sample-questions");
         require(questions.size() == context.config().getInt("verification.question-count",
                         context.dataset().questions().size()),
@@ -744,8 +681,8 @@ final class InitializationActions {
         verifyAgentProfile(context);
         verifyBizDatabase(context, allDocumentNames);
 
-        System.out.printf("[verify] 通过：knowledgeBases=%d, documents=%d, intents=%d, questions=%d, skills=%d%n",
-                baseByCollection.size(), documentCount, intents.size(), questions.size(), skills.size());
+        System.out.printf("[verify] 通过：knowledgeBases=%d, documents=%d, questions=%d, skills=%d%n",
+                baseByCollection.size(), documentCount, questions.size(), skills.size());
     }
 
     /**
@@ -964,26 +901,6 @@ final class InitializationActions {
             records.add(SimpleJson.object(item));
         }
         return records;
-    }
-
-    private static List<Map<String, Object>> flattenIntentTree(Object treeValue) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Object root : SimpleJson.array(treeValue)) {
-            flattenIntent(SimpleJson.object(root), result);
-        }
-        result.sort(Comparator.comparingInt(item -> SimpleJson.integer(item, "sortOrder", 0)));
-        return result;
-    }
-
-    private static void flattenIntent(Map<String, Object> node, List<Map<String, Object>> result) {
-        result.add(node);
-        Object children = node.get("children");
-        if (children == null) {
-            return;
-        }
-        for (Object child : SimpleJson.array(children)) {
-            flattenIntent(SimpleJson.object(child), result);
-        }
     }
 
     private static void putIfNotNull(Map<String, Object> target, String key, Object value) {

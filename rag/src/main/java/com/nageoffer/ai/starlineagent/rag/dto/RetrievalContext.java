@@ -23,8 +23,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * 知识库检索上下文
@@ -38,16 +36,9 @@ public class RetrievalContext {
      */
     private String kbContext;
 
-    /**
-     * 意图 ID -> 分片列表
-     */
-    private Map<String, List<RetrievedChunk>> intentChunks;
-
-    /**
-     * 允许参与模板选择和规则注入的意图 ID
-     */
+    /** 最终证据块，按检索相关性保序并去重。 */
     @Builder.Default
-    private Set<String> eligibleIntentIds = Set.of();
+    private List<RetrievedChunk> chunks = List.of();
 
     /**
      * 是否存在 KB 上下文

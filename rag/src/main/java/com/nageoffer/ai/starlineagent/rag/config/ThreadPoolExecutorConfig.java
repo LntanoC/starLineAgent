@@ -98,25 +98,6 @@ public class ThreadPoolExecutorConfig {
     }
 
     /**
-     * 意图识别并行执行线程池
-     */
-    @Bean
-    public Executor intentClassifyExecutor() {
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(
-                CPU_COUNT,
-                CPU_COUNT << 1,
-                60,
-                TimeUnit.SECONDS,
-                new SynchronousQueue<>(),
-                ThreadFactoryBuilder.create()
-                        .setNamePrefix("intent_classify_executor_")
-                        .build(),
-                new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-        return TtlExecutors.getTtlExecutor(executor);
-    }
-
-    /**
      * 模型流式输出线程池
      */
     @Bean

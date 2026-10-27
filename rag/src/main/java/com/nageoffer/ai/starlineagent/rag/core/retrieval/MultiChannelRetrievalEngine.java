@@ -19,28 +19,21 @@ package com.nageoffer.ai.starlineagent.rag.core.retrieval;
 
 import cn.hutool.core.collection.CollUtil;
 import com.nageoffer.ai.starlineagent.framework.convention.RetrievedChunk;
-import com.nageoffer.ai.starlineagent.framework.convention.RetrievedChunkKey;
 import com.nageoffer.ai.starlineagent.framework.trace.RagTraceNode;
 import com.nageoffer.ai.starlineagent.rag.config.SearchChannelProperties;
-import com.nageoffer.ai.starlineagent.rag.core.intent.NodeScore;
+import com.nageoffer.ai.starlineagent.rag.core.retrieval.channel.KbCollectionProvider;
 import com.nageoffer.ai.starlineagent.rag.core.retrieval.channel.RetrievalScope;
-import com.nageoffer.ai.starlineagent.rag.core.retrieval.channel.RetrievalScopeResolver;
 import com.nageoffer.ai.starlineagent.rag.core.retrieval.channel.SearchChannel;
 import com.nageoffer.ai.starlineagent.rag.core.retrieval.channel.SearchChannelResult;
 import com.nageoffer.ai.starlineagent.rag.core.retrieval.channel.SearchContext;
 import com.nageoffer.ai.starlineagent.rag.core.retrieval.postprocessor.SearchResultPostProcessor;
-import com.nageoffer.ai.starlineagent.rag.dto.SubQuestionIntent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
@@ -63,23 +56,22 @@ public class MultiChannelRetrievalEngine {
 
     private final List<SearchChannel> searchChannels;
     private final List<SearchResultPostProcessor> postProcessors;
-    private final RetrievalScopeResolver retrievalScopeResolver;
+    private final KbCollectionProvider kbCollectionProvider;
     private final Executor ragRetrievalExecutor;
     private final SearchChannelProperties searchProperties;
 
     /**
      * 执行多通道检索（仅 KB 场景）
      * <p>
-     * 按子问题逐个调用：检索问题与作用域都取自同一个子问题，二者同源
+     * 检索范围固定为当前所有有效知识库。
      *
-     * @param subIntent 子问题及其意图
+     * @param question  检索问题
      * @param budget    检索预算（召回扇出 / Rerank 候选池上限 / 最终条数）
-     * @return 后处理后的 Chunk 及其意图归属
+     * @return 后处理后的 Chunk
      */
     @RagTraceNode(name = "multi-channel-retrieval", type = "RETRIEVE_CHANNEL")
-    public KnowledgeRetrievalResult retrieveKnowledgeChannels(SubQuestionIntent subIntent,
-                                                               RetrievalBudget budget) {
-        SearchContext context = buildSearchContext(subIntent, budget);
+    public KnowledgeRetrievalResult retrieveKnowledgeChannels(String question, RetrievalBudget budget) {
+        SearchContext context = buildSearchContext(question, budget);
 
         List<SearchChannelResult> channelResults = executeSearchChannels(context);
         if (CollUtil.isEmpty(channelResults)) {
@@ -87,46 +79,7 @@ public class MultiChannelRetrievalEngine {
         }
 
         List<RetrievedChunk> chunks = executePostProcessors(channelResults, context);
-        // 异常或超时导致定向证据为空时，保留的定向范围会使其按未命中处理
-        return new KnowledgeRetrievalResult(
-                chunks,
-                deriveAttribution(chunks, context.getRetrievalScope()),
-                context.getRetrievalScope().directedIntentIds());
-    }
-
-    /**
-     * 按库推导意图归属：定向作用域下，最终存活 chunk 的 collection 属于某命中意图的绑定库即归属该意图
-     * <p>
-     * 归属与证据经由哪条通道到达无关——所有检索共用同一个问题，「哪条查询捞到它」只携带库信息与排名运气；
-     * 同一库被多个意图绑定时全部归属（确定性多归属）。补充路证据的库不在任何命中意图绑定里，天然无归属；
-     * 全局作用域没有命中意图，整体无归属
-     */
-    private Map<String, Set<String>> deriveAttribution(List<RetrievedChunk> chunks, RetrievalScope scope) {
-        if (scope == null || !scope.directed() || chunks.isEmpty()) {
-            return Map.of();
-        }
-        Map<String, Set<String>> intentIdsByCollection = new LinkedHashMap<>();
-        for (NodeScore intent : scope.intents()) {
-            String intentId = intent.getNode().getId();
-            if (intentId == null || intentId.isBlank()) {
-                continue;
-            }
-            for (String collection : intent.getNode().getEffectiveCollectionNames()) {
-                intentIdsByCollection
-                        .computeIfAbsent(collection, ignored -> new LinkedHashSet<>())
-                        .add(intentId);
-            }
-        }
-        Map<String, Set<String>> intentIdsByChunkKey = new LinkedHashMap<>();
-        for (RetrievedChunk chunk : chunks) {
-            Set<String> intentIds = chunk.getCollectionName() == null
-                    ? null
-                    : intentIdsByCollection.get(chunk.getCollectionName());
-            if (intentIds != null && !intentIds.isEmpty()) {
-                intentIdsByChunkKey.putIfAbsent(RetrievedChunkKey.of(chunk), Set.copyOf(intentIds));
-            }
-        }
-        return intentIdsByChunkKey;
+        return new KnowledgeRetrievalResult(chunks);
     }
 
     private List<SearchChannelResult> executeSearchChannels(SearchContext context) {
@@ -268,19 +221,14 @@ public class MultiChannelRetrievalEngine {
     }
 
     /**
-     * 构建检索上下文
-     * 作用域在此处算一次挂进上下文，各通道只读不判，保证同一子问题内三条通道的检索范围一致
+     * 构建检索上下文；向量、关键词、图谱通道共享相同的有效知识库集合。
      */
-    private SearchContext buildSearchContext(SubQuestionIntent subIntent, RetrievalBudget budget) {
-        List<SubQuestionIntent> subIntents = List.of(subIntent);
-        String question = subIntent.subQuestion();
-
+    private SearchContext buildSearchContext(String question, RetrievalBudget budget) {
         return SearchContext.builder()
                 .originalQuestion(question)
                 .rewrittenQuestion(question)
-                .intents(subIntents)
                 .budget(budget)
-                .retrievalScope(retrievalScopeResolver.resolve(subIntents))
+                .retrievalScope(new RetrievalScope(kbCollectionProvider.listActiveCollections()))
                 .build();
     }
 }

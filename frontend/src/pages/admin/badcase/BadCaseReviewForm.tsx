@@ -38,18 +38,18 @@ export function BadCaseReviewForm({ item, onSaved }: { item: BadCaseRecord; onSa
     } catch (error) { toast.error((error as Error).message || "保存失败"); }
     finally { setBusy(false); }
   };
-  const fixLink = ({ MAPPING: "/admin/mappings", INTENT_NODE: "/admin/intent-list", KNOWLEDGE_BASE: "/admin/knowledge",
-    PROMPT: item.report.messageType === "AGENT" ? "/admin/agents" : "/admin/intent-list", RERANK: "/admin/settings" } as Record<string, string>)[form.fixAction];
+  const fixLink = ({ MAPPING: "/admin/mappings", KNOWLEDGE_BASE: "/admin/knowledge",
+    PROMPT: "/admin/agents", RERANK: "/admin/settings", TOOL: "/admin/mcp-tools" } as Record<string, string>)[form.fixAction];
   return (
     <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
       <div><h3 className="font-semibold">人工判定与修复记录</h3><p className="mt-1 text-xs text-slate-500">自动线索供核查。保存判定后，可记录修复对象及回归结论。</p></div>
       <div className="grid gap-4 sm:grid-cols-3">
         <label className="space-y-1 text-sm">根因<select aria-label="根因" className={fieldClass} value={form.rootCause} onChange={(e) => change("rootCause", e.target.value)}><option value="">请选择</option>{Object.entries(ROOT_CAUSES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-        <label className="space-y-1 text-sm">修复动作<select aria-label="修复动作" className={fieldClass} value={form.fixAction} onChange={(e) => change("fixAction", e.target.value)}>{Object.entries(FIX_ACTIONS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+        <label className="space-y-1 text-sm">修复动作<select aria-label="修复动作" className={fieldClass} value={form.fixAction} onChange={(e) => change("fixAction", e.target.value)}>{Object.entries(FIX_ACTIONS).map(([key, label]) => <option key={key} value={key} disabled={key === "INTENT_NODE"}>{label}</option>)}</select></label>
         <label className="space-y-1 text-sm">判定状态<select aria-label="判定状态" className={fieldClass} value={form.reviewStatus} onChange={(e) => change("reviewStatus", e.target.value)}>{Object.entries(REVIEW_STATUSES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
       </div>
       <label className="block space-y-1 text-sm">根因详情<textarea aria-label="根因详情" className={fieldClass} rows={3} maxLength={1024} value={form.rootCauseDetail} onChange={(e) => change("rootCauseDetail", e.target.value)} /></label>
-      <label className="block space-y-1 text-sm">修复对象 ID<Input maxLength={128} value={form.fixRef} onChange={(e) => change("fixRef", e.target.value)} placeholder="mappingId / intentId / 文档 ID 等" /></label>
+      <label className="block space-y-1 text-sm">修复对象 ID<Input maxLength={128} value={form.fixRef} onChange={(e) => change("fixRef", e.target.value)} placeholder="映射 ID / MCP 工具 ID / 文档 ID 等" /></label>
       <label className="block space-y-1 text-sm">修复及回归备注<textarea aria-label="修复备注" className={fieldClass} rows={3} maxLength={1024} value={form.fixNote} onChange={(e) => change("fixNote", e.target.value)} /></label>
       {form.fixAction === "MAPPING" && <div className="space-y-3 rounded-xl border border-indigo-100 bg-white p-4">
         <p className="text-sm font-medium">应用关键词映射</p><p className="text-xs text-slate-500">修复对象 ID 留空时创建精确匹配；填写 ID 时更新该规则的词项并启用。应用后保留为“已判定”，完成回归再标记“已修复”。</p>

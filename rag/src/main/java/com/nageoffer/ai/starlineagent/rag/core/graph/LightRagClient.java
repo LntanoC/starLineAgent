@@ -77,7 +77,7 @@ public class LightRagClient {
      * <p>
      * only_need_context=true 只取证据、不让 LightRAG 生成答案，证据回主链路与其它通道一视同仁；
      * 一次查询即全图，归属判定在结果侧完成，故切分不额外增加调用；
-     * 调用方据此给两份各自的名额，避免意图判错时未命中库证据被整体丢弃
+     * 调用方据此只保留有效知识库内的证据，过滤已删除知识库的残留记录
      *
      * @param question    查询问题
      * @param mode        LightRAG 查询模式 naive / local / global / hybrid / mix
@@ -377,7 +377,7 @@ public class LightRagClient {
                     continue;
                 }
                 // 从 file_path 解析归属库与 docId，让图谱证据与向量证据在库 / 文档两个层面对齐：
-                // collection 供下游按库推导意图归属，docId 供末端富化补真实标题并与同源向量证据聚合
+                // collection 用于过滤不再启用的知识库，docId 供末端富化标题并与同源向量证据聚合
                 GraphFileSource source = GraphFileSource.parse(filePath);
                 String docId = source != null ? source.docId() : null;
                 // 分数取按全图名次递减的中性分数 1/(rank+1)：无量纲，仅表达图谱视角下的相对顺序，

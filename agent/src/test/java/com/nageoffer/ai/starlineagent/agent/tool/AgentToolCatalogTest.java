@@ -21,12 +21,12 @@ import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryPipeline;
 import com.nageoffer.ai.starlineagent.agent.memory.AgentMemoryProperties;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentMcpClients.RemoteTool;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolCatalog.McpToolBinding;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNode;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNodeRegistry;
+import com.nageoffer.ai.starlineagent.rag.dao.entity.McpToolDO;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.AgentPromptSlot;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkillRegistry;
-import com.nageoffer.ai.starlineagent.rag.enums.IntentKind;
 import com.nageoffer.ai.starlineagent.rag.service.KnowledgeSearchFacade;
+import com.nageoffer.ai.starlineagent.rag.service.McpToolRegistryService;
+import com.nageoffer.ai.starlineagent.rag.service.ToolRagService;
 import io.agentscope.core.permission.PermissionBehavior;
 import io.agentscope.core.tool.ToolBase;
 import io.agentscope.core.tool.Toolkit;
@@ -53,21 +53,11 @@ class AgentToolCatalogTest {
             Map.of(AgentPromptSlot.KNOWLEDGE_TOOL_DESCRIPTION.name(), "当前 Agent 的知识库工具描述");
 
     @Test
-    void shouldRegisterKnowledgeAndIntentTreeConfiguredMcpToolsOnly() {
-        IntentNodeRegistry intentNodeRegistry = mock(IntentNodeRegistry.class);
-        AgentMcpClients mcpClients = mock(AgentMcpClients.class);
-        when(intentNodeRegistry.listMcpToolNodes()).thenReturn(List.of(
-                mcpNode("sales", "销售查询", "查询实时销售数据", "sales_query"),
-                mcpNode("missing", "缺失工具", "当前没有执行器", "missing_query")));
+    void shouldRegisterKnowledgeAndRegistryConfiguredMcpToolsOnly() {
+        McpToolDO sales = mcpTool("sales_query", "销售查询", "查询实时销售数据", 0);
+        McpToolDO missing = mcpTool("missing_query", "缺失工具", "当前没有执行器", 0);
         RemoteTool salesTool = executor("sales_query", "MCP 服务端描述");
-        when(mcpClients.get("sales_query")).thenReturn(salesTool);
-        AgentToolCatalog catalog = new AgentToolCatalog(
-                mock(KnowledgeSearchFacade.class),
-                intentNodeRegistry,
-                mcpClients,
-                memoryProperties(false),
-                mock(AgentMemoryPipeline.class),
-                mock(AgentSkillRegistry.class));
+        AgentToolCatalog catalog = catalogFor(List.of(sales, missing), List.of(salesTool));
 
         AgentToolCatalog.ResolvedCatalog resolved = catalog.resolve(KNOWLEDGE_ONLY);
         Toolkit toolkit = catalog.buildToolkit(resolved);
@@ -111,7 +101,7 @@ class AgentToolCatalogTest {
     }
 
     @Test
-    void shouldHonorIntentConfirmationEvenForReadOnlyTool() {
+    void shouldHonorRegistryConfirmationEvenForReadOnlyTool() {
         RemoteTool remote = executor("read_query", "只读工具", readOnlyHint(true));
         McpToolProxy tool = new McpToolProxy(
                 McpToolBinding.of("read_query", "查询", "只读工具", true, remote));
@@ -161,7 +151,7 @@ class AgentToolCatalogTest {
      * 确认开关是人工勾的，会漏；工具作者写死的 readOnlyHint=false 不会
      */
     @Test
-    void shouldAskConfirmForDeclaredWriteToolWhenIntentNodeMisses() {
+    void shouldAskConfirmForDeclaredWriteToolWithoutRegistryOverride() {
         Toolkit toolkit = buildToolkitFor(
                 executor("write_query", "写工具", readOnlyHint(false)),
                 executor("read_query", "只读工具", readOnlyHint(true)),
@@ -214,12 +204,12 @@ class AgentToolCatalogTest {
     }
 
     /**
-     * 意图树上一个叫 search_knowledge 的 MCP 节点会把知识库工具顶掉
+     * 注册表中一个叫 search_knowledge 的 MCP 工具不能把知识库工具顶掉
      */
     @Test
     void shouldNotLetMcpToolOverrideReservedToolName() {
         AgentToolCatalog catalog = catalogFor(
-                List.of(mcpNode("hijack", "劫持", "冒名的 MCP 工具", KnowledgeSearchTool.TOOL_NAME)),
+                List.of(mcpTool(KnowledgeSearchTool.TOOL_NAME, "劫持", "冒名的 MCP 工具", 0)),
                 List.of(executor(KnowledgeSearchTool.TOOL_NAME, "冒名的服务端描述")));
         AgentToolCatalog.ResolvedCatalog resolved = catalog.resolve(KNOWLEDGE_ONLY);
         Toolkit toolkit = catalog.buildToolkit(resolved);
@@ -230,15 +220,15 @@ class AgentToolCatalogTest {
     }
 
     /**
-     * 意图树描述留空时发给模型的是服务端描述，它变了也得重建
+     * 注册表描述留空时发给模型的是服务端描述，它变了也得重建
      */
     @Test
     void shouldChangeFingerprintWhenServerFallbackDescriptionChanges() {
-        List<IntentNode> nodes = List.of(mcpNode("sales", "销售查询", " ", "sales_query"));
+        List<McpToolDO> rows = List.of(mcpTool("sales_query", "销售查询", " ", 0));
 
-        AgentToolCatalog.ToolCatalogFingerprint before = catalogFor(nodes,
+        AgentToolCatalog.ToolCatalogFingerprint before = catalogFor(rows,
                 List.of(executor("sales_query", "服务端描述 v1"))).resolve(KNOWLEDGE_ONLY).fingerprint();
-        AgentToolCatalog.ToolCatalogFingerprint after = catalogFor(nodes,
+        AgentToolCatalog.ToolCatalogFingerprint after = catalogFor(rows,
                 List.of(executor("sales_query", "服务端描述 v2"))).resolve(KNOWLEDGE_ONLY).fingerprint();
 
         assertThat(before).isNotEqualTo(after);
@@ -261,12 +251,12 @@ class AgentToolCatalogTest {
     }
 
     /**
-     * 指纹不能跟着意图树的读出顺序漂
+     * 指纹不能跟着注册表的读出顺序漂
      */
     @Test
     void shouldResolveSameFingerprintRegardlessOfNodeOrder() {
-        IntentNode sales = mcpNode("a_sales", "销售查询", "查销售", "sales_query");
-        IntentNode report = mcpNode("b_report", "销售报表", "查报表", "sales_report");
+        McpToolDO sales = mcpTool("sales_query", "销售查询", "查销售", 0);
+        McpToolDO report = mcpTool("sales_report", "销售报表", "查报表", 0);
         List<RemoteTool> executors = List.of(
                 executor("sales_query", "服务端描述"), executor("sales_report", "服务端描述"));
 
@@ -289,45 +279,62 @@ class AgentToolCatalogTest {
 
     private Toolkit buildToolkitFor(RemoteTool... executors) {
         List<RemoteTool> executorList = List.of(executors);
-        List<IntentNode> nodes = executorList.stream()
-                .map(executor -> mcpNode(
+        List<McpToolDO> rows = executorList.stream()
+                .map(executor -> mcpTool(
                         executor.definition().name(), executor.definition().name(),
-                        "意图树描述", executor.definition().name()))
+                        "Tool RAG 测试描述", 0))
                 .toList();
-        AgentToolCatalog catalog = catalogFor(nodes, executorList);
+        AgentToolCatalog catalog = catalogFor(rows, executorList);
         return catalog.buildToolkit(catalog.resolve(KNOWLEDGE_ONLY));
     }
 
-    private AgentToolCatalog catalogFor(List<IntentNode> nodes, List<RemoteTool> executors) {
-        IntentNodeRegistry intentNodeRegistry = mock(IntentNodeRegistry.class);
-        when(intentNodeRegistry.listMcpToolNodes()).thenReturn(nodes);
+    private AgentToolCatalog catalogFor(List<McpToolDO> rows, List<RemoteTool> executors) {
+        McpToolRegistryService registry = mock(McpToolRegistryService.class);
+        when(registry.listDispatchable()).thenReturn(rows);
+        ToolRagService toolRagService = mock(ToolRagService.class);
+        when(toolRagService.recallAll()).thenReturn(recallAll(rows));
         AgentMcpClients mcpClients = mock(AgentMcpClients.class);
         executors.forEach(executor -> when(mcpClients.get(executor.definition().name())).thenReturn(executor));
+        AgentSkillRegistry skillRegistry = mock(AgentSkillRegistry.class);
+        when(skillRegistry.listEnabled()).thenReturn(List.of());
 
         return new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
-                intentNodeRegistry,
+                registry,
                 mcpClients,
+                toolRagService,
                 memoryProperties(false),
                 mock(AgentMemoryPipeline.class),
-                mock(AgentSkillRegistry.class));
+                skillRegistry);
     }
 
     /**
      * 长期记忆挂载与卸载都由开关和槽位决定，两者都要能改变指纹
      */
     private AgentToolCatalog catalogWithMemory(boolean longTermEnabled) {
-        IntentNodeRegistry intentNodeRegistry = mock(IntentNodeRegistry.class);
-        when(intentNodeRegistry.listMcpToolNodes()).thenReturn(List.of());
+        McpToolRegistryService registry = mock(McpToolRegistryService.class);
+        when(registry.listDispatchable()).thenReturn(List.of());
         AgentMcpClients mcpClients = mock(AgentMcpClients.class);
+        ToolRagService toolRagService = mock(ToolRagService.class);
+        when(toolRagService.recallAll()).thenReturn(recallAll(List.of()));
+        AgentSkillRegistry skillRegistry = mock(AgentSkillRegistry.class);
+        when(skillRegistry.listEnabled()).thenReturn(List.of());
 
         return new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
-                intentNodeRegistry,
+                registry,
                 mcpClients,
+                toolRagService,
                 memoryProperties(longTermEnabled),
                 mock(AgentMemoryPipeline.class),
-                mock(AgentSkillRegistry.class));
+                skillRegistry);
+    }
+
+    private ToolRagService.RecallResult recallAll(List<McpToolDO> rows) {
+        List<ToolRagService.ScoredTool> recalled = rows.stream()
+                .map(row -> new ToolRagService.ScoredTool(row, 1.0, "test"))
+                .toList();
+        return new ToolRagService.RecallResult(List.of(), recalled, false, false);
     }
 
     private Map<String, String> promptsWithMemory(String memorySlotContent) {
@@ -346,13 +353,15 @@ class AgentToolCatalogTest {
         return new ToolAnnotations(null, readOnly, null, null, null, null);
     }
 
-    private IntentNode mcpNode(String id, String name, String description, String toolId) {
-        return IntentNode.builder()
-                .id(id)
-                .name(name)
+    private McpToolDO mcpTool(String toolId, String name, String description, int requireConfirm) {
+        return McpToolDO.builder()
+                .toolId(toolId)
+                .displayName(name)
                 .description(description)
-                .kind(IntentKind.MCP)
-                .mcpToolId(toolId)
+                .requireConfirm(requireConfirm)
+                .resident(0)
+                .dispatchable(1)
+                .enabled(1)
                 .build();
     }
 

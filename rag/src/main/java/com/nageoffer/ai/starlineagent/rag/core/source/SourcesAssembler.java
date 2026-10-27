@@ -53,21 +53,19 @@ public class SourcesAssembler {
     private final KnowledgeDocumentMapper documentMapper;
 
     /**
-     * 由检索上下文的意图分片装配文档级来源列表
+     * 由检索证据装配文档级来源列表
      *
-     * @param intentChunks 意图 ID -> 命中片段（KB）
+     * @param chunks 检索命中的知识片段
      * @return 文档级来源列表 无来源返回空列表
      */
-    public List<SourceRef> assemble(Map<String, List<RetrievedChunk>> intentChunks) {
-        if (CollUtil.isEmpty(intentChunks)) {
+    public List<SourceRef> assemble(List<RetrievedChunk> chunks) {
+        if (CollUtil.isEmpty(chunks)) {
             return List.of();
         }
 
         // 按 docId 归并 保留最高分片段（作为摘录与排序依据）
         Map<String, RetrievedChunk> bestByDoc = new LinkedHashMap<>();
-        intentChunks.values().stream()
-                .filter(CollUtil::isNotEmpty)
-                .flatMap(List::stream)
+        chunks.stream()
                 .filter(chunk -> chunk != null && StrUtil.isNotBlank(chunk.getDocId()))
                 .forEach(chunk -> bestByDoc.merge(chunk.getDocId(), chunk,
                         (existing, candidate) -> score(candidate) > score(existing) ? candidate : existing));

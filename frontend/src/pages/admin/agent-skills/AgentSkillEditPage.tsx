@@ -269,12 +269,12 @@ export function AgentSkillEditPage() {
             <p className="agent-skill-field__hint">
               勾选的工具要先加载本手册才对模型可见。只勾不看手册就会调错的（写操作、参数要靠手册教怎么填的查询），
               手册会用到但自己就能调对的不要勾，正文按名字引用即可。例：leave_submit 勾，leave_query 不勾。
-              列表来自意图树，工具是否挂载、调用前是否需要确认以 Agent 运行时为准
+              列表来自 MCP 工具注册表；工具调用与确认策略以 Agent 运行时为准
             </p>
             <div className="agent-skill-tools">
               {toolOptions.length === 0 ? (
                 <p className="px-1 py-2 text-xs text-slate-400">
-                  {loading ? "加载中…" : "意图树里还没有 MCP 节点，先去意图管理挂上工具"}
+                  {loading ? "加载中…" : "MCP 工具注册表里还没有可解锁的工具，先去 MCP 工具管理配置"}
                 </p>
               ) : (
                 toolOptions.map((option) => {

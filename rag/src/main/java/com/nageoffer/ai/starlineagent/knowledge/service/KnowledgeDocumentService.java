@@ -24,6 +24,7 @@ import com.nageoffer.ai.starlineagent.knowledge.controller.request.KnowledgeDocu
 import com.nageoffer.ai.starlineagent.knowledge.controller.request.KnowledgeDocumentUpdateRequest;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentVO;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentChunkLogVO;
+import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentChunkPreviewVO;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentSearchVO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -124,4 +125,9 @@ public interface KnowledgeDocumentService {
      * @return markdown 原始文本内容
      */
     String preview(String docId);
+
+    /**
+     * 上传前预览文档切块；只解析与切分，不创建文档记录或写入向量索引。
+     */
+    KnowledgeDocumentChunkPreviewVO previewChunks(String kbId, MultipartFile file, String ingestionSpec);
 }

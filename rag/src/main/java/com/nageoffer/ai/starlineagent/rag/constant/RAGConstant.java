@@ -23,7 +23,6 @@ package com.nageoffer.ai.starlineagent.rag.constant;
  * <p>
  * 定义 RAG（Retrieval-Augmented Generation）系统中使用的各种常量配置，包括不限于：
  * <ul>
- *   <li>意图识别相关阈值和限制</li>
  *   <li>查询改写提示词模板</li>
  *   <li>RAG 问答提示词模板</li>
  *   <li>系统对话提示词模板</li>
@@ -32,53 +31,10 @@ package com.nageoffer.ai.starlineagent.rag.constant;
  * </p>
  *
  * <p>
- * 这些常量主要用于控制 RAG 系统的行为和生成质量，包括意图过滤、查询优化、
- * 文档检索和智能问答等核心流程
+ * 这些常量主要用于控制 RAG 系统中的查询优化、文档检索和智能问答流程
  * </p>
  */
 public class RAGConstant {
-
-    /**
-     * 意图识别最低分数阈值
-     * <p>
-     * 低于这个分数就当成"聊偏了"，不参与 RAG 检索流程
-     * </p>
-     */
-    public static final double INTENT_MIN_SCORE = 0.35;
-
-    /**
-     * 单次查询最多参与的意图数量上限
-     * 防止拉取过多 Collection 导致性能问题
-     */
-    public static final int MAX_INTENT_COUNT = 3;
-
-    /**
-     * 多通道检索占位符键
-     * <p>
-     * 当没有意图识别结果时，使用此键作为 intentChunks Map 的占位符
-     * 实际处理时只使用 Map 的 values，不关心具体的 key 值
-     * </p>
-     */
-    public static final String MULTI_CHANNEL_KEY = "multi_channel";
-
-    /**
-     * 意图识别提示词模板路径（串行模式）
-     * 一次性发送所有意图节点给 LLM 进行识别
-     */
-    public static final String INTENT_CLASSIFIER_PROMPT_PATH = "prompt/intent-classifier.st";
-
-    /**
-     * 引导式问答提示词模板路径
-     * 用于生成引导式问答的选项提示内容
-     */
-    public static final String GUIDANCE_PROMPT_PATH = "prompt/guidance-prompt.st";
-
-    /**
-     * 歧义确认提示词模板路径
-     * 用于边界 case 时调 LLM 二次确认是否存在品类歧义
-     */
-    public static final String GUIDANCE_AMBIGUITY_CHECK_PROMPT_PATH = "prompt/guidance-ambiguity-check.st";
-
 
     /**
      * 查询改写 + 多问句拆分提示词模板路径

@@ -18,7 +18,6 @@ public final class InitializeMain {
             InitializationActions.cleanup(context);
             InitializationActions.initializeKnowledgeBases(context);
             InitializationActions.initializeDocuments(context);
-            InitializationActions.initializeIntentTree(context);
             InitializationActions.initializeMcpTools(context);
             InitializationActions.initializeSkills(context);
             InitializationActions.initializeAgentProfile(context);

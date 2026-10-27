@@ -34,7 +34,7 @@ public class AgentSkillToolOptionVO {
     private String toolId;
 
     /**
-     * 意图节点上配的展示名
+     * MCP 工具注册表中的展示名
      */
     private String name;
 

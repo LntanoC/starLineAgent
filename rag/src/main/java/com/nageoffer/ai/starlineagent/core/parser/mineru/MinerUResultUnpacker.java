@@ -109,6 +109,13 @@ public class MinerUResultUnpacker {
      * @param documentId 资产 key 命名用，落成 {@code assets/{documentId}/{uuid}.{ext}}
      */
     public ParsedDocument unpack(byte[] zipBytes, String sourceFile, String documentId) {
+        return unpack(zipBytes, sourceFile, documentId, false);
+    }
+
+    /**
+     * 预览时使用临时图片地址，避免把解析产生的图片资产写入项目对象存储。
+     */
+    public ParsedDocument unpack(byte[] zipBytes, String sourceFile, String documentId, boolean previewOnly) {
         if (zipBytes == null || zipBytes.length == 0) {
             throw new ServiceException("MinerU zip 字节为空");
         }
@@ -118,8 +125,10 @@ public class MinerUResultUnpacker {
             throw new ServiceException("MinerU zip 中未找到 markdown 文件");
         }
 
-        // 上传所有图片，得 {zip 内路径 → 公开 URL} 映射
-        Map<String, String> imageUrlMap = uploadImages(contents.images, documentId);
+        // 正式入库上传图片资产；预览仅生成临时地址，避免对象存储留下孤儿文件
+        Map<String, String> imageUrlMap = previewOnly
+                ? previewImageUrls(contents.images, documentId)
+                : uploadImages(contents.images, documentId);
         Map<String, String> imageDescriptionMap = describeImages(contents.images);
 
         // 解析 markdown 输出 Block 列表
@@ -134,6 +143,15 @@ public class MinerUResultUnpacker {
                 "imagesDescribed", imageDescriptionMap.size(),
                 "blocks", visitor.getBlocks().size()
         ));
+    }
+
+    private Map<String, String> previewImageUrls(Map<String, byte[]> images, String documentId) {
+        Map<String, String> result = new HashMap<>();
+        for (String zipPath : images.keySet()) {
+            String filename = "assets/" + documentId + "/" + UUID.randomUUID() + "." + extractExt(zipPath);
+            result.put(zipPath, "preview://" + filename);
+        }
+        return result;
     }
 
     /**

@@ -20,17 +20,9 @@ package com.nageoffer.ai.starlineagent.rag.dto;
 import com.nageoffer.ai.starlineagent.framework.convention.RetrievedChunk;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
- * KB 检索结果
- *
- * @param groupedContext 分组后的上下文文本
- * @param intentChunks   意图 ID -> 分片列表
- * @param eligibleIntentIds 允许参与模板选择和规则注入的意图 ID
+ * 单个问题检索后形成的上下文与证据。
  */
-public record KbResult(String groupedContext,
-                       Map<String, List<RetrievedChunk>> intentChunks,
-                       Set<String> eligibleIntentIds) {
+public record KbResult(String groupedContext, List<RetrievedChunk> chunks) {
 }

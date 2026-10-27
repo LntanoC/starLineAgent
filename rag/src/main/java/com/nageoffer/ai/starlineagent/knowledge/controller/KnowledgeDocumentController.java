@@ -25,6 +25,7 @@ import com.nageoffer.ai.starlineagent.knowledge.controller.request.KnowledgeDocu
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.IngestionSpecSchemaVO;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentVO;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentChunkLogVO;
+import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentChunkPreviewVO;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentSearchVO;
 import com.nageoffer.ai.starlineagent.framework.convention.Result;
 import com.nageoffer.ai.starlineagent.framework.web.Results;
@@ -98,6 +99,17 @@ public class KnowledgeDocumentController {
                                               @RequestPart(value = "file", required = false) MultipartFile file,
                                               @ModelAttribute KnowledgeDocumentUploadRequest requestParam) {
         return Results.success(documentService.upload(kbId, requestParam, file));
+    }
+
+    /**
+     * 上传前预览切块：只解析与分块，不创建文档记录、不向量化或写入索引。
+     */
+    @PostMapping(value = "/knowledge-base/{kb-id}/docs/chunk-preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<KnowledgeDocumentChunkPreviewVO> previewChunks(
+            @PathVariable("kb-id") String kbId,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(value = "ingestionSpec", required = false) String ingestionSpec) {
+        return Results.success(documentService.previewChunks(kbId, file, ingestionSpec));
     }
 
     /**

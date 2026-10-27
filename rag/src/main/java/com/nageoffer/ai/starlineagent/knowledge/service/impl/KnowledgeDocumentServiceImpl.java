@@ -36,6 +36,7 @@ import com.nageoffer.ai.starlineagent.core.chunk.model.EmbeddedChunk;
 import com.nageoffer.ai.starlineagent.core.ingest.DocumentRef;
 import com.nageoffer.ai.starlineagent.core.ingest.IngestionKernel;
 import com.nageoffer.ai.starlineagent.core.ingest.IngestionOutcome;
+import com.nageoffer.ai.starlineagent.core.ingest.IngestionPreview;
 import com.nageoffer.ai.starlineagent.core.ingest.IngestionSpec;
 import com.nageoffer.ai.starlineagent.core.ingest.VectorTarget;
 import com.nageoffer.ai.starlineagent.core.ingest.sink.ChunkIndexWriter;
@@ -55,6 +56,7 @@ import com.nageoffer.ai.starlineagent.knowledge.controller.request.KnowledgeDocu
 import com.nageoffer.ai.starlineagent.knowledge.controller.request.KnowledgeDocumentUpdateRequest;
 import com.nageoffer.ai.starlineagent.knowledge.controller.request.KnowledgeDocumentUploadRequest;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentChunkLogVO;
+import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentChunkPreviewVO;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentSearchVO;
 import com.nageoffer.ai.starlineagent.knowledge.controller.vo.KnowledgeDocumentVO;
 import com.nageoffer.ai.starlineagent.knowledge.dao.entity.KnowledgeBaseDO;
@@ -91,13 +93,16 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -830,6 +835,47 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
             return fileStorageService.upload(bucketName, file);
         }
         return remoteFileFetcher.fetchAndStore(bucketName, sourceLocation);
+    }
+
+
+    @Override
+    public KnowledgeDocumentChunkPreviewVO previewChunks(String kbId, MultipartFile file, String ingestionSpec) {
+        KnowledgeBaseDO kbDO = knowledgeBaseMapper.selectById(kbId);
+        Assert.notNull(kbDO, () -> new ClientException("知识库不存在"));
+        Assert.notNull(file, () -> new ClientException("请先选择要预览的文件"));
+        if (file.isEmpty()) {
+            throw new ClientException("文件内容为空");
+        }
+
+        String fileName = StringUtils.hasText(file.getOriginalFilename()) ? file.getOriginalFilename() : "upload";
+        byte[] bytes;
+        try {
+            bytes = file.getBytes();
+        } catch (IOException e) {
+            throw new ClientException("读取待预览文件失败");
+        }
+
+        String normalizedSpec = ingestionSpecCodec.normalize(ingestionSpec);
+        IngestionSpec spec = ingestionSpecCodec.read(normalizedSpec);
+        DocumentRef previewDocument = new DocumentRef("preview-" + UUID.randomUUID(), kbId, fileName);
+        IngestionPreview preview = ingestionKernel.preview(previewDocument, bytes, spec);
+
+        List<String> warnings = new java.util.ArrayList<>();
+        String parserType = preview.parserType() == null ? "" : preview.parserType().toLowerCase(Locale.ROOT);
+        if (parserType.contains("mineru")) {
+            warnings.add("本次预览调用 MinerU 解析服务，可能耗时或产生外部服务费用；项目对象存储和向量索引不会写入。");
+        }
+        if (parserType.contains("image")) {
+            warnings.add("图片预览会调用视觉模型生成描述，可能产生外部服务费用；项目对象存储和向量索引不会写入。");
+        }
+
+        List<KnowledgeDocumentChunkPreviewVO.Chunk> chunks = preview.chunks().stream()
+                .map(chunk -> new KnowledgeDocumentChunkPreviewVO.Chunk(
+                        chunk.index(), chunk.content(), chunk.embeddingText(), chunk.content().length(),
+                        chunk.embeddingText().length(), chunk.metadata().outlinePath()))
+                .toList();
+        return new KnowledgeDocumentChunkPreviewVO(fileName, preview.mimeType(), preview.parserType(),
+                preview.blockCount(), preview.chunkCount(), warnings, chunks);
     }
 
 

@@ -27,7 +27,7 @@ import cn.hutool.core.util.StrUtil;
 public enum OrchestrationMode {
 
     /**
-     * v1 编排管线：意图分类 → 检索 → 合成，链路确定、延迟低
+     * v1 编排管线：问题改写 → 全局检索 → 合成，链路确定、延迟低
      */
     WORKFLOW,
 

@@ -48,7 +48,7 @@ public class AgentSkillSaveRequest {
     private String content;
 
     /**
-     * 加载本技能后才解锁的 MCP 工具 ID，取值只能来自意图树的 MCP 节点
+     * 加载本技能后才解锁的 MCP 工具 ID，取值只能来自 MCP 工具注册表
      */
     private List<String> toolIds;
 

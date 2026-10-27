@@ -21,16 +21,12 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.nageoffer.ai.starlineagent.framework.convention.ChatMessage;
 import com.nageoffer.ai.starlineagent.rag.config.RAGConfigProperties;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNode;
-import com.nageoffer.ai.starlineagent.rag.core.intent.NodeScore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -40,7 +36,7 @@ import static com.nageoffer.ai.starlineagent.rag.constant.RAGConstant.CONTEXT_FO
 /**
  * RAG Prompt 编排服务
  * <p>
- * 根据知识库检索结果选择模板，并构造发送给 LLM 的消息序列
+ * 读取统一的 KB_ANSWER 模板，并构造发送给 LLM 的消息序列
  */
 @Service
 @RequiredArgsConstructor
@@ -64,10 +60,7 @@ public class RAGPromptService {
         if (!context.hasKb()) {
             throw new IllegalStateException("PromptContext requires KB context");
         }
-        String configured = configuredTemplate(context.getKbIntents(), context.getEligibleIntentIds());
-        String template = StrUtil.isNotBlank(configured)
-                ? configured
-                : agentPromptResolver.resolve(AgentPromptSlot.KB_ANSWER);
+        String template = agentPromptResolver.resolve(AgentPromptSlot.KB_ANSWER);
         String systemPrompt = StrUtil.isBlank(template) ? "" : PromptTemplateUtils.cleanupPrompt(template);
         if (!citationEligible || !Boolean.TRUE.equals(ragConfigProperties.getCitationEnabled())) {
             return systemPrompt;
@@ -124,26 +117,6 @@ public class RAGPromptService {
         }
 
         return messages;
-    }
-
-    private String configuredTemplate(List<NodeScore> intents, Set<String> eligibleIntentIds) {
-        List<NodeScore> safeIntents = intents == null ? List.of() : intents;
-        Map<String, NodeScore> eligibleById = new LinkedHashMap<>();
-        for (NodeScore intent : safeIntents) {
-            if (intent == null || intent.getNode() == null) {
-                continue;
-            }
-            String intentId = intent.getNode().getId();
-            if (!eligibleIntentIds.contains(intentId)) {
-                continue;
-            }
-            eligibleById.putIfAbsent(intentId, intent);
-        }
-        if (eligibleById.size() != 1) {
-            return null;
-        }
-        IntentNode only = eligibleById.values().iterator().next().getNode();
-        return StrUtil.trimToNull(only.getPromptTemplate());
     }
 
     private String buildUserQuestion(String question, List<String> subQuestions) {

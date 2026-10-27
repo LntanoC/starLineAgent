@@ -158,17 +158,8 @@ public class SystemSettingsVO {
     public static class SearchSettings {
         private Integer defaultTopK;
         private Integer recallBudget;
-        private ScopeSettings scope;
         private ChannelSettings channels;
         private FusionSettings fusion;
-
-        @Data
-        @Builder
-        public static class ScopeSettings {
-            private Double minIntentScore;
-            private Double confidenceThreshold;
-            private Double supplementRatio;
-        }
 
         @Data
         @Builder

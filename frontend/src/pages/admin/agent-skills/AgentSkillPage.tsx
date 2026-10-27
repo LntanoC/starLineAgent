@@ -272,7 +272,7 @@ export function AgentSkillPage() {
             <AlertDialogTitle>确认停用</AlertDialogTitle>
             <AlertDialogDescription>
               停用后「{disableTarget?.name}」不再交给模型，它解锁的 {disableTarget?.toolIds?.length ?? 0} 个工具会恢复成直接暴露、不再要求先看手册。
-              要关掉这项办理能力本身，请到意图管理停用对应的 MCP 节点。是否继续？
+              要关掉这项办理能力本身，请到 MCP 工具管理停用对应工具。是否继续？
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

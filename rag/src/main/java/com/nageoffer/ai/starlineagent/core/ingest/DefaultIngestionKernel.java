@@ -67,6 +67,30 @@ public class DefaultIngestionKernel implements IngestionKernel {
                                 byte[] bytes,
                                 IngestionSpec spec,
                                 VectorTarget target) {
+        PreparedChunks prepared = parseAndChunk(doc, bytes, spec, false);
+
+        // ④ embed：模型与维度都来自落点，此处校验维度
+        long embedStart = System.currentTimeMillis();
+        List<EmbeddedChunk> embedded = chunkEmbeddingService.embed(prepared.chunks(), target);
+        long embedMillis = System.currentTimeMillis() - embedStart;
+
+        // ⑤ index：扇出到全部落点，事务边界在写入器内
+        long indexStart = System.currentTimeMillis();
+        chunkIndexWriter.replaceDocument(target, doc, embedded);
+        long indexMillis = System.currentTimeMillis() - indexStart;
+
+        return new IngestionOutcome(prepared.mimeType(), prepared.parserType(), prepared.blockCount(),
+                prepared.chunks(), new IngestionOutcome.IngestionTimings(
+                prepared.parseMillis(), prepared.chunkMillis(), embedMillis, indexMillis));
+    }
+
+    @Override
+    public IngestionPreview preview(DocumentRef doc, byte[] bytes, IngestionSpec spec) {
+        PreparedChunks prepared = parseAndChunk(doc, bytes, spec, true);
+        return new IngestionPreview(prepared.mimeType(), prepared.parserType(), prepared.blockCount(), prepared.chunks());
+    }
+
+    private PreparedChunks parseAndChunk(DocumentRef doc, byte[] bytes, IngestionSpec spec, boolean previewOnly) {
         if (bytes == null || bytes.length == 0) {
             throw new ClientException("文件内容为空：docId=" + doc.docId());
         }
@@ -81,7 +105,7 @@ public class DefaultIngestionKernel implements IngestionKernel {
         // ② parse：(MIME × 档位) → 解析器
         long parseStart = System.currentTimeMillis();
         DocumentParser parser = parserRegistry.require(mimeType, effectiveSpec.parseProfile());
-        ParsedDocument parsed = parser.parseStructured(bytes, mimeType, parserOptions(doc));
+        ParsedDocument parsed = parser.parseStructured(bytes, mimeType, parserOptions(doc, previewOnly));
         List<Block> blocks = parsed.blocks() == null ? List.of() : parsed.blocks();
         long parseMillis = System.currentTimeMillis() - parseStart;
         log.info("摄取-解析完成 docId={} mime={} 档位={} 解析器={} blocks={}",
@@ -95,30 +119,27 @@ public class DefaultIngestionKernel implements IngestionKernel {
         if (chunks.isEmpty()) {
             throw new ClientException("分块结果为空：docId=" + doc.docId() + ", mime=" + mimeType);
         }
-
-        // ④ embed：模型与维度都来自落点，此处校验维度
-        long embedStart = System.currentTimeMillis();
-        List<EmbeddedChunk> embedded = chunkEmbeddingService.embed(chunks, target);
-        long embedMillis = System.currentTimeMillis() - embedStart;
-
-        // ⑤ index：扇出到全部落点，事务边界在写入器内
-        long indexStart = System.currentTimeMillis();
-        chunkIndexWriter.replaceDocument(target, doc, embedded);
-        long indexMillis = System.currentTimeMillis() - indexStart;
-
-        return new IngestionOutcome(mimeType, parser.getParserType(), blocks.size(), chunks,
-                new IngestionOutcome.IngestionTimings(parseMillis, chunkMillis, embedMillis, indexMillis));
+        return new PreparedChunks(mimeType, parser.getParserType(), blocks.size(), chunks, parseMillis, chunkMillis);
     }
 
     /**
      * 组装解析器入参：docId 必须传，解析器用它给图片资产命名，漏传则资产与文档失联
      */
-    private Map<String, Object> parserOptions(DocumentRef doc) {
+    private Map<String, Object> parserOptions(DocumentRef doc, boolean previewOnly) {
         Map<String, Object> options = new HashMap<>();
         if (StringUtils.hasText(doc.filename())) {
             options.put(OPT_SOURCE_FILE, doc.filename());
         }
         options.put(OPT_DOCUMENT_ID, doc.docId());
+        options.put("previewOnly", previewOnly);
         return options;
+    }
+
+    private record PreparedChunks(String mimeType,
+                                  String parserType,
+                                  int blockCount,
+                                  List<Chunk> chunks,
+                                  long parseMillis,
+                                  long chunkMillis) {
     }
 }

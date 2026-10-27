@@ -31,19 +31,17 @@ final class InitializerDataset {
 
     private final Path agentTypeDir;
     private final List<KnowledgeBaseDefinition> knowledgeBases;
-    private final List<IntentDefinition> intents;
     private final List<McpToolDefinition> mcpTools;
     private final List<QuestionDefinition> questions;
     private final List<SkillDefinition> skills;
     private final AgentProfileDefinition agentProfile;
 
     private InitializerDataset(Path agentTypeDir, List<KnowledgeBaseDefinition> knowledgeBases,
-                               List<IntentDefinition> intents, List<McpToolDefinition> mcpTools,
+                               List<McpToolDefinition> mcpTools,
                                List<QuestionDefinition> questions,
                                List<SkillDefinition> skills, AgentProfileDefinition agentProfile) {
         this.agentTypeDir = agentTypeDir;
         this.knowledgeBases = knowledgeBases;
-        this.intents = intents;
         this.mcpTools = mcpTools;
         this.questions = questions;
         this.skills = skills;
@@ -56,13 +54,12 @@ final class InitializerDataset {
             throw new IllegalArgumentException("智能体类型目录不存在: " + normalized);
         }
         List<KnowledgeBaseDefinition> knowledgeBases = loadKnowledgeBases(normalized);
-        List<IntentDefinition> intents = loadIntents(normalized, knowledgeBases);
         List<McpToolDefinition> mcpTools = loadMcpTools(normalized);
         List<QuestionDefinition> questions = loadQuestions(normalized);
         List<SkillDefinition> skills = loadSkills(normalized);
         AgentProfileDefinition agentProfile = loadAgentProfile(normalized);
         InitializerDataset dataset = new InitializerDataset(
-                normalized, knowledgeBases, intents, mcpTools, questions, skills, agentProfile);
+                normalized, knowledgeBases, mcpTools, questions, skills, agentProfile);
         dataset.validate();
         return dataset;
     }
@@ -73,10 +70,6 @@ final class InitializerDataset {
 
     List<KnowledgeBaseDefinition> knowledgeBases() {
         return knowledgeBases;
-    }
-
-    List<IntentDefinition> intents() {
-        return intents;
     }
 
     List<McpToolDefinition> mcpTools() {
@@ -181,30 +174,6 @@ final class InitializerDataset {
             }
         }
 
-        Set<String> codes = new HashSet<>();
-        Map<String, Integer> orderByCode = new HashMap<>();
-        for (IntentDefinition intent : intents) {
-            if (!codes.add(intent.code())) {
-                throw new IllegalArgumentException("意图 code 重复: " + intent.code());
-            }
-            orderByCode.put(intent.code(), intent.sortOrder());
-            if (intent.knowledgeBaseRef() != null) {
-                knowledgeBase(intent.knowledgeBaseRef());
-            }
-        }
-        for (IntentDefinition intent : intents) {
-            if (intent.parentCode() == null) {
-                continue;
-            }
-            Integer parentOrder = orderByCode.get(intent.parentCode());
-            if (parentOrder == null) {
-                throw new IllegalArgumentException("意图父节点不存在: " + intent.code() + " -> " + intent.parentCode());
-            }
-            if (parentOrder >= intent.sortOrder()) {
-                throw new IllegalArgumentException("父节点必须排在子节点之前: " + intent.code());
-            }
-        }
-
         Set<String> questionRefs = new HashSet<>();
         for (QuestionDefinition question : questions) {
             if (!questionRefs.add(question.ref())) {
@@ -255,44 +224,6 @@ final class InitializerDataset {
                     trimToNull(properties.getProperty(prefix + "ingestion-spec"))
             ));
         }
-        return List.copyOf(result);
-    }
-
-    private static List<IntentDefinition> loadIntents(Path agentTypeDir,
-                                                       List<KnowledgeBaseDefinition> knowledgeBases) throws IOException {
-        Path intentsDir = agentTypeDir.resolve("intents");
-        if (!Files.isDirectory(intentsDir)) {
-            throw new IllegalArgumentException("意图目录不存在: " + intentsDir);
-        }
-        Set<String> refs = new HashSet<>();
-        knowledgeBases.forEach(definition -> refs.add(definition.ref()));
-        List<IntentDefinition> result = new ArrayList<>();
-        try (Stream<Path> paths = Files.list(intentsDir)) {
-            for (Path file : paths.filter(path -> path.getFileName().toString().endsWith(".properties"))
-                    .sorted().toList()) {
-                Properties values = InitializerConfig.loadProperties(file);
-                String kbRef = trimToNull(values.getProperty("knowledge-base-ref"));
-                if (kbRef != null && !refs.contains(kbRef)) {
-                    throw new IllegalArgumentException("意图引用了未知知识库 " + kbRef + ": " + file);
-                }
-                result.add(new IntentDefinition(
-                        required(values, "code", file.toString()),
-                        required(values, "name", file.toString()),
-                        requiredInt(values, "level", file),
-                        trimToNull(values.getProperty("parent-code")),
-                        requiredInt(values, "kind", file),
-                        kbRef,
-                        trimToNull(values.getProperty("description")),
-                        split(values.getProperty("examples"), "\\|"),
-                        optionalInt(values, "top-k", file),
-                        requiredInt(values, "sort-order", file),
-                        optionalBoolean(values, "enabled", true),
-                        readOptionalText(agentTypeDir, values.getProperty("prompt-snippet-file")),
-                        readOptionalText(agentTypeDir, values.getProperty("prompt-template-file"))
-                ));
-            }
-        }
-        result.sort(Comparator.comparingInt(IntentDefinition::sortOrder));
         return List.copyOf(result);
     }
 
@@ -506,12 +437,6 @@ final class InitializerDataset {
 
     record KnowledgeBaseDefinition(String ref, String name, String collectionName, String embeddingModel,
                                    Path documentsDir, String ingestionSpec) {
-    }
-
-    record IntentDefinition(String code, String name, int level, String parentCode, int kind,
-                            String knowledgeBaseRef, String description, List<String> examples,
-                            Integer topK, int sortOrder, boolean enabled,
-                            String promptSnippet, String promptTemplate) {
     }
 
     record McpToolDefinition(String toolId, String displayName, String description, boolean requireConfirm,

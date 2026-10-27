@@ -17,7 +17,6 @@
 
 package com.nageoffer.ai.starlineagent.rag.config;
 
-import com.nageoffer.ai.starlineagent.rag.constant.RAGConstant;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -43,16 +42,10 @@ public class SearchChannelProperties implements InitializingBean {
 
     /**
      * 每通道召回条数（检索预算的 recallBudget 段）
-     * 各通道（向量意图路 / 关键词 / 图谱）统一按此绝对值召回候选，交由下游 RRF+Rerank 收窄
+     * 各通道（向量 / 关键词 / 图谱）统一按此绝对值召回候选，交由下游 RRF+Rerank 收窄
      * 须 ≥ defaultTopK（漏斗单调，启动校验）；<=0 时回退 defaultTopK 作兜底守卫
      */
     private int recallBudget = 20;
-
-    /**
-     * 检索作用域配置
-     * 决定「本次请求该看哪些知识库」，与用什么模态检索无关，故与 channels 平级、由各通道共读
-     */
-    private Scope scope = new Scope();
 
     /**
      * 检索通道配置
@@ -66,7 +59,7 @@ public class SearchChannelProperties implements InitializingBean {
 
     /**
      * 证据相关性闸门
-     * 判定这批证据够不够格进提示词 与查哪些库、用什么模态无关 故与 scope / fusion 平级
+     * 判定这批证据够不够格进提示词，与知识库范围和检索模态无关，故与检索通道 / fusion 平级
      */
     private Evidence evidence = new Evidence();
 
@@ -102,29 +95,6 @@ public class SearchChannelProperties implements InitializingBean {
                             + "请调大 rag.search.fusion.rerank-candidate-limit 或调小 rag.search.default-top-k",
                     candidateLimit, contextTopK));
         }
-        if (scope.getMinIntentScore() < RAGConstant.INTENT_MIN_SCORE) {
-            throw new IllegalStateException(String.format(
-                    "rag.search.scope.min-intent-score(%s) 低于上游意图过滤下限 INTENT_MIN_SCORE(%s)，该配置不会产生任何效果，"
-                            + "请调高此值，或先下调 INTENT_MIN_SCORE",
-                    scope.getMinIntentScore(), RAGConstant.INTENT_MIN_SCORE));
-        }
-        // 作用域的两道闸门必须真的串联：意图先被 min-intent-score 过滤，存活的分数恒 >= 它，
-        // 阈值若不高于最低分，「低置信退化为全局」这条兜底路就永不触发
-        double confidenceThreshold = scope.getConfidenceThreshold();
-        if (confidenceThreshold <= scope.getMinIntentScore() || confidenceThreshold > 1) {
-            throw new IllegalStateException(String.format(
-                    "rag.search.scope.confidence-threshold(%s) 必须落在 (min-intent-score(%s), 1] 内："
-                            + "不高于最低分则「低置信退化为全局」永不触发，大于 1 则「高置信收窄到命中库」永不触发（意图分按 0~1 输出），"
-                            + "两者都会让一整条作用域分支连同补充路一起变成死代码",
-                    confidenceThreshold, scope.getMinIntentScore()));
-        }
-        double supplementRatio = scope.getSupplementRatio();
-        if (Double.isNaN(supplementRatio) || supplementRatio >= 1) {
-            throw new IllegalStateException(String.format(
-                    "rag.search.scope.supplement-ratio(%s) 必须小于 1：该比例是从主路划给补充路的份额，"
-                            + "取到 1 等于把高置信命中库的名额清零，与「定向优先、补充兜底」相反；关闭补充路请填 0",
-                    supplementRatio));
-        }
         // 精排分按 0~1 输出，下限高于 1 则全部证据被丢，表现与「库里没料」一致，线上无从分辨
         double minRerankScore = evidence.getMinRerankScore();
         if (Double.isNaN(minRerankScore) || minRerankScore > 1) {
@@ -133,38 +103,6 @@ public class SearchChannelProperties implements InitializingBean {
                             + "高于 1 会让全部证据被闸门丢弃、KB 侧恒为空；关闭闸门请填 0",
                     minRerankScore));
         }
-    }
-
-    /**
-     * 检索作用域：本次请求收窄到命中库还是退化为全库，以及给未命中库留多少保底名额
-     * <p>
-     * 请求级策略而非通道参数——三条通道读同一份，关掉任一通道都不影响其余通道的作用域判定
-     */
-    @Data
-    public static class Scope {
-
-        /**
-         * 最低意图分数
-         * 低于此分数的意图节点会被过滤，不参与「是否收窄作用域」的判定
-         * 上游 {@code IntentResolver} 已按 {@link RAGConstant#INTENT_MIN_SCORE} 过滤过一道，
-         * 故此值低于该常量时不产生任何效果，启动即校验（见 {@link #afterPropertiesSet()}）
-         */
-        private double minIntentScore = 0.4;
-
-        /**
-         * 意图置信度阈值
-         * KB 意图最高分低于此阈值时，各通道退化为全库检索
-         */
-        private double confidenceThreshold = 0.6;
-
-        /**
-         * 补充路候选保底比例
-         * 定向时各通道从自身产出额度里划给「未命中库」的份额，兜住意图判错——判错时正确证据只在未命中库里，
-         * 与命中库证据拼相关度必然抢不过，故给固定名额而非自由竞争
-         * 取值须 <1（启动校验）：取满 1 等于把主路名额清零，与设计意图相反
-         * <=0 关闭补充路，退化为纯定向；命中库已覆盖全部有效库时同样不补
-         */
-        private double supplementRatio = 0.25;
     }
 
     @Data
@@ -298,7 +236,7 @@ public class SearchChannelProperties implements InitializingBean {
 
         /**
          * 向量权重
-         * 向量模态最可信；意图定向与全局同属这一条通道，共用一个权重
+         * 向量模态权重
          */
         private double vector = 1.0;
 
@@ -335,7 +273,7 @@ public class SearchChannelProperties implements InitializingBean {
         /**
          * 最低精排分 0~1
          * 整批最高分低于此值则整批丢弃 判为没检索到相关内容
-         * 与 {@link Scope#confidenceThreshold} 的意图分不是一套量纲 共用会让调证据过滤连带改掉作用域收窄
+         * 与检索相关性分数不是一套量纲；共用会让调证据过滤连带改变检索范围
          * <=0 关闭；无分可读时（精排关闭或降级 noop）放行
          */
         private double minRerankScore = 0.2;

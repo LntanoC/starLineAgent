@@ -18,7 +18,6 @@
 package com.nageoffer.ai.starlineagent.rag.core.retrieval.channel;
 
 import com.nageoffer.ai.starlineagent.rag.core.retrieval.RetrievalBudget;
-import com.nageoffer.ai.starlineagent.rag.dto.SubQuestionIntent;
 import lombok.Builder;
 import lombok.Data;
 
@@ -51,18 +50,13 @@ public class SearchContext {
     private List<String> subQuestions;
 
     /**
-     * 意图识别结果
-     */
-    private List<SubQuestionIntent> intents;
-
-    /**
      * 检索预算：召回扇出 / Rerank 候选池上限 / 最终条数，三段各自独立
      * 各阶段只读属于自己的那一段，避免用一个 topK 承载多重语义
      */
     private RetrievalBudget budget;
 
     /**
-     * 检索作用域：定向命中库还是全库，请求入口算一次，各通道共读一份
+     * 当前有效知识库集合，请求入口读取一次，各通道共用
      */
     private RetrievalScope retrievalScope;
 

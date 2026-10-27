@@ -78,10 +78,6 @@ function formatDurationMs(ms: number): string {
   return `${Number.isInteger(seconds) ? seconds : seconds.toFixed(1)} s`;
 }
 
-function formatPercent(ratio: number): string {
-  return `${Math.round(ratio * 100)}%`;
-}
-
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
     <section className="settings-section">
@@ -369,7 +365,7 @@ export function SystemSettingsPage() {
 
   const { engine, backends, rag, ai, upload } = settings;
   const { search, features } = rag;
-  const { channels, fusion, scope } = search;
+  const { channels, fusion } = search;
 
   const keywordMissing = backends.keyword.type === "none";
   const graphMissing = backends.graph.type === "none";
@@ -536,14 +532,6 @@ export function SystemSettingsPage() {
                   ratio={search.defaultTopK / fusionPool}
                   final
                 />
-              </div>
-              <div className="settings-scope">
-                <KV label="意图分下限" value={scope.minIntentScore.toFixed(2)} mono />
-                <KV label="收窄置信阈值" value={scope.confidenceThreshold.toFixed(2)} mono />
-                <KV label="补充路配额" value={formatPercent(scope.supplementRatio)} mono />
-                <p className="settings-scope-note">
-                  检索作用域（rag.search.scope）：知识库意图最高分达到阈值时收窄到命中库，并按配额给未命中库留保底名额；低于阈值退化为全库检索
-                </p>
               </div>
             </div>
           </div>

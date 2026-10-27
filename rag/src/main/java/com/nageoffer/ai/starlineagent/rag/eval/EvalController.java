@@ -24,12 +24,10 @@ import com.nageoffer.ai.starlineagent.knowledge.dao.entity.KnowledgeChunkDO;
 import com.nageoffer.ai.starlineagent.knowledge.dao.entity.KnowledgeDocumentDO;
 import com.nageoffer.ai.starlineagent.knowledge.dao.mapper.KnowledgeChunkMapper;
 import com.nageoffer.ai.starlineagent.knowledge.dao.mapper.KnowledgeDocumentMapper;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentResolver;
 import com.nageoffer.ai.starlineagent.rag.core.retrieval.RetrievalEngine;
 import com.nageoffer.ai.starlineagent.rag.core.rewrite.QueryRewriteService;
 import com.nageoffer.ai.starlineagent.rag.core.rewrite.RewriteResult;
 import com.nageoffer.ai.starlineagent.rag.dto.RetrievalContext;
-import com.nageoffer.ai.starlineagent.rag.dto.SubQuestionIntent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import com.nageoffer.ai.starlineagent.framework.convention.Result;
@@ -54,7 +52,6 @@ import java.util.stream.Collectors;
 public class EvalController {
 
     private final QueryRewriteService queryRewriteService;
-    private final IntentResolver intentResolver;
     private final RetrievalEngine retrievalEngine;
     private final KnowledgeChunkMapper knowledgeChunkMapper;
     private final KnowledgeDocumentMapper knowledgeDocumentMapper;
@@ -64,13 +61,12 @@ public class EvalController {
         long start = System.currentTimeMillis();
 
         RewriteResult rewriteResult = queryRewriteService.rewriteWithSplit(question, List.of());
-        List<SubQuestionIntent> subIntents = intentResolver.resolve(rewriteResult);
-        RetrievalContext rc = retrievalEngine.retrieve(subIntents);
+        RetrievalContext rc = retrievalEngine.retrieve(rewriteResult);
 
-        return Results.success(buildResponse(rc, subIntents, System.currentTimeMillis() - start));
+        return Results.success(buildResponse(rc, rewriteResult.subQuestions(), System.currentTimeMillis() - start));
     }
 
-    private EvalResponse buildResponse(RetrievalContext rc, List<SubQuestionIntent> subIntents, long latencyMs) {
+    private EvalResponse buildResponse(RetrievalContext rc, List<String> subQuestions, long latencyMs) {
         List<RetrievedChunk> uniqueChunks = flattenChunks(rc);
         List<String> chunkIds = uniqueChunks.stream()
                 .map(RetrievedChunk::getId)
@@ -91,23 +87,20 @@ public class EvalController {
                 .retrievedContexts(contexts)
                 .retrievedContextDocIds(contextDocIds)
                 .hasKb(rc != null && rc.hasKb())
-                .subIntents(extractSubIntents(subIntents))
-                .intentLeafIds(extractTopLeafIds(subIntents))
+                .subQuestions(subQuestions)
                 .latencyMs(latencyMs)
                 .build();
     }
 
     /**
-     * 摊平 intentChunks（Map<intentId, List<RetrievedChunk>>），按 chunk id 去重并保留首次顺序
+     * 按 chunk id 去重并保留首次顺序
      */
     private List<RetrievedChunk> flattenChunks(RetrievalContext rc) {
-        if (rc == null || CollUtil.isEmpty(rc.getIntentChunks())) {
+        if (rc == null || CollUtil.isEmpty(rc.getChunks())) {
             return Collections.emptyList();
         }
         Set<String> seen = new LinkedHashSet<>();
-        return rc.getIntentChunks().values().stream()
-                .filter(CollUtil::isNotEmpty)
-                .flatMap(List::stream)
+        return rc.getChunks().stream()
                 .filter(c -> c != null && StrUtil.isNotBlank(c.getId()))
                 .filter(c -> seen.add(c.getId()))
                 .collect(Collectors.toList());
@@ -187,27 +180,4 @@ public class EvalController {
                 .collect(Collectors.toList());
     }
 
-    private List<String> extractSubIntents(List<SubQuestionIntent> intents) {
-        if (CollUtil.isEmpty(intents)) {
-            return Collections.emptyList();
-        }
-        return intents.stream()
-                .map(SubQuestionIntent::subQuestion)
-                .filter(StrUtil::isNotBlank)
-                .collect(Collectors.toList());
-    }
-
-    private List<String> extractTopLeafIds(List<SubQuestionIntent> intents) {
-        if (CollUtil.isEmpty(intents)) {
-            return Collections.emptyList();
-        }
-        return intents.stream()
-                .map(si -> {
-                    if (CollUtil.isEmpty(si.nodeScores())) {
-                        return null;
-                    }
-                    return si.nodeScores().get(0).getNode().getId();
-                })
-                .collect(Collectors.toList());
-    }
 }

@@ -49,21 +49,19 @@ public class GroundingChunksAssembler {
     private static final int MAX_CHUNKS = 8;
 
     /**
-     * 由检索上下文的意图分片装配 grounding 片段列表
+     * 由检索证据装配 grounding 片段列表
      *
-     * @param intentChunks 意图 ID -> 命中片段（KB）
+     * @param chunks 检索命中的知识片段
      * @return grounding 片段列表 无命中返回空列表
      */
-    public List<GroundingChunk> assemble(Map<String, List<RetrievedChunk>> intentChunks) {
-        if (CollUtil.isEmpty(intentChunks)) {
+    public List<GroundingChunk> assemble(List<RetrievedChunk> chunks) {
+        if (CollUtil.isEmpty(chunks)) {
             return List.of();
         }
 
         // 按 docId 归并 保留最高分片段（与 SourcesAssembler 同语义，保证文档多样性）
         Map<String, RetrievedChunk> bestByDoc = new LinkedHashMap<>();
-        intentChunks.values().stream()
-                .filter(CollUtil::isNotEmpty)
-                .flatMap(List::stream)
+        chunks.stream()
                 .filter(chunk -> chunk != null
                         && StrUtil.isNotBlank(chunk.getDocId())
                         && StrUtil.isNotBlank(chunk.getText()))

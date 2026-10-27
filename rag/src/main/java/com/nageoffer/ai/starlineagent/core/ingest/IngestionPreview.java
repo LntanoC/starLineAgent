@@ -15,23 +15,27 @@
  * limitations under the License.
  */
 
-package com.nageoffer.ai.starlineagent.rag.controller.request;
+package com.nageoffer.ai.starlineagent.core.ingest;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.nageoffer.ai.starlineagent.core.chunk.model.Chunk;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class IntentNodeBatchRequest {
+/**
+ * 预览阶段的解析与切块结果；不包含嵌入向量，也不代表已经写入任何索引。
+ */
+public record IngestionPreview(
+        String mimeType,
+        String parserType,
+        int blockCount,
+        List<Chunk> chunks
+) {
 
-    /**
-     * 节点 ID 列表
-     */
-    private List<String> ids;
+    public IngestionPreview {
+        chunks = chunks == null ? List.of() : List.copyOf(chunks);
+    }
+
+    public int chunkCount() {
+        return chunks.size();
+    }
 }

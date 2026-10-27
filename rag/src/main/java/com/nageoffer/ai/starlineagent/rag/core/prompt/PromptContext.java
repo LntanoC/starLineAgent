@@ -18,12 +18,8 @@
 package com.nageoffer.ai.starlineagent.rag.core.prompt;
 
 import cn.hutool.core.util.StrUtil;
-import com.nageoffer.ai.starlineagent.rag.core.intent.NodeScore;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Prompt 构建上下文，封装一次 RAG 请求中用于组装提示词的全部输入数据
@@ -36,17 +32,6 @@ public class PromptContext {
      * 知识库检索返回的上下文文本（已格式化）
      */
     private String kbContext;
-
-    /**
-     * 知识库通道命中的意图及其得分列表
-     */
-    private List<NodeScore> kbIntents;
-
-    /**
-     * 允许参与模板选择和规则注入的意图 ID
-     */
-    @Builder.Default
-    private Set<String> eligibleIntentIds = Set.of();
 
     /**
      * 是否包含知识库上下文

@@ -91,6 +91,7 @@ public class ImageDocumentParser implements DocumentParser {
         }
         String sourceFile = extract(options, OPT_SOURCE_FILE, "");
         String documentId = extract(options, OPT_DOCUMENT_ID, UUID.randomUUID().toString());
+        boolean previewOnly = Boolean.parseBoolean(extract(options, "previewOnly", "false"));
 
         // 0. SVG 归一化：矢量 XML 栅格化成 PNG，此后字节与 mime 与 PNG 路径完全一致
         if (mimeType != null && mimeType.toLowerCase(Locale.ROOT).equals("image/svg+xml")) {
@@ -110,8 +111,13 @@ public class ImageDocumentParser implements DocumentParser {
         // 2. 原图上传资产桶（public-read），拿匿名可达的公网 URL
         String ext = extFromMime(mimeType);
         String filename = "assets/" + documentId + "/" + UUID.randomUUID() + "." + ext;
-        StoredFileDTO stored = fileStorageService.uploadAsset(content, filename, mimeType);
-        String publicUrl = fileStorageService.getPublicUrl(stored.getUrl());
+        String publicUrl;
+        if (previewOnly) {
+            publicUrl = "preview://" + filename;
+        } else {
+            StoredFileDTO stored = fileStorageService.uploadAsset(content, filename, mimeType);
+            publicUrl = fileStorageService.getPublicUrl(stored.getUrl());
+        }
 
         // 3. 构造 ImageBlock：description 既作展示与答题正文，也作向量文本（ImageChunker 渲染时会去掉 URL 噪声）
         String caption = stripExt(sourceFile);

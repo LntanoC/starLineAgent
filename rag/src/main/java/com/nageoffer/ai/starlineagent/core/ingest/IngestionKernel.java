@@ -31,6 +31,16 @@ package com.nageoffer.ai.starlineagent.core.ingest;
 public interface IngestionKernel {
 
     /**
+     * 只执行类型识别、解析与切块，使用和正式摄取相同的解析器、切块器及预算配置，不调用嵌入模型或索引写入器。
+     *
+     * @param doc   文档身份；预览时使用临时 ID
+     * @param bytes 文件字节
+     * @param spec  文档级配置：解析档位 + 分块预算
+     * @return 预览块
+     */
+    IngestionPreview preview(DocumentRef doc, byte[] bytes, IngestionSpec spec);
+
+    /**
      * 执行一次完整摄取：解析 → 分块 → 向量化 → 落库
      *
      * @param doc   文档身份，决定资产归属与落库归属

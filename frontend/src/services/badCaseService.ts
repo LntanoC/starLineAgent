@@ -6,7 +6,7 @@ export const ROOT_CAUSES: Record<string, string> = {
   HALLUCINATION: "幻觉 / 不忠实", FORMAT: "输出格式", PERF: "性能", OTHER: "其他", TOOL_EXECUTION: "工具执行", BUSINESS_RULE: "业务规则", DELIVERY: "邮件 / 通知交付"
 };
 export const FIX_ACTIONS: Record<string, string> = {
-  MAPPING: "关键词映射", INTENT_NODE: "意图配置", KNOWLEDGE_BASE: "知识库", PROMPT: "提示词",
+  MAPPING: "关键词映射", INTENT_NODE: "历史意图配置（已下线）", KNOWLEDGE_BASE: "知识库", PROMPT: "提示词",
   RERANK: "检索参数", NONE: "无需修改", TOOL: "工具实现", BUSINESS_RULE: "业务规则", DELIVERY: "交付链路", EVAL_DATASET: "评测样本"
 };
 export const REVIEW_STATUSES: Record<string, string> = {

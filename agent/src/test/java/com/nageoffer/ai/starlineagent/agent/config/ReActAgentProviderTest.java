@@ -27,15 +27,15 @@ import com.nageoffer.ai.starlineagent.agent.state.PgAgentStateStore;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolBatchMiddleware;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolCatalog;
 import com.nageoffer.ai.starlineagent.agent.tool.KnowledgeSearchTool;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNode;
-import com.nageoffer.ai.starlineagent.rag.core.intent.IntentNodeRegistry;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentMcpClients;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentMcpClients.RemoteTool;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.AgentPromptResolver;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.AgentPromptSlot;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkillRegistry;
-import com.nageoffer.ai.starlineagent.rag.enums.IntentKind;
+import com.nageoffer.ai.starlineagent.rag.dao.entity.McpToolDO;
 import com.nageoffer.ai.starlineagent.rag.service.KnowledgeSearchFacade;
+import com.nageoffer.ai.starlineagent.rag.service.McpToolRegistryService;
+import com.nageoffer.ai.starlineagent.rag.service.ToolRagService;
 import io.agentscope.core.model.ExecutionConfig;
 import io.agentscope.core.agent.RuntimeContext;
 import io.agentscope.core.message.Msg;
@@ -79,7 +79,9 @@ import static org.mockito.Mockito.RETURNS_DEFAULTS;
 
 class ReActAgentProviderTest {
 
-    private IntentNodeRegistry intentNodeRegistry;
+    private McpToolRegistryService mcpToolRegistry;
+    private ToolRagService toolRagService;
+    private List<McpToolDO> registeredTools;
     private AgentMcpClients mcpClients;
     private AgentPromptResolver agentPromptResolver;
     private AgentToolCatalog toolCatalog;
@@ -89,24 +91,29 @@ class ReActAgentProviderTest {
 
     @BeforeEach
     void setUp() {
-        intentNodeRegistry = mock(IntentNodeRegistry.class);
+        mcpToolRegistry = mock(McpToolRegistryService.class);
+        toolRagService = mock(ToolRagService.class);
         mcpClients = mock(AgentMcpClients.class);
         agentPromptResolver = mock(AgentPromptResolver.class);
         when(agentPromptResolver.resolveAll()).thenReturn(Map.of(
                 AgentPromptSlot.AGENT_MAIN.name(), "你是 StarlineAgent",
                 AgentPromptSlot.KNOWLEDGE_TOOL_DESCRIPTION.name(), "当前 Agent 的知识库工具描述"));
-        when(intentNodeRegistry.listMcpToolNodes()).thenReturn(List.of(
-                mcpNode("sales", "销售查询", "sales_query")));
+        registeredTools = List.of(mcpTool("sales_query", "销售查询"));
+        when(mcpToolRegistry.listDispatchable()).thenReturn(registeredTools);
+        when(toolRagService.recallAll()).thenReturn(recallAll(registeredTools));
         RemoteTool salesTool = executor("sales_query");
         when(mcpClients.get("sales_query")).thenReturn(salesTool);
+        AgentSkillRegistry skillRegistry = mock(AgentSkillRegistry.class);
+        when(skillRegistry.listEnabled()).thenReturn(List.of());
 
         toolCatalog = spy(new AgentToolCatalog(
                 mock(KnowledgeSearchFacade.class),
-                intentNodeRegistry,
+                mcpToolRegistry,
                 mcpClients,
+                toolRagService,
                 new AgentMemoryProperties(),
                 mock(AgentMemoryPipeline.class),
-                mock(AgentSkillRegistry.class)));
+                skillRegistry));
         AgentProperties agentProperties = new AgentProperties();
         model = mock(OpenAIChatModel.class);
         when(model.getModelName()).thenReturn("recovery-test");
@@ -247,9 +254,11 @@ class ReActAgentProviderTest {
         var first = provider.getAgent();
         RemoteTool ordersTool = executor("orders_query");
         when(mcpClients.get("orders_query")).thenReturn(ordersTool);
-        when(intentNodeRegistry.listMcpToolNodes()).thenReturn(List.of(
-                mcpNode("sales", "销售查询", "sales_query"),
-                mcpNode("orders", "订单查询", "orders_query")));
+        registeredTools = List.of(
+                mcpTool("sales_query", "销售查询"),
+                mcpTool("orders_query", "订单查询"));
+        when(mcpToolRegistry.listDispatchable()).thenReturn(registeredTools);
+        when(toolRagService.recallAll()).thenReturn(recallAll(registeredTools));
 
         var second = provider.getAgent();
 
@@ -293,14 +302,23 @@ class ReActAgentProviderTest {
         assertThat(active.agent().getModelConfig().maxRetries()).isEqualTo(1);
     }
 
-    private IntentNode mcpNode(String id, String name, String toolId) {
-        return IntentNode.builder()
-                .id(id)
-                .name(name)
-                .description("意图树描述")
-                .kind(IntentKind.MCP)
-                .mcpToolId(toolId)
+    private McpToolDO mcpTool(String toolId, String name) {
+        return McpToolDO.builder()
+                .toolId(toolId)
+                .displayName(name)
+                .description("Tool RAG 测试描述")
+                .requireConfirm(0)
+                .resident(0)
+                .dispatchable(1)
+                .enabled(1)
                 .build();
+    }
+
+    private ToolRagService.RecallResult recallAll(List<McpToolDO> tools) {
+        List<ToolRagService.ScoredTool> recalled = tools.stream()
+                .map(tool -> new ToolRagService.ScoredTool(tool, 1.0, "test"))
+                .toList();
+        return new ToolRagService.RecallResult(List.of(), recalled, false, false);
     }
 
     private RemoteTool executor(String toolId) {

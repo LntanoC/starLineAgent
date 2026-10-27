@@ -82,6 +82,8 @@ public class MinerUDocumentParser implements DocumentParser {
      */
     public static final String OPT_DOCUMENT_ID = "documentId";
 
+    public static final String OPT_PREVIEW_ONLY = "previewOnly";
+
     /**
      * ParsedDocument.metadata 字段：MinerU 分配的 batchId，排障时凭它去 MinerU 侧查任务
      */
@@ -153,6 +155,7 @@ public class MinerUDocumentParser implements DocumentParser {
     private ParsedDocument doParseStructured(byte[] content, String mimeType, Map<String, Object> options) {
         String sourceFile = extractString(options, OPT_SOURCE_FILE, "");
         String documentId = extractString(options, OPT_DOCUMENT_ID, UUID.randomUUID().toString());
+        boolean previewOnly = options != null && Boolean.parseBoolean(String.valueOf(options.get(OPT_PREVIEW_ONLY)));
         String uploadName = resolveUploadName(sourceFile, mimeType, documentId);
 
         // 1. 申请上传链接，只提交元信息、不带 url
@@ -186,7 +189,7 @@ public class MinerUDocumentParser implements DocumentParser {
         byte[] zipBytes = minerUClient.downloadZip(status.zipUrl());
 
         // 5. 解包为 ParsedDocument
-        ParsedDocument parsed = resultUnpacker.unpack(zipBytes, sourceFile, documentId);
+        ParsedDocument parsed = resultUnpacker.unpack(zipBytes, sourceFile, documentId, previewOnly);
 
         // 6. batchId + zipUrl 注入 metadata，供下游节点持久化后排障
         Map<String, Object> mergedMeta = new HashMap<>(parsed.metadata() == null ? Map.of() : parsed.metadata());

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Check, ChevronDown, ChevronRight, FileUp, FileImage, Info, PlayCircle, RefreshCw, Trash2, Pencil, FileBarChart, X, Eye, MoreHorizontal, FileText, FileSpreadsheet, Link as LinkIcon, Download } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, ChevronRight, FileUp, FileImage, Info, PlayCircle, RefreshCw, Trash2, Pencil, FileBarChart, X, Eye, MoreHorizontal, FileText, FileSpreadsheet, Link as LinkIcon, Download } from "lucide-react";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -21,7 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { RelativeTime } from "@/components/RelativeTime";
 import { formatFullDateTime } from "@/utils/time";
 
-import type { BudgetFieldSchema, KnowledgeBase, KnowledgeDocument, KnowledgeDocumentUploadPayload, KnowledgeDocumentChunkLog, PageResult, IngestionSpecSchema } from "@/services/knowledgeService";
+import type { BudgetFieldSchema, KnowledgeBase, KnowledgeDocument, KnowledgeDocumentChunkPreview, KnowledgeDocumentUploadPayload, KnowledgeDocumentChunkLog, PageResult, IngestionSpecSchema } from "@/services/knowledgeService";
 import {
   deleteDocument,
   enableDocument,
@@ -33,7 +33,8 @@ import {
   uploadDocument,
   getIngestionSpecSchema,
   getChunkLogsPage,
-  fetchDocumentFile
+  fetchDocumentFile,
+  previewDocumentChunks
 } from "@/services/knowledgeService";
 import { getIngestionPipelines, type IngestionPipeline } from "@/services/ingestionService";
 import { getSystemSettings } from "@/services/settingsService";
@@ -995,6 +996,7 @@ export function KnowledgeDocumentsPage() {
       <UploadDialog
         open={uploadOpen}
         onOpenChange={setUploadOpen}
+        kbId={kbId}
         onSubmit={async (payload) => {
           if (!kbId) return;
           await uploadDocument(kbId, payload);
@@ -1419,6 +1421,7 @@ export function KnowledgeDocumentsPage() {
 interface UploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  kbId?: string;
   onSubmit: (payload: KnowledgeDocumentUploadPayload) => Promise<void>;
 }
 
@@ -1505,7 +1508,7 @@ type UploadFormValues = z.infer<typeof uploadSchema>;
  */
 type BudgetFieldName = "maxChars" | "overlapChars" | "rowsPerChunk" | "toleranceFactor";
 
-function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
+function UploadDialog({ open, onOpenChange, kbId, onSubmit }: UploadDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1516,6 +1519,10 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
   const [pipelines, setPipelines] = useState<IngestionPipeline[]>([]);
   const [loadingPipelines, setLoadingPipelines] = useState(false);
   const [maxFileSize, setMaxFileSize] = useState<number>(50 * 1024 * 1024);
+  const [chunkPreview, setChunkPreview] = useState<KnowledgeDocumentChunkPreview | null>(null);
+  const [previewChunkIndex, setPreviewChunkIndex] = useState(0);
+  const [showEmbeddingText, setShowEmbeddingText] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   const form = useForm<UploadFormValues>({
     resolver: zodResolver(uploadSchema),
@@ -1579,6 +1586,9 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
       });
       setNoChunk(false);
       setShowAdvanced(false);
+      setChunkPreview(null);
+      setPreviewChunkIndex(0);
+      setShowEmbeddingText(false);
       loadPipelines();
       getIngestionSpecSchema().then(setSpecSchema).catch(() => {});
       getSystemSettings()
@@ -1605,6 +1615,49 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
   // 于是也不需要"存一份原值再还原"那套腾挪
   const handleNoChunkToggle = () => setNoChunk(prev => !prev);
 
+  const currentIngestionSpec = (values: UploadFormValues) => {
+    if (values.processMode !== "chunk") return undefined;
+    const budgetValues: Record<string, string> = {};
+    for (const field of specSchema?.budgetFields ?? []) {
+      budgetValues[field.key] = values[field.key as BudgetFieldName] ?? "";
+    }
+    return buildIngestionSpec(showParseProfile ? (values.parseProfile || "fast") : "fast",
+      budgetValues, specSchema, noChunk);
+  };
+
+  const handlePreview = async (values: UploadFormValues) => {
+    if (values.sourceType !== "file" || !file) {
+      toast.error("请先选择本地文件，再进行预切分");
+      return;
+    }
+    if (values.processMode !== "chunk") {
+      toast.error("预切分预览目前只支持直接分块模式");
+      return;
+    }
+    if (file.size > maxFileSize) {
+      const sizeMB = Math.floor(maxFileSize / 1024 / 1024);
+      toast.error(`文件大小超过限制，最大允许 ${sizeMB}MB`);
+      return;
+    }
+    if (!kbId) {
+      toast.error("知识库信息缺失，请刷新页面后重试");
+      return;
+    }
+
+    setPreviewing(true);
+    try {
+      const result = await previewDocumentChunks(kbId, file, currentIngestionSpec(values) ?? "{}");
+      setChunkPreview(result);
+      setPreviewChunkIndex(0);
+      setShowEmbeddingText(false);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "预切分失败"));
+      console.error(error);
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
   const handleSubmit = async (values: UploadFormValues) => {
     if (values.sourceType === "file" && !file) {
       toast.error("请选择文件");
@@ -1616,15 +1669,7 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
       return;
     }
 
-    const budgetValues: Record<string, string> = {};
-    for (const field of specSchema?.budgetFields ?? []) {
-      budgetValues[field.key] = values[field.key as BudgetFieldName] ?? "";
-    }
-
-    const ingestionSpec = values.processMode === "chunk"
-      ? buildIngestionSpec(showParseProfile ? (values.parseProfile || "fast") : "fast",
-          budgetValues, specSchema, noChunk)
-      : undefined;
+    const ingestionSpec = currentIngestionSpec(values);
 
     setSaving(true);
     try {
@@ -1650,17 +1695,97 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
     }
   };
 
+  const activePreviewChunk = chunkPreview?.chunks[previewChunkIndex];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[90vh] overflow-y-auto sidebar-scroll sm:max-w-[620px]"
+        className={cn("max-h-[90vh] overflow-y-auto sidebar-scroll", chunkPreview ? "sm:max-w-[900px]" : "sm:max-w-[620px]")}
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => { e.preventDefault(); requestAnimationFrame(() => (document.activeElement as HTMLElement)?.blur()); }}
       >
         <DialogHeader>
-          <DialogTitle>上传文档</DialogTitle>
-          <DialogDescription>支持本地文件或远程URL，并配置分块策略</DialogDescription>
+          <DialogTitle>{chunkPreview ? "预切分预览" : "上传文档"}</DialogTitle>
+          <DialogDescription>
+            {chunkPreview
+              ? `${chunkPreview.fileName} · ${chunkPreview.parserType} · ${chunkPreview.chunkCount} 个文本块`
+              : "支持本地文件或远程URL，并配置分块策略"}
+          </DialogDescription>
         </DialogHeader>
+        {chunkPreview ? (
+          <div className="space-y-4">
+            <div className="grid gap-3 rounded-lg border bg-muted/20 p-3 text-sm sm:grid-cols-3">
+              <div><span className="text-muted-foreground">解析类型：</span>{chunkPreview.mimeType || "未知"}</div>
+              <div><span className="text-muted-foreground">解析区块：</span>{chunkPreview.blockCount}</div>
+              <div><span className="text-muted-foreground">切分结果：</span>{chunkPreview.chunkCount} 块</div>
+            </div>
+
+            {chunkPreview.warnings.length > 0 ? (
+              <div className="space-y-1 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                {chunkPreview.warnings.map((warning, index) => <p key={index}>{warning}</p>)}
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  aria-label="上一块"
+                  disabled={previewChunkIndex <= 0}
+                  onClick={() => setPreviewChunkIndex((index) => Math.max(0, index - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="min-w-24 text-center text-sm font-medium">
+                  第 {previewChunkIndex + 1} / {chunkPreview.chunks.length} 块
+                </span>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  aria-label="下一块"
+                  disabled={previewChunkIndex >= chunkPreview.chunks.length - 1}
+                  onClick={() => setPreviewChunkIndex((index) => Math.min(chunkPreview.chunks.length - 1, index + 1))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button type="button" size="sm" variant={showEmbeddingText ? "outline" : "default"} onClick={() => setShowEmbeddingText(false)}>
+                  文本块
+                </Button>
+                <Button type="button" size="sm" variant={showEmbeddingText ? "default" : "outline"} onClick={() => setShowEmbeddingText(true)}>
+                  Embedding 文本
+                </Button>
+              </div>
+            </div>
+
+            {activePreviewChunk ? (
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <span>章节：{activePreviewChunk.outlinePath?.length ? activePreviewChunk.outlinePath.join(" / ") : "无章节路径"}</span>
+                  <span>{showEmbeddingText ? activePreviewChunk.embeddingCharCount : activePreviewChunk.contentCharCount} 字符</span>
+                </div>
+                <pre className="max-h-[48vh] min-h-56 overflow-auto rounded-lg border bg-muted/20 p-4 font-mono text-xs leading-6 whitespace-pre-wrap break-words">
+                  {showEmbeddingText ? activePreviewChunk.embeddingText : activePreviewChunk.content}
+                </pre>
+              </div>
+            ) : (
+              <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">没有可展示的文本块</div>
+            )}
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="outline" onClick={() => setChunkPreview(null)} disabled={saving}>
+                返回修改配置
+              </Button>
+              <Button type="button" onClick={() => void form.handleSubmit(handleSubmit)()} disabled={saving}>
+                {saving ? "上传中..." : "按当前配置上传"}
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
         <Form {...form}>
           {/*
             noValidate：预算输入框上的 min / max 只作提示（步进与红框），不参与拦截。
@@ -1963,12 +2088,22 @@ function UploadDialog({ open, onOpenChange, onSubmit }: UploadDialogProps) {
               <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
                 取消
               </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void form.handleSubmit(handlePreview)()}
+                disabled={saving || previewing || isUrlSource || isPipelineMode || !file}
+                title={isUrlSource || isPipelineMode ? "预览仅支持本地文件的直接分块模式" : undefined}
+              >
+                {previewing ? "预切分中..." : "预切分预览"}
+              </Button>
               <Button type="submit" disabled={saving}>
                 {saving ? "上传中..." : "上传"}
               </Button>
             </DialogFooter>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -63,7 +63,7 @@ final class ChannelAttribution {
     }
 
     /**
-     * 统计给定 chunks 按通道的分布（多路命中的 chunk 在每个命中通道各计一次），如 {意图定向=4, 图谱=8}
+     * 统计给定 chunks 按通道的分布（多路命中的 chunk 在每个命中通道各计一次），如 {向量=4, 图谱=8}
      */
     static Map<SearchChannelType, Integer> countByChannel(List<RetrievedChunk> chunks,
                                                           Map<String, Set<SearchChannelType>> index) {
@@ -94,7 +94,7 @@ final class ChannelAttribution {
     }
 
     /**
-     * 通道分布转中文可读串，如「意图定向=4 图谱=8 关键词=6」
+     * 通道分布转中文可读串，如「向量=4 图谱=8 关键词=6」
      */
     static String format(Map<SearchChannelType, Integer> counts) {
         if (counts.isEmpty()) {

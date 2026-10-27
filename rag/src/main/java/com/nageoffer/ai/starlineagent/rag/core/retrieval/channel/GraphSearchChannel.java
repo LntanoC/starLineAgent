@@ -38,20 +38,13 @@ import java.util.List;
  * <p>
  * 与其他通道并行执行，结果统一进 RRF 融合，通道间无先后与优先级之分
  * <p>
- * 说明：LightRAG /query 无 per-request workspace，单实例即单图，故本通道查全图后在结果侧按 file_path 归属切分；
- * 真正的子图隔离需多实例，留待后续阶段
+ * 说明：LightRAG /query 无 per-request workspace，单实例即单图，本通道查全图后按 file_path 过滤已停用知识库的残留证据。
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "rag.graph", name = "type", havingValue = "lightrag")
 public class GraphSearchChannel implements SearchChannel {
-
-    /**
-     * 定向过滤时向 LightRAG 的请求量上浮倍数
-     * 结果侧过滤在 top_k 截断后再筛掉跨库证据，命中库证据可能变少，多取以补召回；全局过滤只筛残留，不上浮
-     */
-    private static final int FILTER_TOPK_BOOST = 3;
 
     private final LightRagClient lightRagClient;
     private final GraphProperties graphProperties;
@@ -76,7 +69,6 @@ public class GraphSearchChannel implements SearchChannel {
     public SearchChannelResult search(SearchContext context) {
         long startTime = System.currentTimeMillis();
         try {
-            // 作用域由引擎统一解析：定向为命中库，全局为全部有效库
             // 全局也下发库集做结果侧过滤：图谱删除是 best-effort，已删库的残留只能在这里拦住
             RetrievalScope scope = context.getRetrievalScope();
             List<String> collections = scope.targetCollections();
@@ -86,29 +78,27 @@ public class GraphSearchChannel implements SearchChannel {
             }
 
             int baseTopK = context.getBudget().recallBudget();
-            int topK = scope.directed() ? baseTopK * FILTER_TOPK_BOOST : baseTopK;
             String queryMode = graphProperties.getLightrag().getQueryMode();
 
             GraphEvidence evidence = lightRagClient.retrieveByScope(
-                    context.getMainQuestion(), queryMode, topK, collections);
-            if (!scope.directed() && !evidence.unmatched().isEmpty()) {
+                    context.getMainQuestion(), queryMode, baseTopK, collections);
+            if (!evidence.unmatched().isEmpty()) {
                 log.warn("图谱全局检索过滤掉 {} 条无主证据（已删库残留或解析失败），残留会挤占 top_k 名额，建议清理图谱",
                         evidence.unmatched().size());
             }
-            ScopeQuota quota = ScopeQuota.split(scope, baseTopK, properties.getScope().getSupplementRatio());
-            List<RetrievedChunk> primary = ScopeQuota.cap(evidence.matched(), quota.primary());
-            List<RetrievedChunk> supplement = ScopeQuota.cap(evidence.unmatched(), quota.supplement());
+            List<RetrievedChunk> chunks = evidence.matched().size() > baseTopK
+                    ? List.copyOf(evidence.matched().subList(0, baseTopK))
+                    : evidence.matched();
 
             long latency = System.currentTimeMillis() - startTime;
-            log.info("图谱检索完成，范围={}，命中 {} 条，补充 {} 条，耗时 {}ms",
-                    scope.directed() ? collections : "全局(" + collections.size() + "库)",
-                    primary.size(), supplement.size(), latency);
+            log.info("图谱全局检索完成，范围={}库，命中 {} 条，耗时 {}ms",
+                    collections.size(), chunks.size(), latency);
 
             // 两份候选的分数同出一个全图名次序，按分混排即还原图谱自己的排序
             return SearchChannelResult.builder()
                     .channelType(SearchChannelType.GRAPH)
                     .channelName(getName())
-                    .chunks(ChunkRanking.mergeByScore(primary, supplement))
+                    .chunks(chunks)
                     .latencyMs(latency)
                     .build();
         } catch (Exception e) {

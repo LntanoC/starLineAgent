@@ -55,16 +55,8 @@ public class EvalResponse {
      */
     private boolean hasKb;
 
-    /**
-     * 子问题列表（改写拆分结果）
-     */
-    private List<String> subIntents;
-
-    /**
-     * 每个子问题 top-1 的意图叶子节点 id，与 subIntents 同序（无候选时为 null）
-     * 评测脚本据此与评估集 intent_l2 比对，计算 Top-1 准确率
-     */
-    private List<String> intentLeafIds;
+    /** 改写后的子问题列表。 */
+    private List<String> subQuestions;
 
     /**
      * 总耗时（毫秒）
