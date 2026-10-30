@@ -41,6 +41,19 @@ export interface McpToolRecallResult {
   vectorFallback: boolean;
 }
 
+export interface McpServerAdminItem {
+  id: string;
+  name: string;
+  url: string;
+  connected: boolean;
+  toolCount: number;
+}
+
+export interface McpServerSavePayload {
+  name: string;
+  url: string;
+}
+
 export async function getMcpTools(): Promise<McpToolRegistryItem[]> {
   return api.get<McpToolRegistryItem[], McpToolRegistryItem[]>("/admin/mcp-tools");
 }
@@ -61,4 +74,20 @@ export async function rebuildMcpToolVectors(): Promise<{ rebuilt: number }> {
 
 export async function recallMcpTools(query: string): Promise<McpToolRecallResult> {
   return api.post<McpToolRecallResult, McpToolRecallResult>("/admin/mcp-tools/recall-test", { query });
+}
+
+export async function getMcpServers(): Promise<McpServerAdminItem[]> {
+  return api.get<McpServerAdminItem[], McpServerAdminItem[]>("/admin/mcp-servers");
+}
+
+export async function createMcpServer(payload: McpServerSavePayload): Promise<McpServerAdminItem> {
+  return api.post<McpServerAdminItem, McpServerSavePayload>("/admin/mcp-servers", payload);
+}
+
+export async function updateMcpServer(id: string, payload: McpServerSavePayload): Promise<McpServerAdminItem> {
+  return api.put<McpServerAdminItem, McpServerSavePayload>(`/admin/mcp-servers/${encodeURIComponent(id)}`, payload);
+}
+
+export async function deleteMcpServer(id: string): Promise<void> {
+  await api.delete(`/admin/mcp-servers/${encodeURIComponent(id)}`);
 }

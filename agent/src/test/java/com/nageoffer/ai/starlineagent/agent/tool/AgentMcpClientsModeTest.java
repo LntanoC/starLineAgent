@@ -20,11 +20,20 @@ package com.nageoffer.ai.starlineagent.agent.tool;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
+import java.util.List;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AgentMcpClientsModeTest {
 
     private final ApplicationContextRunner contexts = new ApplicationContextRunner()
+            .withBean(AgentMcpServerRegistry.class, () -> {
+                AgentMcpServerRegistry registry = mock(AgentMcpServerRegistry.class);
+                when(registry.list()).thenReturn(List.of());
+                return registry;
+            })
             .withUserConfiguration(AgentMcpClients.class);
 
     @Test

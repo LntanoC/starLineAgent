@@ -6,11 +6,14 @@
 
 - 2 个知识库：提醒与核验规则、票务平台说明。
 - 6 篇知识文档：规则 1 篇、平台说明 5 篇。
-- 3 个 MCP 工具，由 `mcp-tools/*.properties` 独立声明。
+- 5 个 MCP 工具，由 `mcp-tools/*.properties` 独立声明。
+- 1 份可渐进加载的普通出行与观演规划技能手册。
 - 6 条知识型示例问题；预热不执行创建提醒等写操作。
 - 星序助手人设和 3 个 Agent 提示词槽位。
 
 演出查询需要 MCP 服务配置 `YDC_API_KEY`。未配置时，联网搜索 MCP 工具不注册；日期工具仍可用。不要将密钥写入本页。
+
+普通路线与观演出行规划需要 MCP 服务配置高德 Web 服务 Key `AMAP_API_KEY`。未配置时，`plan_trip` 和 `plan_event_trip` 工具不会注册。
 
 ## 初始化影响
 
@@ -68,3 +71,9 @@ java -cp /tmp/starlineagent-initializer-classes \
 | `InitializeMain` | 按顺序完成清理、重建、校验和预热 | 是 |
 
 每个入口都会校验模板并使用 `initializer.properties` 指定的服务连接。`--skip-warmup` 可跳过完整初始化最后的示例问答，但不会跳过清理和重建。
+
+## 独立题库：林俊杰
+
+`resources/initializer/lin-junjie-quiz/` 是独立知识库数据集，不属于星序业务模板。题库 Markdown 原文放在 `docs/knowledge/`，Collection 为 `lin_junjie_quiz`，使用与现有星序知识库相同的 `qwen-emb-8b` 嵌入模型。数据集不包含全量清理脚本；导入时只运行 `KnowledgeBaseInitMain` 和 `DocumentInitMain`，不要运行 `InitializeMain` 或 `CleanupMain`。
+
+配置默认读取项目 `application.yaml`，服务器地址和管理员身份可分别通过 `STARLINEAGENT_BASE_URL`、`STARLINEAGENT_ADMIN_USERNAME`、`STARLINEAGENT_ADMIN_PASSWORD` 覆写。口令只从环境变量读取。导入前先运行 `ValidateDatasetMain` 校验数据集和 SHA-256。

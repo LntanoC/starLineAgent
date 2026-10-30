@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshCw, Search, Settings2, Sparkles, Wrench } from "lucide-react";
+import { Pencil, Plus, RefreshCw, Search, Settings2, Sparkles, Trash2, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -19,13 +19,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import {
   getMcpTools,
+  createMcpServer,
+  deleteMcpServer,
+  getMcpServers,
   rebuildMcpToolVectors,
   recallMcpTools,
   syncMcpTools,
+  updateMcpServer,
   updateMcpTool,
+  type McpServerAdminItem,
   type McpToolRecallResult,
   type McpToolRegistryItem,
-  type McpToolUpdatePayload
+  type McpToolUpdatePayload,
+  type McpServerSavePayload
 } from "@/services/mcpToolService";
 import { getErrorMessage } from "@/utils/error";
 
@@ -40,18 +46,24 @@ function BooleanSetting({ label, value, onChange }: { label: string; value: bool
 
 export function McpToolPage() {
   const [tools, setTools] = useState<McpToolRegistryItem[]>([]);
+  const [servers, setServers] = useState<McpServerAdminItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [editing, setEditing] = useState<McpToolRegistryItem | null>(null);
   const [draft, setDraft] = useState<McpToolUpdatePayload | null>(null);
+  const [serverDialogOpen, setServerDialogOpen] = useState(false);
+  const [editingServer, setEditingServer] = useState<McpServerAdminItem | null>(null);
+  const [serverDraft, setServerDraft] = useState<McpServerSavePayload | null>(null);
   const [recallQuery, setRecallQuery] = useState("");
   const [recallResult, setRecallResult] = useState<McpToolRecallResult | null>(null);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      setTools(await getMcpTools());
+      const [toolRows, serverRows] = await Promise.all([getMcpTools(), getMcpServers()]);
+      setTools(toolRows);
+      setServers(serverRows);
     } catch (error) {
       toast.error(getErrorMessage(error, "加载 MCP 工具注册表失败"));
     } finally {
@@ -79,6 +91,46 @@ export function McpToolPage() {
       sortOrder: tool.sortOrder ?? 900,
       remark: tool.remark || ""
     });
+  };
+
+  const openServerEditor = (server?: McpServerAdminItem) => {
+    setEditingServer(server || null);
+    setServerDraft({ name: server?.name || "", url: server?.url || "" });
+    setServerDialogOpen(true);
+  };
+
+  const saveServer = async () => {
+    if (!serverDraft) return;
+    try {
+      setWorking(true);
+      if (editingServer) {
+        await updateMcpServer(editingServer.id, serverDraft);
+        toast.success("MCP 服务已更新，连接已刷新");
+      } else {
+        await createMcpServer(serverDraft);
+        toast.success("MCP 服务已添加，正在连接");
+      }
+      setServerDialogOpen(false);
+      await load();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "保存 MCP 服务失败"));
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const removeServer = async (server: McpServerAdminItem) => {
+    if (!window.confirm(`删除 MCP 服务“${server.name}”？该服务会立即断开，已同步的工具记录会保留。`)) return;
+    try {
+      setWorking(true);
+      await deleteMcpServer(server.id);
+      toast.success("MCP 服务已删除并断开");
+      await load();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "删除 MCP 服务失败"));
+    } finally {
+      setWorking(false);
+    }
   };
 
   const save = async () => {
@@ -149,6 +201,48 @@ export function McpToolPage() {
       </div>
 
       <Card>
+        <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+          <div>
+            <CardTitle className="text-base">MCP 服务连接</CardTitle>
+            <CardDescription>管理 Agent 要连接的 MCP 服务。保存后会立即连接并发现工具。</CardDescription>
+          </div>
+          <Button onClick={() => openServerEditor()} disabled={working}>
+            <Plus className="mr-2 h-4 w-4" />添加服务
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {servers.length === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">还没有 MCP 服务连接。</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table className="min-w-[760px]">
+                <TableHeader><TableRow>
+                  <TableHead>服务名称</TableHead><TableHead>服务地址</TableHead><TableHead>连接状态</TableHead>
+                  <TableHead>工具数</TableHead><TableHead className="w-40">操作</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>{servers.map((server) => (
+                  <TableRow key={server.id}>
+                    <TableCell className="font-medium">{server.name}</TableCell>
+                    <TableCell><code className="text-xs">{server.url}</code></TableCell>
+                    <TableCell><Badge variant={server.connected ? "default" : "secondary"}>{server.connected ? "已连接" : "未连接"}</Badge></TableCell>
+                    <TableCell>{server.toolCount}</TableCell>
+                    <TableCell className="space-x-2">
+                      <Button size="sm" variant="outline" onClick={() => openServerEditor(server)} disabled={working}>
+                        <Pencil className="mr-1 h-3.5 w-3.5" />编辑
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => void removeServer(server)} disabled={working}>
+                        <Trash2 className="mr-1 h-3.5 w-3.5" />删除
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}</TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle className="text-base">工具注册表</CardTitle>
           <CardDescription>同步只登记远端工具，不会自动开放权限。新工具须人工审核后启用。</CardDescription>
@@ -201,6 +295,32 @@ export function McpToolPage() {
           </div> : null}
         </CardContent>
       </Card>
+
+      <Dialog open={serverDialogOpen} onOpenChange={(open) => !open && setServerDialogOpen(false)}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{editingServer ? "编辑 MCP 服务" : "添加 MCP 服务"}</DialogTitle>
+            <DialogDescription>填写服务名称与 HTTP/HTTPS 地址；地址末尾的 /mcp 可省略。</DialogDescription>
+          </DialogHeader>
+          {serverDraft ? <div className="space-y-4">
+            <label className="block space-y-2 text-sm">
+              <span>服务名称</span>
+              <Input maxLength={64} value={serverDraft.name} onChange={(event) => setServerDraft({ ...serverDraft, name: event.target.value })} placeholder="例如：starline-mcp" />
+            </label>
+            <label className="block space-y-2 text-sm">
+              <span>服务地址</span>
+              <Input type="url" maxLength={512} value={serverDraft.url} onChange={(event) => setServerDraft({ ...serverDraft, url: event.target.value })} placeholder="例如：http://starline-mcp:9099" />
+            </label>
+            <p className="text-xs text-muted-foreground">需要从 API 容器网络可访问。当前不支持在地址中填写账号、密码或 URL 参数。</p>
+          </div> : null}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setServerDialogOpen(false)}>取消</Button>
+            <Button onClick={() => void saveServer()} disabled={working || !serverDraft?.name.trim() || !serverDraft?.url.trim()}>
+              {editingServer ? "保存" : "添加并连接"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-w-2xl">

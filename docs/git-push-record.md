@@ -1226,3 +1226,71 @@ GitHub 页面截图显示 `main` 最新提交仍为 `7956e49`。本地 `main` �
 - `resources/docker/server/releases/starline-20261022/application.yaml`、`schema_pg.sql`：服务器发布快照，按要求不推送。
 - `.workbuddy-ai/`：本地工作记忆和报告，不属于项目交付内容。
 - `target/`、前端构建目录、服务器操作记录及临时部署文件：不进入 Git。
+
+## 2026-10-30：MCP 服务管理、行程规划与项目资料
+
+### 本次推送说明
+
+推送当前工作区的全部项目改动，共 46 个文件（13 个修改、32 个新增，以及本推送记录）。包含管理端 MCP 服务连接管理、普通路线与观演行程规划、初始化资源/题库数据和相关设计维护文档。
+
+### 文件清单
+
+| 文件 | 修改内容 |
+| --- | --- |
+| `agent/src/main/java/com/nageoffer/ai/starlineagent/agent/tool/AgentMcpClients.java` | 支持从持久化服务配置创建和热更新 MCP 客户端。 |
+| `agent/src/test/java/com/nageoffer/ai/starlineagent/agent/tool/AgentMcpClientsModeTest.java` | 更新 MCP 客户端模式测试。 |
+| `agent/src/main/java/com/nageoffer/ai/starlineagent/agent/controller/McpServerAdminController.java` | 新增管理员 MCP 服务连接管理 API。 |
+| `agent/src/main/java/com/nageoffer/ai/starlineagent/agent/tool/AgentMcpServerConfig.java` | 新增 MCP 服务配置模型。 |
+| `agent/src/main/java/com/nageoffer/ai/starlineagent/agent/tool/AgentMcpServerRegistry.java` | 新增 MCP 服务配置持久化、校验及热更新注册表。 |
+| `frontend/src/pages/admin/mcp-tools/McpToolPage.tsx` | 在 MCP 管理页增加服务连接的新增、编辑和删除界面。 |
+| `frontend/src/services/mcpToolService.ts` | 增加 MCP 服务连接管理 API 调用。 |
+| `resources/docker/server/releases/starline-20261022/20261030_mcp_server_registry.sql` | 新增生产库 MCP 服务注册表迁移。 |
+| `resources/docker/server/releases/starline-20261022/schema_pg.sql` | 同步新库初始化结构并移除已下线的 RAG 意图树配置。 |
+| `resources/docker/server/releases/starline-20261022/application.yaml` | 更新全局知识库检索配置，移除意图树检索作用域参数。 |
+| `resources/docker/server/releases/starline-20261022/starline-app.compose.yaml` | 将高德 Web 服务 Key 从环境变量传入 MCP 容器。 |
+| `resources/docker/server/.env.example` | 增加空值 `AMAP_API_KEY` 配置示例。 |
+| `docs/change-log.md` | 更新项目变更索引。 |
+| `docs/change-log/2026-10-29.md` | 记录通用路线、观演规划、题库数据集和生产路由修复。 |
+| `docs/change-log/2026-10-30.md` | 记录 MCP 服务管理与本次部署结果。 |
+| `docs/design/event-trip-planning.md` | 记录演出行程规划和普通路线查询设计。 |
+| `docs/design/seat-view-system-design.md` | 新增座位视野系统设计说明。 |
+| `docs/maintenance/degradation-observability-refactor.md` | 新增降级与可观测性改造方案。 |
+| `docs/maintenance/performance-defense-trimming.md` | 新增性能防护与裁剪维护方案。 |
+| `docs/initialization/README.md` | 更新行程规划、Key 配置及初始化资源说明。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/config/AmapApiKeyConfiguredCondition.java` | 仅在配置高德 Key 时启用出行工具。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/AmapRouteClient.java` | 实现地址解析及高德驾车、公交、步行路线查询。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/RouteProvider.java` | 定义观演路线查询接口。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/TripPlanMcpExecutor.java` | 新增只读观演行程规划 MCP 工具。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/TripPlanProperties.java` | 配置观演到场缓冲时间。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/TripRouteMcpExecutor.java` | 新增普通跨城路线查询 MCP 工具。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/TripRouteProvider.java` | 定义通用路线查询接口。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/TripTimeCalculator.java` | 按路线时长倒推出发时间并处理边界条件。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/model/GeoPoint.java` | 新增地理坐标值对象。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/model/TripLeg.java` | 新增路线段数据结构。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/model/TripPlan.java` | 新增观演行程规划结果结构。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/model/TripPlanInput.java` | 新增观演行程规划输入结构。 |
+| `mcp-server/src/main/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/model/TripRoutePlan.java` | 新增普通路线查询结果结构。 |
+| `mcp-server/src/test/java/com/nageoffer/ai/starlineagent/mcp/executor/starline/trip/TripTimeCalculatorTest.java` | 覆盖行程时间计算及边界情况。 |
+| `resources/initializer/starline-events/checksums.sha256` | 更新星序初始化资源校验和。 |
+| `resources/initializer/starline-events/initializer.properties` | 更新初始化工具、技能数量及资源配置。 |
+| `resources/initializer/starline-events/prompts/agent-main.txt` | 指导 Agent 将普通问路分流到路线查询技能。 |
+| `resources/initializer/starline-events/mcp-tools/plan_event_trip.properties` | 新增观演行程规划工具注册资源。 |
+| `resources/initializer/starline-events/mcp-tools/plan_trip.properties` | 新增普通路线查询工具注册资源。 |
+| `resources/initializer/starline-events/skills/trip_planning.md` | 编写行程规划技能调用顺序和信息边界。 |
+| `resources/initializer/starline-events/skills/trip_planning.properties` | 新增行程规划技能元数据。 |
+| `resources/initializer/lin-junjie-quiz/checksums.sha256` | 新增题库数据集校验和清单。 |
+| `resources/initializer/lin-junjie-quiz/docs/knowledge/林俊杰题库_RAG知识库.md` | 添加独立 RAG 题库知识文档。 |
+| `resources/initializer/lin-junjie-quiz/initializer.properties` | 配置题库数据集分步导入参数。 |
+| `resources/initializer/lin-junjie-quiz/knowledge-bases.properties` | 配置题库知识库、Collection 和嵌入模型。 |
+| `docs/git-push-record.md` | 记录本次推送的完整文件清单及范围。 |
+
+### 本次排除项
+
+- `.hallmark/`、`.workbuddy-ai/`：本地工作状态、记忆和报告，不属于项目提交内容。
+- `docs/server-operations*`：服务器操作日志及临时 SQL 不进入 Git。
+- `target/`、前端构建目录及临时部署工件：生成物不进入 Git。
+- 本次差异仅新增空的 `AMAP_API_KEY` 示例和环境变量透传；不包含真实 Key。配置文件中的既有凭据行没有改动。
+
+### 远端状态
+
+- 推送前 `git fetch origin` 因本机到 GitHub 的 HTTPS 连接超时失败；推送时需再次确认远端是否可连接。若本地提交落后远端，停止推送并先处理同步，不覆盖远端提交。

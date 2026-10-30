@@ -70,6 +70,7 @@ services:
       SERVER_PORT: '9099'
       YDC_API_KEY: ${YDC_API_KEY:-}
       YUANBAO_SEARCH_API_KEY: ${YUANBAO_SEARCH_API_KEY:-}
+      AMAP_API_KEY: ${AMAP_API_KEY:-}
       STARLINEAGENT_ARTIST_EVENT_SEARCH_SOURCE_REGISTRY_URL: http://starline-api:9090/api/starlineagent/internal/starline/platform-sources/whitelist
     expose:
       - '9099'

@@ -939,147 +939,6 @@ COMMENT ON COLUMN t_starline_event_reminder.reminder_status IS
     'ACTIVE=仍关注，CANCELLED=用户已取消';
 COMMENT ON TABLE t_starline_calendar_token IS
     '星序日历订阅凭证；仅用于读取当前用户的 iCal 活动订阅';
-CREATE INDEX IF NOT EXISTS idx_starline_user_created
-    ON t_starline_event_reminder (user_id, created_time DESC);
-
-CREATE TABLE IF NOT EXISTS t_starline_calendar_token (
-    id                VARCHAR(64) PRIMARY KEY,
-    user_id           VARCHAR(64) NOT NULL,
-    token             VARCHAR(64) NOT NULL UNIQUE,
-    created_time      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_access_time  TIMESTAMP,
-    revoked           SMALLINT NOT NULL DEFAULT 0 CHECK (revoked IN (0, 1))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS uk_starline_calendar_token_active_user
-    ON t_starline_calendar_token (user_id) WHERE revoked = 0;
-
-COMMENT ON TABLE t_starline_event_reminder IS
-    '星序活动关注记录：已公布开票时间的活动通过 iCal 订阅提前 10 分钟提醒';
-COMMENT ON COLUMN t_starline_event_reminder.ticket_time IS
-    '开票时间；为空时表示待公布，不进入日历订阅';
-COMMENT ON COLUMN t_starline_event_reminder.reminder_status IS
-    'ACTIVE=仍关注，CANCELLED=用户已取消';
-COMMENT ON TABLE t_starline_calendar_token IS
-    '星序日历订阅凭证；仅用于读取当前用户的 iCal 活动订阅';
-CREATE INDEX IF NOT EXISTS idx_starline_user_created
-    ON t_starline_event_reminder (user_id, created_time DESC);
-
-CREATE TABLE IF NOT EXISTS t_starline_calendar_token (
-    id                VARCHAR(64) PRIMARY KEY,
-    user_id           VARCHAR(64) NOT NULL,
-    token             VARCHAR(64) NOT NULL UNIQUE,
-    created_time      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_access_time  TIMESTAMP,
-    revoked           SMALLINT NOT NULL DEFAULT 0 CHECK (revoked IN (0, 1))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS uk_starline_calendar_token_active_user
-    ON t_starline_calendar_token (user_id) WHERE revoked = 0;
-
-COMMENT ON TABLE t_starline_event_reminder IS
-    '星序活动关注记录：已公布开票时间的活动通过 iCal 订阅提前 10 分钟提醒';
-COMMENT ON COLUMN t_starline_event_reminder.ticket_time IS
-    '开票时间；为空时表示待公布，不进入日历订阅';
-COMMENT ON COLUMN t_starline_event_reminder.reminder_status IS
-    'ACTIVE=仍关注，CANCELLED=用户已取消';
-COMMENT ON TABLE t_starline_calendar_token IS
-    '星序日历订阅凭证；仅用于读取当前用户的 iCal 活动订阅';
-CREATE INDEX IF NOT EXISTS idx_starline_user_created
-    ON t_starline_event_reminder (user_id, created_time DESC);
-
-CREATE TABLE IF NOT EXISTS t_starline_calendar_token (
-    id                VARCHAR(64) PRIMARY KEY,
-    user_id           VARCHAR(64) NOT NULL,
-    token             VARCHAR(64) NOT NULL UNIQUE,
-    created_time      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_access_time  TIMESTAMP,
-    revoked           SMALLINT NOT NULL DEFAULT 0 CHECK (revoked IN (0, 1))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS uk_starline_calendar_token_active_user
-    ON t_starline_calendar_token (user_id) WHERE revoked = 0;
-
-COMMENT ON TABLE t_starline_event_reminder IS
-    '星序活动关注记录：已公布开票时间的活动通过 iCal 订阅提前 10 分钟提醒';
-COMMENT ON COLUMN t_starline_event_reminder.ticket_time IS
-    '开票时间；为空时表示待公布，不进入日历订阅';
-COMMENT ON COLUMN t_starline_event_reminder.reminder_status IS
-    'ACTIVE=仍关注，CANCELLED=用户已取消';
-COMMENT ON TABLE t_starline_calendar_token IS
-    '星序日历订阅凭证；仅用于读取当前用户的 iCal 活动订阅';
-CREATE INDEX IF NOT EXISTS idx_starline_user_created
-    ON t_starline_event_reminder (user_id, created_time DESC);
-
-CREATE TABLE IF NOT EXISTS t_starline_calendar_token (
-    id                VARCHAR(64) PRIMARY KEY,
-    user_id           VARCHAR(64) NOT NULL,
-    token             VARCHAR(64) NOT NULL UNIQUE,
-    created_time      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_access_time  TIMESTAMP,
-    revoked           SMALLINT NOT NULL DEFAULT 0 CHECK (revoked IN (0, 1))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS uk_starline_calendar_token_active_user
-    ON t_starline_calendar_token (user_id) WHERE revoked = 0;
-
-COMMENT ON TABLE t_starline_event_reminder IS
-    '星序活动关注记录：已公布开票时间的活动通过 iCal 订阅提前 10 分钟提醒';
-COMMENT ON COLUMN t_starline_event_reminder.ticket_time IS
-    '开票时间；为空时表示待公布，不进入日历订阅';
-COMMENT ON COLUMN t_starline_event_reminder.reminder_status IS
-    'ACTIVE=仍关注，CANCELLED=用户已取消';
-COMMENT ON TABLE t_starline_calendar_token IS
-    '星序日历订阅凭证；仅用于读取当前用户的 iCal 活动订阅';
-CREATE INDEX IF NOT EXISTS idx_starline_user_created
-    ON t_starline_event_reminder (user_id, created_time DESC);
-
-CREATE TABLE IF NOT EXISTS t_starline_calendar_token (
-    id                VARCHAR(64) PRIMARY KEY,
-    user_id           VARCHAR(64) NOT NULL,
-    token             VARCHAR(64) NOT NULL UNIQUE,
-    created_time      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_access_time  TIMESTAMP,
-    revoked           SMALLINT NOT NULL DEFAULT 0 CHECK (revoked IN (0, 1))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS uk_starline_calendar_token_active_user
-    ON t_starline_calendar_token (user_id) WHERE revoked = 0;
-
-COMMENT ON TABLE t_starline_event_reminder IS
-    '星序活动关注记录：已公布开票时间的活动通过 iCal 订阅提前 10 分钟提醒';
-COMMENT ON COLUMN t_starline_event_reminder.ticket_time IS
-    '开票时间；为空时表示待公布，不进入日历订阅';
-COMMENT ON COLUMN t_starline_event_reminder.reminder_status IS
-    'ACTIVE=仍关注，CANCELLED=用户已取消';
-COMMENT ON TABLE t_starline_calendar_token IS
-    '星序日历订阅凭证；仅用于读取当前用户的 iCal 活动订阅';
-CREATE INDEX IF NOT EXISTS idx_starline_user_created
-    ON t_starline_event_reminder (user_id, created_time DESC);
-
-CREATE TABLE IF NOT EXISTS t_starline_calendar_token (
-    id                VARCHAR(64) PRIMARY KEY,
-    user_id           VARCHAR(64) NOT NULL,
-    token             VARCHAR(64) NOT NULL UNIQUE,
-    created_time      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_access_time  TIMESTAMP,
-    revoked           SMALLINT NOT NULL DEFAULT 0 CHECK (revoked IN (0, 1))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS uk_starline_calendar_token_active_user
-    ON t_starline_calendar_token (user_id) WHERE revoked = 0;
-
-COMMENT ON TABLE t_starline_event_reminder IS
-    '星序活动关注记录：已公布开票时间的活动通过 iCal 订阅提前 10 分钟提醒';
-COMMENT ON COLUMN t_starline_event_reminder.ticket_time IS
-    '开票时间；为空时表示待公布，不进入日历订阅';
-COMMENT ON COLUMN t_starline_event_reminder.reminder_status IS
-    'ACTIVE=仍关注，CANCELLED=用户已取消';
-COMMENT ON TABLE t_starline_calendar_token IS
-    '星序日历订阅凭证；仅用于读取当前用户的 iCal 活动订阅';
-CREATE INDEX IF NOT EXISTS idx_starline_user_created
-    ON t_starline_event_reminder (user_id, created_time DESC);
-
 -- Starline administrator-managed official source allowlist
 CREATE TABLE IF NOT EXISTS t_starline_platform_source (
     id                          VARCHAR(64) PRIMARY KEY,
@@ -1486,6 +1345,19 @@ CREATE TABLE IF NOT EXISTS t_mcp_tool_vector (
     description_hash VARCHAR(64) NOT NULL,
     update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS t_agent_mcp_server (
+    id VARCHAR(20) NOT NULL PRIMARY KEY,
+    server_name VARCHAR(64) NOT NULL,
+    url VARCHAR(512) NOT NULL,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted SMALLINT NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_agent_mcp_server_name
+    ON t_agent_mcp_server (server_name) WHERE deleted = 0;
+CREATE INDEX IF NOT EXISTS idx_agent_mcp_server_deleted
+    ON t_agent_mcp_server (deleted, server_name);
+COMMENT ON TABLE t_agent_mcp_server IS 'Agent 可管理的 MCP 服务连接配置';
 COMMENT ON TABLE t_mcp_tool IS 'MCP 工具元数据与分发策略；与意图树解耦';
 COMMENT ON COLUMN t_mcp_tool.description IS '工具用途说明，同时作为 Tool RAG 检索语料';
 COMMENT ON COLUMN t_mcp_tool.resident IS '常驻工具直接进入 Agent 工具集，不参与召回';
