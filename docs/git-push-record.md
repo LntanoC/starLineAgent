@@ -1294,3 +1294,23 @@ GitHub 页面截图显示 `main` 最新提交仍为 `7956e49`。本地 `main` �
 ### 远端状态
 
 - 推送前 `git fetch origin` 因本机到 GitHub 的 HTTPS 连接超时失败；推送时需再次确认远端是否可连接。若本地提交落后远端，停止推送并先处理同步，不覆盖远端提交。
+
+## 2026-11-02：推送 Agent 工具路由与 Hallmark 前端改造
+
+### 推送范围
+
+- Agent 长任务阶段级工具路由：`agent/src/main/java/com/nageoffer/ai/starlineagent/agent/audit/AgentAuditMiddleware.java`、`agent/src/main/java/com/nageoffer/ai/starlineagent/agent/config/ReActAgentProvider.java`、`agent/src/main/java/com/nageoffer/ai/starlineagent/agent/service/impl/AgentChatServiceImpl.java`、`agent/src/main/java/com/nageoffer/ai/starlineagent/agent/skill/AgentSkillMaskingMiddleware.java`、`agent/src/main/java/com/nageoffer/ai/starlineagent/agent/tool/AgentRuntimeContextKeys.java`、`AgentToolCatalog.java`、`AgentToolRoutingService.java`、`ToolSearchTool.java`；逐文件说明见 `docs/change-log/2026-11-01.md`。
+- Hallmark 全站前端重设计：`design.md`、`.gitignore`、`frontend/index.html`、`frontend/index.html`、`frontend/tailwind.config.cjs`、`frontend/tests/dashboard-preview.tsx`，以及 `frontend/src/` 下组件、页面和样式文件；逐文件清单和摘要见 `docs/change-log/2026-10-29.md`。
+- 变更记录：`docs/change-log.md`、`docs/change-log/2026-10-29.md`、`docs/change-log/2026-11-01.md` 及本推送记录。
+
+### 排除范围
+
+- `.hallmark/` 本地截图、审计报告和临时资源。
+- `.workbuddy-ai/` 本机工作记忆与报告。
+- `docs/server-operations/` 运维记录、运行时配置、凭据及构建产物。
+
+### 推送目标与状态
+
+- 目标：`origin/main`。前端补丁将基于当前 `origin/main` 迁移；迁移后核验 MCP 管理页面改动未丢失。
+- 前端构建和 Hallmark 页面验收已在本轮设计完成时通过；后端构建结果见 `docs/change-log/2026-11-01.md`。本次不运行测试套件。
+- 本记录先于暂存与推送更新；推送前将核对 staged 路径仅包含上述项目改动。

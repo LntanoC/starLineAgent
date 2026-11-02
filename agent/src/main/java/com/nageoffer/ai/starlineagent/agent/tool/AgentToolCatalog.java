@@ -60,7 +60,8 @@ public class AgentToolCatalog {
      * Toolkit 按名注册会覆盖，这几个名字不许 MCP 工具占用
      */
     private static final Set<String> RESERVED_TOOL_NAMES = Set.of(
-            KnowledgeSearchTool.TOOL_NAME, MemoryFlushTool.TOOL_NAME, SkillLoadTool.TOOL_NAME);
+            KnowledgeSearchTool.TOOL_NAME, MemoryFlushTool.TOOL_NAME, SkillLoadTool.TOOL_NAME,
+            ToolSearchTool.TOOL_NAME);
 
     private final KnowledgeSearchFacade knowledgeSearchFacade;
     private final McpToolRegistryService mcpToolRegistry;
@@ -86,6 +87,21 @@ public class AgentToolCatalog {
         ToolRagService.RecallResult recall = question == null || question.isBlank()
                 ? toolRagService.recallAll()
                 : toolRagService.recall(question, protectedToolIds);
+        return resolveCatalog(prompts, skills, recall);
+    }
+
+    /**
+     * Long-running ReAct runs keep the full dispatchable tool universe registered internally;
+     * AgentSkillMaskingMiddleware exposes only the current step's recalled schemas to the model.
+     */
+    public ResolvedCatalog resolveForDynamicRouting(Map<String, String> prompts) {
+        mcpClients.refreshConnections();
+        List<AgentSkill> skills = skillRegistry.listEnabled();
+        return resolveCatalog(prompts, skills, toolRagService.recallAll());
+    }
+
+    private ResolvedCatalog resolveCatalog(Map<String, String> prompts, List<AgentSkill> skills,
+                                           ToolRagService.RecallResult recall) {
         McpResolution mcp = resolveMcpTools(recall);
         return new ResolvedCatalog(resolveKnowledgeToolDescription(prompts), resolveMemoryToolDescription(prompts),
                 mcp.bindings, mcp.unavailableToolIds, skills);
@@ -111,6 +127,12 @@ public class AgentToolCatalog {
         // 只在构建实例时记，不随每次 resolve 刷日志
         catalog.unavailableToolIds.forEach(toolId ->
                 log.warn("注册表中的 MCP 工具未挂载: 服务端未发现或与内置工具重名, toolId: {}", toolId));
+        return toolkit;
+    }
+
+    public Toolkit buildToolkit(ResolvedCatalog catalog, AgentToolRoutingService routingService) {
+        Toolkit toolkit = buildToolkit(catalog);
+        toolkit.registerAgentTool(new ToolSearchTool(routingService));
         return toolkit;
     }
 

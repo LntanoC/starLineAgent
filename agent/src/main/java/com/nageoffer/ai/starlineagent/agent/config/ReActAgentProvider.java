@@ -26,6 +26,7 @@ import com.nageoffer.ai.starlineagent.agent.skill.AgentSkillMaskingMiddleware;
 import com.nageoffer.ai.starlineagent.agent.state.PgAgentStateStore;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolBatchMiddleware;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolCatalog;
+import com.nageoffer.ai.starlineagent.agent.tool.AgentToolRoutingService;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolCatalog.ResolvedCatalog;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.AgentPromptResolver;
 import com.nageoffer.ai.starlineagent.rag.core.prompt.AgentPromptSlot;
@@ -52,6 +53,7 @@ public class ReActAgentProvider {
 
     private final AgentPromptResolver agentPromptResolver;
     private final AgentToolCatalog toolCatalog;
+    private final AgentToolRoutingService toolRoutingService;
     private final OpenAIChatModel agentChatModel;
     private final PgAgentStateStore agentStateStore;
     private final AgentProperties agentProperties;
@@ -69,11 +71,11 @@ public class ReActAgentProvider {
         return getAgent(null);
     }
 
-    /** 按本轮用户问题构造最小工具集；确认恢复使用无问题重载，保留已授权工具。 */
+    /** 注册已授权工具全集；运行时中间件按当前子目标逐轮筛选模型可见的工具。 */
     public ActiveAgent getAgent(String question) {
         Map<String, String> prompts = agentPromptResolver.resolveAll();
         String persona = resolvePersona(prompts);
-        ResolvedCatalog catalog = toolCatalog.resolve(prompts, question);
+        ResolvedCatalog catalog = toolCatalog.resolveForDynamicRouting(prompts);
         CachedAgent current = cached;
         if (matches(current, persona, catalog)) {
             return current.activeAgent();
@@ -104,7 +106,7 @@ public class ReActAgentProvider {
                 .name(AGENT_NAME)
                 .sysPrompt(persona)
                 .model(agentChatModel)
-                .toolkit(toolCatalog.buildToolkit(catalog))
+                .toolkit(toolCatalog.buildToolkit(catalog, toolRoutingService))
                 .maxIters(agentProperties.getMaxIters())
                 .maxRetries(agentProperties.getMaxRetries())
                 // 强制停止可能留下无结果的工具调用，下一问先补错误结果再继续

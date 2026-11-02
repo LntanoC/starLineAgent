@@ -21,6 +21,10 @@ package com.nageoffer.ai.starlineagent.agent.tool;
 public final class AgentRuntimeContextKeys {
 
     public static final String REPLY_TO_MESSAGE_ID = "starlineagent_reply_to_message_id";
+    public static final String INITIAL_TOOL_ROUTING_QUERY = "starlineagent_initial_tool_routing_query";
+    public static final String ACTIVE_TOOL_ROUTING_QUERY = "starlineagent_active_tool_routing_query";
+    public static final String TOOL_ROUTING_RECALL = "starlineagent_tool_routing_recall";
+    public static final String DISPATCHABLE_TOOL_IDS = "starlineagent_dispatchable_tool_ids";
 
     private AgentRuntimeContextKeys() {
     }

@@ -153,6 +153,7 @@ public class AgentChatServiceImpl implements AgentChatService {
                 .userId(userId)
                 .conversationId(conversationId)
                 .taskId(taskId)
+                .toolRoutingQuery(question)
                 .title(title)
                 .replyToMessageId(questionMessageId)
                 .releaseGate(releaseGate)
@@ -234,10 +235,13 @@ public class AgentChatServiceImpl implements AgentChatService {
         AgentToolExecutionFacts facts = new AgentToolExecutionFacts(taskId, clock);
         // 上下文传给 AgentScope，工具执行与审计中间件从中读取本轮事实
         RuntimeContext runtimeContext = buildRuntimeContext(scope, facts);
+
         AgentAuditSession auditSession = auditService.open(taskId, userId, conversationId,
                 scope.replyToMessageId(), scope.confirmMessageId(), input, facts);
         if (auditSession != null) runtimeContext.put(AgentAuditSession.CONTEXT_KEY, auditSession);
         SseEmitterSender sender = new SseEmitterSender(scope.emitter());
+
+
         AgentRunHandle runHandle = new AgentRunHandle(taskId, sender, taskManager, facts);
         bindReleaseHooks(runHandle, agent, scope);
         if (auditSession != null) runHandle.onRelease(() -> auditSession.finish(null, null, "NORMAL"));
@@ -255,6 +259,8 @@ public class AgentChatServiceImpl implements AgentChatService {
             Flux<AgentEvent> events = agent.streamEvents(input, runtimeContext)
                     // 让 runHandle 知道框架流已结束，取消时不必再强行断流
                     .doFinally(signal -> runHandle.markUpstreamTerminated());
+
+
             runHandle.start(() -> {
                 settleConfirmCard(scope);
                 Disposable disposable = events.subscribe(bridge::onEvent, bridge::onError, bridge::onComplete);
@@ -337,6 +343,10 @@ public class AgentChatServiceImpl implements AgentChatService {
             runtimeContext.put(com.nageoffer.ai.starlineagent.agent.tool.AgentRuntimeContextKeys.REPLY_TO_MESSAGE_ID,
                     scope.replyToMessageId());
         }
+        if (scope.toolRoutingQuery() != null) {
+            runtimeContext.put(com.nageoffer.ai.starlineagent.agent.tool.AgentRuntimeContextKeys.INITIAL_TOOL_ROUTING_QUERY,
+                    scope.toolRoutingQuery());
+        }
         return runtimeContext;
     }
 
@@ -346,6 +356,7 @@ public class AgentChatServiceImpl implements AgentChatService {
     @Builder
     private record RunScope(SseEmitter emitter, String userId, String conversationId,
                             String taskId, String title, String replyToMessageId, String confirmMessageId,
+                            String toolRoutingQuery,
                             boolean confirmApproved, Runnable releaseGate) {
     }
 

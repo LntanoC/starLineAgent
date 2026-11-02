@@ -18,6 +18,10 @@
 package com.nageoffer.ai.starlineagent.agent.skill;
 
 import com.nageoffer.ai.starlineagent.agent.config.ConditionalOnAgentEngine;
+import com.nageoffer.ai.starlineagent.agent.tool.AgentToolRoutingService;
+import com.nageoffer.ai.starlineagent.agent.tool.KnowledgeSearchTool;
+import com.nageoffer.ai.starlineagent.agent.tool.MemoryFlushTool;
+import com.nageoffer.ai.starlineagent.agent.tool.ToolSearchTool;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkill;
 import com.nageoffer.ai.starlineagent.rag.core.skill.AgentSkillRegistry;
 import io.agentscope.core.agent.Agent;
@@ -32,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -41,7 +47,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 技能工具遮蔽：手册加载前不让模型看到那些不看手册就会办错的工具，避免绕过前置步骤直接动手
+ * 按当前子目标路由 MCP 工具，并在技能手册加载前遮蔽受保护的工具
  * <p>
  * 技能的 tool_ids 是「加载后才解锁的工具」，不是「正文会用到的工具」，正文按名字引用任何工具都不受影响。
  * 记 G 为所有启用技能 tool_ids 的并集、L 为上下文里已加载技能 tool_ids 的并集，本轮遮蔽 = G − L：
@@ -62,6 +68,7 @@ public class AgentSkillMaskingMiddleware implements MiddlewareBase {
     public static final String MASKED_TOOLS_ATTRIBUTE = "starlineagent_masked_tools";
 
     private final AgentSkillRegistry skillRegistry;
+    private final AgentToolRoutingService routingService;
 
     /**
      * 排在最内层，看到的是压缩与改写之后的最终消息列表
@@ -74,42 +81,60 @@ public class AgentSkillMaskingMiddleware implements MiddlewareBase {
     @Override
     public Flux<AgentEvent> onReasoning(Agent agent, RuntimeContext runtimeContext, ReasoningInput input,
                                         Function<ReasoningInput, Flux<AgentEvent>> next) {
-        Set<String> masked;
-        try {
-            masked = maskedTools(input.messages());
-        } catch (Exception e) {
-            log.warn("技能遮蔽计算异常, 本轮按全量工具推理", e);
-            return next.apply(input);
-        }
-        if (runtimeContext != null) {
-            runtimeContext.put(MASKED_TOOLS_ATTRIBUTE, masked);
-        }
-        if (masked.isEmpty()) {
-            return next.apply(input);
-        }
-        List<ToolSchema> tools = input.tools().stream()
-                .filter(tool -> !masked.contains(tool.getName()))
-                .toList();
-        return next.apply(new ReasoningInput(input.messages(), tools, input.options()));
+        return Mono.fromCallable(() -> maskedTools(runtimeContext, input.messages()))
+                .subscribeOn(Schedulers.boundedElastic())
+                .onErrorResume(e -> {
+                    log.warn("动态工具路由失败，本轮仅保留内置工具", e);
+                    return Mono.just(failClosedTools(input.tools()));
+                })
+                .flatMapMany(masked -> {
+                    if (runtimeContext != null) {
+                        runtimeContext.put(MASKED_TOOLS_ATTRIBUTE, masked);
+                    }
+                    if (masked.isEmpty()) {
+                        return next.apply(input);
+                    }
+                    List<ToolSchema> tools = input.tools().stream()
+                            .filter(tool -> !masked.contains(tool.getName()))
+                            .toList();
+                    return next.apply(new ReasoningInput(input.messages(), tools, input.options()));
+                });
     }
 
     /**
      * @return 需遮蔽的工具 ID 集合
      */
-    private Set<String> maskedTools(List<Msg> messages) {
+    private Set<String> maskedTools(RuntimeContext runtimeContext, List<Msg> messages) {
         List<AgentSkill> skills = skillRegistry.listEnabled();
+        Set<String> masked = new LinkedHashSet<>(routingService.dispatchableToolIds(runtimeContext));
+        Set<String> selected = routingService.resolve(runtimeContext).selectedTools().stream()
+                .map(tool -> tool.getToolId().trim())
+                .collect(Collectors.toSet());
+        masked.removeAll(selected);
         if (skills.isEmpty()) {
-            return Set.of();
+            return masked;
         }
         Set<String> loaded = loadedSkillCodes(messages);
         // 全部解锁工具减去已加载手册解锁的：一个工具挂在多份手册下时，任一手册已加载即放行
-        Set<String> masked = skills.stream()
+        Set<String> skillMasked = skills.stream()
                 .flatMap(skill -> skill.toolIds().stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         skills.stream()
                 .filter(skill -> loaded.contains(skill.skillCode()))
-                .forEach(skill -> skill.toolIds().forEach(masked::remove));
+                .forEach(skill -> skill.toolIds().forEach(skillMasked::remove));
+        masked.addAll(skillMasked);
         return masked;
+    }
+
+    private Set<String> failClosedTools(List<ToolSchema> tools) {
+        Set<String> alwaysAvailable = Set.of(
+                KnowledgeSearchTool.TOOL_NAME,
+                MemoryFlushTool.TOOL_NAME,
+                SkillLoadTool.TOOL_NAME,
+                ToolSearchTool.TOOL_NAME);
+        return tools.stream().map(ToolSchema::getName)
+                .filter(name -> !alwaysAvailable.contains(name))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
