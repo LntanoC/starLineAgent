@@ -171,7 +171,7 @@ function ChannelRow({
       </div>
       <span className="settings-channel-weight">权重 {channel.weight.toFixed(1)}</span>
       {channel.enabled && backendMissing ? (
-        <span className="settings-tag shrink-0 bg-amber-50 text-amber-600">后端未接入</span>
+        <span className="settings-tag shrink-0 bg-warning-wash text-warning">后端未接入</span>
       ) : (
         <StateTag on={channel.enabled} />
       )}
@@ -224,7 +224,7 @@ function FunnelArrow() {
 function FeaturePill({ label, keyName, on }: { label: string; keyName: string; on: boolean }) {
   return (
     <span className={cn("settings-feature", !on && "is-off")}>
-      {on ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Minus className="h-3.5 w-3.5" />}
+      {on ? <Check className="h-3.5 w-3.5 text-success" /> : <Minus className="h-3.5 w-3.5" />}
       {label}
       <code className="settings-feature-key">{keyName}</code>
     </span>
@@ -237,7 +237,7 @@ function TierChain({ candidates, timeoutMs }: { candidates: string[]; timeoutMs?
       <div className="settings-tier-chain">
         {candidates.map((id, index) => (
           <span key={id} className="contents">
-            {index > 0 ? <ChevronRight className="h-3 w-3 text-slate-300" /> : null}
+            {index > 0 ? <ChevronRight className="h-3 w-3 text-muted-foreground" /> : null}
             <span className={cn("settings-chip", index === 0 && "is-primary")}>{id}</span>
           </span>
         ))}
@@ -267,7 +267,7 @@ function ModelCandidatesCard({
         {title}
         {group.defaultModel ? (
           <span className="settings-card-title-hint">
-            默认 <code className="font-mono text-slate-500">{group.defaultModel}</code>
+            默认 <code className="font-mono text-muted-foreground">{group.defaultModel}</code>
           </span>
         ) : null}
       </div>
@@ -291,7 +291,7 @@ function ModelCandidatesCard({
                 </span>
               </TableCell>
               <TableCell className="text-xs">{item.provider}</TableCell>
-              <TableCell className="font-mono text-xs text-slate-600">{item.model}</TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">{item.model}</TableCell>
               {showDimension ? <TableCell className="text-xs tabular-nums">{item.dimension ?? "—"}</TableCell> : null}
               {showPriority ? <TableCell className="text-xs tabular-nums">{item.priority ?? "—"}</TableCell> : null}
             </TableRow>
@@ -313,11 +313,11 @@ function LoadingSkeleton() {
       </div>
       <div className="settings-arch-grid">
         {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="h-[88px] animate-pulse rounded-xl border border-slate-200 bg-slate-100/70" />
+          <div key={index} className="h-[88px] animate-pulse rounded-xl border border-rule bg-paper-2" />
         ))}
       </div>
-      <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-100/70" />
-      <div className="h-56 animate-pulse rounded-xl border border-slate-200 bg-slate-100/70" />
+      <div className="h-72 animate-pulse rounded-xl border border-rule bg-paper-2" />
+      <div className="h-56 animate-pulse rounded-xl border border-rule bg-paper-2" />
     </div>
   );
 }
@@ -353,8 +353,8 @@ export function SystemSettingsPage() {
     return (
       <div className="admin-page">
         <div className="settings-card flex flex-col items-center gap-3 py-12 text-center">
-          <AlertCircle className="h-8 w-8 text-slate-300" />
-          <p className="text-sm text-slate-500">配置加载失败，请检查后端服务是否可用</p>
+          <AlertCircle className="h-8 w-8 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">配置加载失败，请检查后端服务是否可用</p>
           <Button variant="outline" size="sm" onClick={() => loadSettings()}>
             重新加载
           </Button>
@@ -552,9 +552,9 @@ export function SystemSettingsPage() {
           <div className="settings-card-title">
             Chat 档位路由
             <span className="settings-card-title-hint">
-              默认 <code className="font-mono text-slate-500">{ai.chat.defaultTier ?? "—"}</code>
-              <span className="mx-1.5 text-slate-200">|</span>
-              深度思考 <code className="font-mono text-slate-500">{ai.chat.deepThinkingTier ?? "—"}</code>
+              默认 <code className="font-mono text-muted-foreground">{ai.chat.defaultTier ?? "—"}</code>
+              <span className="mx-1.5 text-muted-foreground">|</span>
+              深度思考 <code className="font-mono text-muted-foreground">{ai.chat.deepThinkingTier ?? "—"}</code>
             </span>
           </div>
           <div className="space-y-2">
@@ -588,9 +588,9 @@ export function SystemSettingsPage() {
                   <TableRow key={item.id}>
                     <TableCell className="whitespace-nowrap font-mono text-xs font-medium">{item.id}</TableCell>
                     <TableCell className="text-xs">{item.provider}</TableCell>
-                    <TableCell className="font-mono text-xs text-slate-600">{item.model}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{item.model}</TableCell>
                     <TableCell>
-                      {item.supportsThinking ? <StateTag on tone="violet" onText="支持" /> : <span className="text-xs text-slate-300">—</span>}
+                      {item.supportsThinking ? <StateTag on tone="violet" onText="支持" /> : <span className="text-xs text-muted-foreground">不支持</span>}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -623,8 +623,8 @@ export function SystemSettingsPage() {
                 {providers.map(([name, provider]) => (
                   <TableRow key={name}>
                     <TableCell className="text-xs font-medium">{name}</TableCell>
-                    <TableCell className="font-mono text-xs text-slate-600">{provider.url}</TableCell>
-                    <TableCell className="font-mono text-xs text-slate-500">{provider.apiKey ?? "—"}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{provider.url}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{provider.apiKey ?? "—"}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {Object.keys(provider.endpoints ?? {}).map((key) => (

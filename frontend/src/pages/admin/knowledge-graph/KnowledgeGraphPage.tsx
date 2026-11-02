@@ -1637,21 +1637,21 @@ export function KnowledgeGraphPage() {
   const isEmpty = !loading && !errorMsg && view !== null && view.nodes.length === 0;
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-white">
+    <div className="relative h-full w-full overflow-hidden bg-paper">
       {/* G6 画布铺满整个视口；衬一层极淡径向渐变增加空间纵深，画布透明故渐变透出、与网格线叠成柔和台面 */}
       <div
         ref={containerRef}
         className="h-full w-full"
         style={{
-          background: "radial-gradient(ellipse at 50% 42%, #ffffff 0%, #f4f6fa 58%, #e9edf4 100%)"
+          background: "radial-gradient(ellipse at 50% 42%, var(--color-paper) 0%, var(--color-paper-2) 58%, var(--color-paper-3) 100%)"
         }}
       />
 
       {/* 左上角悬浮控件：搜索 + 范围 + 全图 + 显示设置，以及聚焦态与图例 */}
       <div className="absolute left-4 top-4 z-10 flex max-w-[calc(100%-2rem)] flex-col gap-2">
-        <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white/90 p-1.5 shadow-sm backdrop-blur">
+        <div className="flex items-center gap-1 rounded-lg border border-rule bg-paper p-1.5 shadow-sm">
           <div className="relative w-64" onFocus={handleSuggestFocus} onBlur={handleSuggestBlur}>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
@@ -1666,7 +1666,7 @@ export function KnowledgeGraphPage() {
             />
             {suggestOpen && suggestions.length > 0 ? (
               <div
-                className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+                className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-rule bg-paper py-1 shadow-lg"
                 onMouseDown={(event) => event.preventDefault()}
               >
                 {suggestions.map((item) => (
@@ -1677,7 +1677,7 @@ export function KnowledgeGraphPage() {
                       event.preventDefault();
                       handleSelectEntity(item);
                     }}
-                    className="block w-full truncate px-3 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-50"
+                    className="block w-full truncate px-3 py-1.5 text-left text-sm text-ink hover:bg-paper"
                   >
                     {item}
                   </button>
@@ -1692,8 +1692,8 @@ export function KnowledgeGraphPage() {
               variant="ghost"
               size="sm"
               className={cn(
-                "h-9 shrink-0 gap-1 rounded-xl px-2.5 text-slate-600",
-                scopeOpen && "bg-slate-100 text-slate-900"
+                "h-9 shrink-0 gap-1 rounded-xl px-2.5 text-muted-foreground",
+                scopeOpen && "bg-paper text-ink"
               )}
               onClick={() => setScopeOpen((open) => !open)}
               title="按知识库 / 文档筛选"
@@ -1702,9 +1702,9 @@ export function KnowledgeGraphPage() {
               <span className="max-w-[7rem] truncate">{scopeLabel}</span>
             </Button>
             {scopeOpen ? (
-              <div className="absolute left-0 top-full z-20 mt-2 w-64 space-y-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
+              <div className="absolute left-0 top-full z-20 mt-2 w-64 space-y-3 rounded-2xl border border-rule bg-paper p-3 shadow-lg">
                 <div>
-                  <div className="mb-1.5 text-xs font-medium text-slate-500">知识库</div>
+                  <div className="mb-1.5 text-xs font-medium text-muted-foreground">知识库</div>
                   <div className="max-h-40 space-y-1 overflow-auto">
                     <button
                       type="button"
@@ -1712,8 +1712,8 @@ export function KnowledgeGraphPage() {
                       className={cn(
                         "block w-full truncate rounded-lg border px-2.5 py-1 text-left text-sm transition",
                         !activeKb
-                          ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                          ? "border-accent-rule bg-accent-wash text-accent"
+                          : "border-rule text-muted-foreground hover:bg-paper"
                       )}
                     >
                       全部知识库
@@ -1726,8 +1726,8 @@ export function KnowledgeGraphPage() {
                         className={cn(
                           "block w-full truncate rounded-lg border px-2.5 py-1 text-left text-sm transition",
                           activeKb?.id === kb.id
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-accent-rule bg-accent-wash text-accent"
+                            : "border-rule text-muted-foreground hover:bg-paper"
                         )}
                       >
                         {kb.name}
@@ -1737,7 +1737,7 @@ export function KnowledgeGraphPage() {
                 </div>
                 {activeKb ? (
                   <div>
-                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                       文档
                       {docsLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
                     </div>
@@ -1748,8 +1748,8 @@ export function KnowledgeGraphPage() {
                         className={cn(
                           "block w-full truncate rounded-lg border px-2.5 py-1 text-left text-sm transition",
                           !activeDoc
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-accent-rule bg-accent-wash text-accent"
+                            : "border-rule text-muted-foreground hover:bg-paper"
                         )}
                       >
                         整个知识库
@@ -1762,15 +1762,15 @@ export function KnowledgeGraphPage() {
                           className={cn(
                             "block w-full truncate rounded-lg border px-2.5 py-1 text-left text-sm transition",
                             activeDoc?.id === doc.id
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                              : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                              ? "border-accent-rule bg-accent-wash text-accent"
+                              : "border-rule text-muted-foreground hover:bg-paper"
                           )}
                         >
                           {doc.docName}
                         </button>
                       ))}
                       {!docsLoading && docs.length === 0 ? (
-                        <div className="px-2.5 py-1 text-xs text-slate-400">该知识库暂无文档</div>
+                        <div className="px-2.5 py-1 text-xs text-muted-foreground">该知识库暂无文档</div>
                       ) : null}
                     </div>
                   </div>
@@ -1782,7 +1782,7 @@ export function KnowledgeGraphPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-9 shrink-0 gap-1 rounded-xl px-2.5 text-slate-600"
+            className="h-9 shrink-0 gap-1 rounded-xl px-2.5 text-muted-foreground"
             onClick={handleReset}
             disabled={loading}
             title="重置为全图"
@@ -1796,8 +1796,8 @@ export function KnowledgeGraphPage() {
               variant="ghost"
               size="icon"
               className={cn(
-                "h-9 w-9 shrink-0 rounded-xl text-slate-500",
-                settingsOpen && "bg-slate-100 text-slate-900"
+                "h-9 w-9 shrink-0 rounded-xl text-muted-foreground",
+                settingsOpen && "bg-paper text-ink"
               )}
               onClick={() => setSettingsOpen((open) => !open)}
               title="显示设置"
@@ -1805,9 +1805,9 @@ export function KnowledgeGraphPage() {
               <Settings className="h-4 w-4" />
             </Button>
             {settingsOpen ? (
-              <div className="absolute right-0 top-full z-20 mt-2 w-56 space-y-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
+              <div className="absolute right-0 top-full z-20 mt-2 w-56 space-y-3 rounded-2xl border border-rule bg-paper p-3 shadow-lg">
                 <div>
-                  <div className="mb-1.5 text-xs font-medium text-slate-500">主题</div>
+                  <div className="mb-1.5 text-xs font-medium text-muted-foreground">主题</div>
                   <div className="flex gap-1">
                     {(
                       [
@@ -1824,8 +1824,8 @@ export function KnowledgeGraphPage() {
                         className={cn(
                           "flex-1 rounded-lg border py-1 text-sm transition",
                           vizThemeState === opt.key
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-accent-rule bg-accent-wash text-accent"
+                            : "border-rule text-muted-foreground hover:bg-paper"
                         )}
                       >
                         {opt.label}
@@ -1834,7 +1834,7 @@ export function KnowledgeGraphPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1.5 text-xs font-medium text-slate-500">连线</div>
+                  <div className="mb-1.5 text-xs font-medium text-muted-foreground">连线</div>
                   <div className="flex gap-1">
                     {(
                       [
@@ -1849,8 +1849,8 @@ export function KnowledgeGraphPage() {
                         className={cn(
                           "flex-1 rounded-lg border py-1 text-sm transition",
                           edgeCurvedState === opt.curved
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-accent-rule bg-accent-wash text-accent"
+                            : "border-rule text-muted-foreground hover:bg-paper"
                         )}
                       >
                         {opt.label}
@@ -1859,7 +1859,7 @@ export function KnowledgeGraphPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1.5 text-xs font-medium text-slate-500">箭头</div>
+                  <div className="mb-1.5 text-xs font-medium text-muted-foreground">箭头</div>
                   <div className="flex gap-1">
                     {(
                       [
@@ -1874,8 +1874,8 @@ export function KnowledgeGraphPage() {
                         className={cn(
                           "flex-1 rounded-lg border py-1 text-sm transition",
                           edgeArrowState === opt.arrow
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-accent-rule bg-accent-wash text-accent"
+                            : "border-rule text-muted-foreground hover:bg-paper"
                         )}
                       >
                         {opt.label}
@@ -1884,7 +1884,7 @@ export function KnowledgeGraphPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1.5 text-xs font-medium text-slate-500">布局</div>
+                  <div className="mb-1.5 text-xs font-medium text-muted-foreground">布局</div>
                   <div className="flex gap-1">
                     {[
                       { key: "d3-force", label: "力导" },
@@ -1897,8 +1897,8 @@ export function KnowledgeGraphPage() {
                         className={cn(
                           "flex-1 rounded-lg border py-1 text-sm transition",
                           layoutType === opt.key
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-accent-rule bg-accent-wash text-accent"
+                            : "border-rule text-muted-foreground hover:bg-paper"
                         )}
                       >
                         {opt.label}
@@ -1907,7 +1907,7 @@ export function KnowledgeGraphPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1.5 text-xs font-medium text-slate-500">深度</div>
+                  <div className="mb-1.5 text-xs font-medium text-muted-foreground">深度</div>
                   <div className="flex gap-1">
                     {["1", "2", "3"].map((value) => (
                       <button
@@ -1917,8 +1917,8 @@ export function KnowledgeGraphPage() {
                         className={cn(
                           "flex-1 rounded-lg border py-1 text-sm transition",
                           depth === value
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-accent-rule bg-accent-wash text-accent"
+                            : "border-rule text-muted-foreground hover:bg-paper"
                         )}
                       >
                         {value}
@@ -1927,7 +1927,7 @@ export function KnowledgeGraphPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="mb-1.5 text-xs font-medium text-slate-500">节点上限</div>
+                  <div className="mb-1.5 text-xs font-medium text-muted-foreground">节点上限</div>
                   <div className="flex gap-1">
                     {["100", "200", "500"].map((value) => (
                       <button
@@ -1937,8 +1937,8 @@ export function KnowledgeGraphPage() {
                         className={cn(
                           "flex-1 rounded-lg border py-1 text-sm transition",
                           limit === value
-                            ? "border-indigo-500 bg-indigo-50 text-indigo-600"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-accent-rule bg-accent-wash text-accent"
+                            : "border-rule text-muted-foreground hover:bg-paper"
                         )}
                       >
                         {value}
@@ -1952,7 +1952,7 @@ export function KnowledgeGraphPage() {
         </div>
 
         {activeEntity ? (
-          <span className="w-fit rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs text-indigo-600 shadow-sm">
+          <span className="w-fit rounded-full bg-accent-wash px-2.5 py-0.5 text-xs text-accent shadow-sm">
             聚焦：{activeEntity}
           </span>
         ) : null}
@@ -1960,25 +1960,25 @@ export function KnowledgeGraphPage() {
 
       {/* 右上角统计：含截断提示，替代原琥珀横幅 */}
       {stats ? (
-        <div className="absolute right-4 top-4 z-10 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs text-slate-500 shadow-sm backdrop-blur">
-          {stats.nodes} 实体 · {stats.edges} 关系
-          {view?.truncated ? <span className="text-amber-600"> · 已截断</span> : null}
+        <div className="absolute right-4 top-4 z-10 rounded-full border border-rule bg-paper px-3 py-1 text-xs text-muted-foreground shadow-sm">
+          实体 {stats.nodes}，关系 {stats.edges}
+          {view?.truncated ? <span className="text-warning">，结果已截断</span> : null}
         </div>
       ) : null}
 
       {/* 底部聚焦提示：点击节点后出现，指引退出方式 */}
       {focusName ? (
-        <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs text-slate-500 shadow-sm backdrop-blur">
-          聚焦 <span className="font-medium text-slate-700">{focusName}</span> · Esc 或点击空白退出
+        <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-rule bg-paper px-3 py-1 text-xs text-muted-foreground shadow-sm">
+          聚焦 <span className="font-medium text-ink">{focusName}</span> · Esc 或点击空白退出
         </div>
       ) : null}
 
       {/* 右下角缩放控制：叠在缩略图上方，手动放大 / 缩小 / 重置比例 */}
-      <div className="absolute bottom-40 right-4 z-10 flex w-9 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white/90 shadow-sm backdrop-blur">
+      <div className="absolute bottom-40 right-4 z-10 flex w-9 flex-col overflow-hidden rounded-lg border border-rule bg-paper shadow-sm">
         <button
           type="button"
           onClick={handleZoomIn}
-          className="flex h-8 w-full items-center justify-center text-slate-600 transition hover:bg-slate-100"
+          className="flex h-8 w-full items-center justify-center text-muted-foreground transition hover:bg-paper"
           title="放大"
         >
           <Plus className="h-4 w-4" />
@@ -1986,7 +1986,7 @@ export function KnowledgeGraphPage() {
         <button
           type="button"
           onClick={handleZoomReset}
-          className="w-full border-y border-slate-200 py-1 text-center text-[10px] tabular-nums text-slate-500 transition hover:bg-slate-100"
+          className="w-full border-y border-rule py-1 text-center text-[10px] tabular-nums text-muted-foreground transition hover:bg-paper"
           title="重置为 100%"
         >
           {zoomPct}%
@@ -1994,7 +1994,7 @@ export function KnowledgeGraphPage() {
         <button
           type="button"
           onClick={handleZoomOut}
-          className="flex h-8 w-full items-center justify-center text-slate-600 transition hover:bg-slate-100"
+          className="flex h-8 w-full items-center justify-center text-muted-foreground transition hover:bg-paper"
           title="缩小"
         >
           <Minus className="h-4 w-4" />
@@ -2002,16 +2002,16 @@ export function KnowledgeGraphPage() {
       </div>
 
       {loading ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/60">
-          <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+        <div className="absolute inset-0 flex items-center justify-center bg-paper">
+          <Loader2 className="h-6 w-6 animate-spin text-accent" />
         </div>
       ) : null}
 
       {errorMsg ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
-          <Share2 className="h-10 w-10 text-slate-300" />
-          <p className="text-sm text-slate-500">{errorMsg}</p>
-          <p className="text-xs text-slate-400">
+          <Share2 className="h-10 w-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">{errorMsg}</p>
+          <p className="text-xs text-muted-foreground">
             请确认已部署 LightRAG 图谱栈，并在后端开启 rag.graph.type=lightrag
           </p>
         </div>
@@ -2019,9 +2019,9 @@ export function KnowledgeGraphPage() {
 
       {isEmpty ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
-          <Share2 className="h-10 w-10 text-slate-300" />
-          <p className="text-sm text-slate-500">暂无图谱数据</p>
-          <p className="text-xs text-slate-400">导入并索引文档后，图谱将自动构建</p>
+          <Share2 className="h-10 w-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">暂无图谱数据</p>
+          <p className="text-xs text-muted-foreground">导入并索引文档后，图谱将自动构建</p>
         </div>
       ) : null}
     </div>

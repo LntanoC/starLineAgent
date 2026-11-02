@@ -52,7 +52,7 @@ export function SpreadsheetPreview({ docId }: SpreadsheetPreviewProps) {
   return (
     <div className="relative flex-1 overflow-hidden">
       {loading ? (
-        <div className="absolute inset-0 z-10 flex items-center justify-center text-muted-foreground">加载中...</div>
+        <div className="absolute inset-0 z-10 flex items-center justify-center text-muted-foreground">加载中…</div>
       ) : null}
       {error ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center text-muted-foreground">表格预览失败</div>

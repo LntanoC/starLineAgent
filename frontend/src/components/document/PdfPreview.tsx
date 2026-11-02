@@ -76,7 +76,7 @@ function PdfPage({ pdf, pageNumber, width, aspect }: PdfPageProps) {
     };
   }, [pdf, pageNumber, visible, width]);
 
-  return <canvas ref={canvasRef} className="w-full bg-white" style={{ height: Math.round(width * aspect) }} />;
+  return <canvas ref={canvasRef} className="w-full bg-paper" role="img" aria-label="PDF 文档页面预览" style={{ height: Math.round(width * aspect) }} />;
 }
 
 /**

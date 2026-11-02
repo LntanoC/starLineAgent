@@ -84,7 +84,7 @@ function DownloadFallback({ docId, docName, fileType }: DocumentPreviewProps) {
       <button
         type="button"
         onClick={handleDownload}
-        className="inline-flex items-center gap-1.5 rounded-full border border-[#EAEAEA] bg-[#F7F7F8] px-3 py-1.5 text-[#666666] transition-colors hover:border-[#DCDCDC] hover:bg-[#F0F0F1] hover:text-[#1A1A1A]"
+        className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-paper px-3 py-1.5 text-muted-foreground transition-colors hover:border-rule hover:bg-paper-2 hover:text-ink"
       >
         <Download className="h-3.5 w-3.5" />
         下载原文件
@@ -164,7 +164,7 @@ export function DocumentPreview({ docId, fileType, docName }: DocumentPreviewPro
   }
   if (isImage) {
     return (
-      <div className="flex flex-1 items-center justify-center overflow-auto bg-[#F7F7F8] p-4">
+      <div className="flex flex-1 items-center justify-center overflow-auto bg-paper p-4">
         <img className="max-h-full max-w-full object-contain" src={fileUrl} alt={docName || ""} />
       </div>
     );
@@ -189,12 +189,12 @@ export function DocumentPreview({ docId, fileType, docName }: DocumentPreviewPro
   return (
     <div className="flex-1 overflow-y-auto">
       {head ? (
-        <pre className="mx-6 mt-4 overflow-auto rounded-lg border bg-slate-50 px-4 py-3 font-mono text-xs leading-relaxed text-slate-600">
+        <pre className="mx-6 mt-4 overflow-auto rounded-lg border bg-paper px-4 py-3 font-mono text-xs leading-relaxed text-muted-foreground">
           {head}
         </pre>
       ) : null}
       <div className="px-6 py-4">
-        <Suspense fallback={<div className="p-4 text-sm text-slate-500">正在加载文档…</div>}><MarkdownRenderer content={body} /></Suspense>
+        <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">正在加载文档…</div>}><MarkdownRenderer content={body} /></Suspense>
       </div>
     </div>
   );

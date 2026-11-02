@@ -179,7 +179,7 @@ export function UserListPage() {
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">加载中...</div>
+            <div className="text-center py-8 text-muted-foreground">加载中…</div>
           ) : users.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">暂无用户</div>
           ) : (
@@ -204,12 +204,12 @@ export function UserListPage() {
                           <Avatar
                             name={user.username || "用户"}
                             src={user.avatar?.trim() || undefined}
-                            className="h-9 w-9 border-slate-200 bg-indigo-50 text-xs font-semibold text-indigo-600"
+                            className="h-9 w-9 border-rule bg-accent-wash text-xs font-semibold text-accent"
                           />
                           <div>
-                            <div className="font-medium text-slate-900">{user.username || "-"}</div>
+                            <div className="font-medium text-ink">{user.username || "-"}</div>
                             {isProtected ? (
-                              <div className="text-xs text-slate-400">默认管理员</div>
+                              <div className="text-xs text-muted-foreground">默认管理员</div>
                             ) : null}
                           </div>
                         </div>
@@ -340,7 +340,7 @@ export function UserListPage() {
       </Dialog>
 
       {pageData ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>共 {pageData.total} 条</span>
           <div className="flex items-center gap-2">
             <Button

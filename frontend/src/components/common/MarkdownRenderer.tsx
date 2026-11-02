@@ -214,8 +214,8 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
             return (
               <code
                 className={cn(
-                  "mx-0.5 rounded px-1.5 py-0.5 text-[13px] font-mono bg-[#f6f8fa] text-[#24292f]",
-                  "dark:bg-[#161b22] dark:text-[#c9d1d9]",
+                  "mx-0.5 rounded px-1.5 py-0.5 text-[13px] font-mono bg-paper text-ink",
+                  "dark:bg-graphite dark:text-muted-foreground",
                   className
                 )}
                 {...props}
@@ -226,9 +226,9 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
           }
 
           return (
-            <div className="my-3 overflow-hidden rounded-md border border-[#d0d7de] bg-[#f6f8fa] dark:border-[#30363d] dark:bg-[#161b22]">
-              <div className="flex items-center justify-between border-b border-[#d0d7de] bg-[#f6f8fa] px-3 py-1.5 dark:border-[#30363d] dark:bg-[#161b22]">
-                <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#57606a] dark:text-[#8b949e]">
+            <div className="my-3 overflow-hidden rounded-md border border-rule bg-paper dark:border-graphite-rule dark:bg-graphite">
+              <div className="flex items-center justify-between border-b border-rule bg-paper px-3 py-1.5 dark:border-graphite-rule dark:bg-graphite">
+                <span className="font-mono text-[11px] font-medium normal-case tracking-normal text-muted-foreground dark:text-muted-foreground">
                   {language}
                 </span>
                 <CopyButton value={value} />
@@ -259,7 +259,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
 
           if (hasError) {
             return (
-              <div className="my-3 flex items-center gap-2 text-sm text-[#999999]">
+              <div className="my-3 flex items-center gap-2 text-sm text-muted-foreground">
                 <ImageIcon className="h-4 w-4" />
                 <span>图片加载失败</span>
               </div>
@@ -287,7 +287,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
           }
           return (
             <a
-              className="text-[#0969da] underline-offset-4 hover:underline dark:text-[#58a6ff]"
+              className="text-accent underline-offset-4 hover:underline dark:text-accent"
               target="_blank"
               rel="noreferrer"
               href={href}
@@ -301,7 +301,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
           return (
             <h1
               className={cn(
-                "mt-6 mb-4 border-b border-[#d0d7de] pb-2 text-3xl font-bold leading-tight first:mt-0 dark:border-[#30363d]",
+                "mt-6 mb-4 border-b border-rule pb-2 text-3xl font-bold leading-tight first:mt-0 dark:border-graphite-rule",
                 headingCitationStyles
               )}
               {...props}
@@ -314,7 +314,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
           return (
             <h2
               className={cn(
-                "mt-6 mb-4 border-b border-[#d0d7de] pb-1.5 text-2xl font-bold leading-tight first:mt-0 dark:border-[#30363d]",
+                "mt-6 mb-4 border-b border-rule pb-1.5 text-2xl font-bold leading-tight first:mt-0 dark:border-graphite-rule",
                 headingCitationStyles
               )}
               {...props}
@@ -353,7 +353,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
           return (
             <div className="my-6 w-full min-w-0 overflow-x-auto">
               <table
-                className="w-full border-separate border-spacing-0 overflow-hidden rounded-lg border border-[#d0d7de] text-sm dark:border-[#30363d] [&_tr:last-child>td]:border-b-0"
+                className="w-full border-separate border-spacing-0 overflow-hidden rounded-lg border border-rule text-sm dark:border-graphite-rule [&_tr:last-child>td]:border-b-0"
                 {...props}
               >
                 {children}
@@ -363,7 +363,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
         },
         thead({ children, ...props }) {
           return (
-            <thead className="bg-[#eaeef2] dark:bg-[#21262d]" {...props}>
+            <thead className="bg-paper-2 dark:bg-graphite" {...props}>
               {children}
             </thead>
           );
@@ -371,7 +371,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
         tr({ children, ...props }) {
           return (
             <tr
-              className="transition-colors hover:bg-[#f6f8fa]/60 dark:hover:bg-[#161b22]/60"
+              className="transition-colors hover:bg-paper-2 dark:hover:bg-graphite"
               {...props}
             >
               {children}
@@ -381,7 +381,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
         th({ children, ...props }) {
           return (
             <th
-              className="border-b border-r border-[#d0d7de] px-2 py-2 text-left text-sm font-semibold text-[#24292f] align-middle break-words last:border-r-0 dark:border-[#30363d] dark:text-[#c9d1d9]"
+              className="border-b border-r border-rule px-2 py-2 text-left text-sm font-semibold text-ink align-middle break-words last:border-r-0 dark:border-graphite-rule dark:text-muted-foreground"
               {...props}
             >
               {children}
@@ -391,7 +391,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
         td({ children, ...props }) {
           return (
             <td
-              className="border-b border-r border-[#d0d7de] px-2 py-2 text-sm text-[#24292f] align-middle break-words last:border-r-0 dark:border-[#30363d] dark:text-[#c9d1d9]"
+              className="border-b border-r border-rule px-2 py-2 text-sm text-ink align-middle break-words last:border-r-0 dark:border-graphite-rule dark:text-muted-foreground"
               {...props}
             >
               {children}
@@ -401,7 +401,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
         blockquote({ children, ...props }) {
           return (
             <blockquote
-              className="my-5 rounded-r-md border-l-4 border-[#0969da] bg-[#f6f8fa] px-6 py-4 italic text-[#24292f] dark:border-[#58a6ff] dark:bg-[#161b22] dark:text-[#c9d1d9] [&_p:first-of-type]:before:content-none [&_p:last-of-type]:after:content-none"
+              className="my-5 rounded-r-md border-l-4 border-accent-rule bg-paper px-6 py-4 italic text-ink dark:border-accent-rule dark:bg-graphite dark:text-muted-foreground [&_p:first-of-type]:before:content-none [&_p:last-of-type]:after:content-none"
               {...props}
             >
               {children}
@@ -411,7 +411,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
         ul({ children, ...props }) {
           return (
             <ul
-              className="my-4 list-disc space-y-2 pl-6 marker:text-[#6e7781] dark:marker:text-[#8b949e] [&_ul]:my-2 [&_ol]:my-2"
+              className="my-4 list-disc space-y-2 pl-6 marker:text-muted-foreground dark:marker:text-muted-foreground [&_ul]:my-2 [&_ol]:my-2"
               {...props}
             >
               {children}
@@ -421,7 +421,7 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
         ol({ children, ...props }) {
           return (
             <ol
-              className="my-4 list-decimal space-y-2 pl-6 marker:text-[#6e7781] dark:marker:text-[#8b949e] [&_ul]:my-2 [&_ol]:my-2"
+              className="my-4 list-decimal space-y-2 pl-6 marker:text-muted-foreground dark:marker:text-muted-foreground [&_ul]:my-2 [&_ol]:my-2"
               {...props}
             >
               {children}
@@ -429,10 +429,10 @@ export function MarkdownRenderer({ content, messageId, sources }: MarkdownRender
           );
         },
         hr({ ...props }) {
-          return <hr className="my-6 border-0 border-t border-[#d0d7de] dark:border-[#30363d]" {...props} />;
+          return <hr className="my-6 border-0 border-t border-rule dark:border-graphite-rule" {...props} />;
         }
       }}
-      className="prose prose-gray max-w-none break-words leading-[1.6] dark:prose-invert prose-headings:text-[#1A1A1A] dark:prose-headings:text-[#EEEEEE] prose-p:text-[#333333] dark:prose-p:text-[#CCCCCC] prose-p:leading-relaxed prose-li:text-[#333333] dark:prose-li:text-[#CCCCCC] prose-strong:text-[#1A1A1A] dark:prose-strong:text-[#EEEEEE]"
+      className="prose prose-gray max-w-none break-words leading-[1.6] dark:prose-invert prose-headings:text-ink dark:prose-headings:text-graphite-ink prose-p:text-ink dark:prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-ink dark:prose-li:text-muted-foreground prose-strong:text-ink dark:prose-strong:text-graphite-ink"
     >
       {content}
     </ReactMarkdown>
@@ -458,12 +458,12 @@ function CopyButton({ value }: { value: string }) {
       size="icon"
       onClick={handleCopy}
       aria-label="复制代码"
-      className="h-7 w-7 hover:bg-[#eaeef2] dark:hover:bg-[#30363d] transition-colors"
+      className="h-7 w-7 hover:bg-paper-2 dark:hover:bg-graphite transition-colors"
     >
       {copied ? (
-        <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+        <Check className="h-3.5 w-3.5 text-success dark:text-success" />
       ) : (
-        <Copy className="h-3.5 w-3.5 text-[#57606a] dark:text-[#8b949e]" />
+        <Copy className="h-3.5 w-3.5 text-muted-foreground dark:text-muted-foreground" />
       )}
     </Button>
   );

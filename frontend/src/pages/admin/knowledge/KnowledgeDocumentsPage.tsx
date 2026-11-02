@@ -185,10 +185,10 @@ const parseIngestionSpec = (raw?: string | null): Record<string, unknown> => {
 const statusDotClass = (status?: string | null) => {
   if (!status) return "bg-muted-foreground/40";
   const normalized = status.toLowerCase();
-  if (normalized === "success") return "bg-emerald-500";
-  if (normalized === "failed") return "bg-red-500";
-  if (normalized === "running") return "bg-amber-500";
-  if (normalized === "pending") return "bg-slate-400";
+  if (normalized === "success") return "bg-success";
+  if (normalized === "failed") return "bg-error";
+  if (normalized === "running") return "bg-warning";
+  if (normalized === "pending") return "bg-paper-3";
   return "bg-muted-foreground/40";
 };
 
@@ -313,22 +313,22 @@ const hasParseProfileChoice = (schema: IngestionSpecSchema | null, ext?: string 
   !!ext && (schema?.parseProfileExtensions ?? []).includes(ext.toLowerCase());
 
 const FILE_TYPE_MAP: Record<string, { icon: typeof FileText; color: string }> = {
-  pdf:         { icon: FileText, color: "text-red-500" },
-  markdown:    { icon: FileText, color: "text-blue-500" },
-  md:          { icon: FileText, color: "text-blue-500" },
-  doc:         { icon: FileText, color: "text-blue-600" },
-  docx:        { icon: FileText, color: "text-blue-600" },
-  txt:         { icon: FileText, color: "text-slate-500" },
-  xlsx:        { icon: FileSpreadsheet, color: "text-green-600" },
-  xls:         { icon: FileSpreadsheet, color: "text-green-600" },
-  csv:         { icon: FileSpreadsheet, color: "text-emerald-500" },
-  image:       { icon: FileImage, color: "text-emerald-500" },
-  png:         { icon: FileImage, color: "text-emerald-500" },
-  jpg:         { icon: FileImage, color: "text-emerald-500" },
-  jpeg:        { icon: FileImage, color: "text-emerald-500" },
-  gif:         { icon: FileImage, color: "text-emerald-500" },
-  webp:        { icon: FileImage, color: "text-emerald-500" },
-  svg:         { icon: FileImage, color: "text-emerald-500" },
+  pdf:         { icon: FileText, color: "text-error" },
+  markdown:    { icon: FileText, color: "text-accent" },
+  md:          { icon: FileText, color: "text-accent" },
+  doc:         { icon: FileText, color: "text-accent" },
+  docx:        { icon: FileText, color: "text-accent" },
+  txt:         { icon: FileText, color: "text-muted-foreground" },
+  xlsx:        { icon: FileSpreadsheet, color: "text-success" },
+  xls:         { icon: FileSpreadsheet, color: "text-success" },
+  csv:         { icon: FileSpreadsheet, color: "text-success" },
+  image:       { icon: FileImage, color: "text-success" },
+  png:         { icon: FileImage, color: "text-success" },
+  jpg:         { icon: FileImage, color: "text-success" },
+  jpeg:        { icon: FileImage, color: "text-success" },
+  gif:         { icon: FileImage, color: "text-success" },
+  webp:        { icon: FileImage, color: "text-success" },
+  svg:         { icon: FileImage, color: "text-success" },
 };
 
 const renderFileTypeIcon = (fileType?: string | null, sourceType?: string | null) => {
@@ -338,9 +338,9 @@ const renderFileTypeIcon = (fileType?: string | null, sourceType?: string | null
     return <Icon className={`h-4 w-4 shrink-0 ${color}`} />;
   }
   if (sourceType?.toLowerCase() === "url") {
-    return <LinkIcon className="h-4 w-4 shrink-0 text-purple-500" />;
+    return <LinkIcon className="h-4 w-4 shrink-0 text-accent" />;
   }
-  return <FileText className="h-4 w-4 shrink-0 text-slate-400" />;
+  return <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />;
 };
 
 export function KnowledgeDocumentsPage() {
@@ -795,7 +795,7 @@ export function KnowledgeDocumentsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="py-8 text-center text-muted-foreground">加载中...</div>
+            <div className="py-8 text-center text-muted-foreground">加载中…</div>
           ) : documents.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">暂无文档</div>
           ) : (
@@ -833,7 +833,7 @@ export function KnowledgeDocumentsPage() {
                           <div className="flex items-center gap-1.5 min-w-0">
                             <button
                               type="button"
-                              className="block truncate min-w-0 text-left font-medium text-slate-900 transition-colors hover:text-indigo-600 hover:underline underline-offset-4"
+                              className="block truncate min-w-0 text-left font-medium text-ink transition-colors hover:text-accent hover:underline underline-offset-4"
                               title={doc.docName || ""}
                               onClick={() => navigate(`/admin/knowledge/${kbId}/docs/${doc.id}`)}
                             >
@@ -841,7 +841,7 @@ export function KnowledgeDocumentsPage() {
                             </button>
                             {doc.chunksEdited ? (
                               <span
-                                className="shrink-0 rounded-full bg-amber-50 px-1.5 py-px text-[10px] font-medium text-amber-700 ring-1 ring-amber-200"
+                                className="shrink-0 rounded-full bg-warning-wash px-1.5 py-px text-[10px] font-medium text-warning ring-1 ring-focus"
                                 title="该文档存在被手工编辑过的分块，重新分块会丢失"
                               >
                                 已编辑
@@ -876,7 +876,7 @@ export function KnowledgeDocumentsPage() {
                             onClick={() => handleToggleEnabled(doc)}
                             className={cn(
                               "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
-                              enabled ? "bg-blue-600" : "bg-slate-200"
+                              enabled ? "bg-accent" : "bg-paper-2"
                             )}
                           >
                             <span
@@ -970,7 +970,7 @@ export function KnowledgeDocumentsPage() {
           )}
 
           {pageData ? (
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
               <span>共 {pageData.total} 条</span>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => setCurrent((prev) => Math.max(1, prev - 1))} disabled={pageData.current <= 1}>
@@ -1056,9 +1056,9 @@ export function KnowledgeDocumentsPage() {
                 {chunkTarget?.chunkCount ? (
                   <>
                     <div>文档 [{chunkTarget?.docName}] 已有 {chunkTarget.chunkCount} 个分块记录。</div>
-                    <div className="font-medium text-amber-600">重新分块会清空原有 Chunk 记录及向量数据。</div>
+                    <div className="font-medium text-warning">重新分块会清空原有 Chunk 记录及向量数据。</div>
                     {chunkTarget?.chunksEdited ? (
-                      <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                      <div className="rounded-md border border-error-rule bg-error-wash px-3 py-2 text-sm text-error">
                         <span className="font-semibold">注意：</span>
                         该文档存在被手工编辑过的分块，重新分块会从源文件重新生成，
                         <span className="font-semibold">所有手动修改将丢失且无法恢复</span>。
@@ -1198,7 +1198,7 @@ export function KnowledgeDocumentsPage() {
                       onClick={handleDetailNoChunkToggle}
                       className={cn(
                         "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
-                        detailNoChunk ? "bg-blue-600" : "bg-slate-200"
+                        detailNoChunk ? "bg-accent" : "bg-paper-2"
                       )}
                     >
                       <span
@@ -1248,7 +1248,7 @@ export function KnowledgeDocumentsPage() {
               onClick={handleDetailSave}
               disabled={detailSaving || !detailName.trim()}
             >
-              {detailSaving ? "保存中..." : "保存"}
+              {detailSaving ? "保存中…" : "保存"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1258,12 +1258,12 @@ export function KnowledgeDocumentsPage() {
         <DialogContent hideClose className={
           // 正文区用纯白：pdf 画布、docx 页面本身就是白的，弹窗底色带灰会在正文四周描出一圈内嵌外框
           previewTarget?.fileType === "pdf" || isDocxType(previewTarget?.fileType) || isSpreadsheetType(previewTarget?.fileType) || isImageType(previewTarget?.fileType)
-            ? "flex h-[92vh] flex-col overflow-hidden bg-white sm:max-w-[1100px] p-0"
-            : "flex max-h-[90vh] flex-col overflow-hidden bg-white sm:max-w-[900px] p-0"
+            ? "flex h-[92vh] flex-col overflow-hidden bg-paper sm:max-w-[1100px] p-0"
+            : "flex max-h-[90vh] flex-col overflow-hidden bg-paper sm:max-w-[900px] p-0"
         } onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => { e.preventDefault(); requestAnimationFrame(() => (document.activeElement as HTMLElement)?.blur()); }}>
           <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-6 py-3">
             <span className="text-sm font-medium text-muted-foreground truncate">{previewTarget?.docName || "预览"}</span>
-            <DialogClose className="rounded-md p-1.5 opacity-50 transition-all hover:opacity-100 hover:bg-muted focus-visible:outline-none">
+            <DialogClose className="rounded-md p-1.5 opacity-50 transition-opacity hover:opacity-100 hover:bg-muted focus-visible:outline-none">
               <X className="h-3.5 w-3.5" />
             </DialogClose>
           </div>
@@ -1286,7 +1286,7 @@ export function KnowledgeDocumentsPage() {
             </DialogDescription>
           </DialogHeader>
           {logLoading ? (
-            <div className="py-8 text-center text-muted-foreground">加载中...</div>
+            <div className="py-8 text-center text-muted-foreground">加载中…</div>
           ) : logData && logData.records.length > 0 ? (
             <div className="space-y-4">
               {logData.records.slice(0, 1).map((log) => {
@@ -1299,9 +1299,9 @@ export function KnowledgeDocumentsPage() {
                     <div className="flex items-center gap-3">
                       <span className={cn(
                         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                        log.status === "success" ? "bg-emerald-50 text-emerald-700" :
-                        log.status === "failed" ? "bg-red-50 text-red-700" :
-                        "bg-amber-50 text-amber-700"
+                        log.status === "success" ? "bg-success-wash text-success" :
+                        log.status === "failed" ? "bg-error-wash text-error" :
+                        "bg-warning-wash text-warning"
                       )}>
                         {formatLogStatus(log.status)}
                       </span>
@@ -1317,46 +1317,46 @@ export function KnowledgeDocumentsPage() {
                   {/* 耗时指标卡片 */}
                   <div className={cn("grid gap-3", isPipelineLog ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4")}>
                     {!isPipelineLog && (
-                      <div className="rounded-lg border bg-slate-50/50 p-3">
+                      <div className="rounded-lg border bg-paper-2 p-3">
                         <div className="text-xs text-muted-foreground mb-1">文本提取</div>
                         <div className="text-lg font-semibold tabular-nums">{formatDuration(log.extractDuration)}</div>
                       </div>
                     )}
-                    <div className="rounded-lg border bg-slate-50/50 p-3">
+                    <div className="rounded-lg border bg-paper-2 p-3">
                       <div className="text-xs text-muted-foreground mb-1">{chunkLabel}</div>
                       <div className="text-lg font-semibold tabular-nums">{formatDuration(log.chunkDuration)}</div>
                     </div>
                     {!isPipelineLog && (
-                      <div className="rounded-lg border bg-slate-50/50 p-3">
+                      <div className="rounded-lg border bg-paper-2 p-3">
                         <div className="text-xs text-muted-foreground mb-1">向量化</div>
                         <div className="text-lg font-semibold tabular-nums">{formatDuration(log.embedDuration)}</div>
                       </div>
                     )}
-                    <div className="rounded-lg border bg-slate-50/50 p-3">
+                    <div className="rounded-lg border bg-paper-2 p-3">
                       <div className="text-xs text-muted-foreground mb-1">持久化</div>
                       <div className="text-lg font-semibold tabular-nums">{formatDuration(log.persistDuration)}</div>
                     </div>
-                    <div className="rounded-lg border bg-slate-50/50 p-3">
+                    <div className="rounded-lg border bg-paper-2 p-3">
                       <div className="text-xs text-muted-foreground mb-1">其他</div>
                       <div className="text-lg font-semibold tabular-nums">{formatDuration(log.otherDuration)}</div>
                     </div>
-                    <div className="rounded-lg border bg-blue-50 p-3">
-                      <div className="text-xs text-blue-600 mb-1">总耗时</div>
-                      <div className="text-lg font-bold tabular-nums text-blue-600">{formatDuration(log.totalDuration)}</div>
+                    <div className="rounded-lg border bg-accent-wash p-3">
+                      <div className="text-xs text-accent mb-1">总耗时</div>
+                      <div className="text-lg font-bold tabular-nums text-accent">{formatDuration(log.totalDuration)}</div>
                     </div>
                   </div>
 
                   {/* 执行时间 */}
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>执行时间</span>
-                    <span className="tabular-nums text-slate-700">{formatFullDateTime(log.startTime)}</span>
+                    <span className="tabular-nums text-ink">{formatFullDateTime(log.startTime)}</span>
                     <span>~</span>
-                    <span className="tabular-nums text-slate-700">{log.endTime ? formatFullDateTime(log.endTime) : "进行中"}</span>
+                    <span className="tabular-nums text-ink">{log.endTime ? formatFullDateTime(log.endTime) : "进行中"}</span>
                   </div>
 
                   {/* 错误信息 */}
                   {log.errorMessage && (
-                    <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                    <div className="rounded-lg bg-error-wash p-3 text-sm text-error">
                       <div className="font-medium mb-1">错误信息</div>
                       <div className="text-xs">{log.errorMessage}</div>
                     </div>
@@ -1377,18 +1377,18 @@ export function KnowledgeDocumentsPage() {
       </Dialog>
       {selectedIds.size > 0 && (
         <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center">
-          <div className="animate-fade-up rounded-2xl bg-slate-900 px-5 py-3 text-sm text-white shadow-[0_10px_40px_rgba(0,0,0,0.15)]">
+          <div className="animate-fade-up rounded-2xl bg-graphite px-5 py-3 text-sm text-white shadow-card">
             <div className="flex items-center gap-3">
-              <Check className="h-4 w-4 text-emerald-400" />
+              <Check className="h-4 w-4 text-success" />
               <span className="tabular-nums font-medium">
                 已选 {selectedIds.size} 项
               </span>
-              <div className="mx-1 h-5 w-px bg-white/20" />
+              <div className="mx-1 h-5 w-px bg-paper" />
               <button
                 type="button"
                 onClick={handleBatchChunk}
                 disabled={batchOperating}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white/80 transition-colors hover:bg-paper hover:text-white disabled:opacity-50"
               >
                 <PlayCircle className="h-4 w-4" />
                 批量分块
@@ -1397,16 +1397,16 @@ export function KnowledgeDocumentsPage() {
                 type="button"
                 onClick={() => setBatchDeleteOpen(true)}
                 disabled={batchOperating}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-400 transition-colors hover:bg-white/10 hover:text-red-300 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-error transition-colors hover:bg-paper hover:text-error disabled:opacity-50"
               >
                 <Trash2 className="h-4 w-4" />
                 删除
               </button>
-              <div className="mx-1 h-5 w-px bg-white/20" />
+              <div className="mx-1 h-5 w-px bg-paper" />
               <button
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
-                className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+                className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-paper hover:text-white/80"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1721,7 +1721,7 @@ function UploadDialog({ open, onOpenChange, kbId, onSubmit }: UploadDialogProps)
             </div>
 
             {chunkPreview.warnings.length > 0 ? (
-              <div className="space-y-1 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+              <div className="space-y-1 rounded-lg border border-warning-rule bg-warning-wash p-3 text-sm text-warning">
                 {chunkPreview.warnings.map((warning, index) => <p key={index}>{warning}</p>)}
               </div>
             ) : null}
@@ -1781,7 +1781,7 @@ function UploadDialog({ open, onOpenChange, kbId, onSubmit }: UploadDialogProps)
                 返回修改配置
               </Button>
               <Button type="button" onClick={() => void form.handleSubmit(handleSubmit)()} disabled={saving}>
-                {saving ? "上传中..." : "按当前配置上传"}
+                {saving ? "上传中…" : "按当前配置上传"}
               </Button>
             </DialogFooter>
           </div>
@@ -1963,7 +1963,7 @@ function UploadDialog({ open, onOpenChange, kbId, onSubmit }: UploadDialogProps)
                       <Select value={field.value} onValueChange={field.onChange} disabled={loadingPipelines}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={loadingPipelines ? "加载中..." : "请选择"} />
+                            <SelectValue placeholder={loadingPipelines ? "加载中…" : "请选择"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -2031,7 +2031,7 @@ function UploadDialog({ open, onOpenChange, kbId, onSubmit }: UploadDialogProps)
                       onClick={handleNoChunkToggle}
                       className={cn(
                         "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
-                        noChunk ? "bg-blue-600" : "bg-slate-200"
+                        noChunk ? "bg-accent" : "bg-paper-2"
                       )}
                     >
                       <span
@@ -2095,10 +2095,10 @@ function UploadDialog({ open, onOpenChange, kbId, onSubmit }: UploadDialogProps)
                 disabled={saving || previewing || isUrlSource || isPipelineMode || !file}
                 title={isUrlSource || isPipelineMode ? "预览仅支持本地文件的直接分块模式" : undefined}
               >
-                {previewing ? "预切分中..." : "预切分预览"}
+                {previewing ? "预切分中…" : "预切分预览"}
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "上传中..." : "上传"}
+                {saving ? "上传中…" : "上传"}
               </Button>
             </DialogFooter>
           </form>

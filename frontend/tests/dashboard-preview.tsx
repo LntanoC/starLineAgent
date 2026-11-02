@@ -14,6 +14,7 @@ import type {
   DashboardPerformance
 } from "../src/services/dashboardService";
 import "../src/styles/globals.css";
+import "../src/styles/redesign.css";
 
 const params = new URLSearchParams(location.search);
 const engine = "agent" as const;
@@ -300,7 +301,7 @@ createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       {chrome === "console" ? (
         <div className="admin-layout flex h-screen">
-          <aside className="admin-sidebar" aria-hidden="true" />
+          <aside className="admin-sidebar dashboard-preview-console-sidebar" aria-hidden="true" />
           <div className="admin-main flex min-h-screen flex-1 flex-col overflow-auto">
             {/*
               顶栏是空壳但高度必须在：它占掉 64px，而概览页现在按剩余高度分配纵向余量，

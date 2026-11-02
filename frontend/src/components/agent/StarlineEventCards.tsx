@@ -42,11 +42,11 @@ interface EventSearchData {
 }
 
 const STAGE: Record<EventStage, { label: string; className: string }> = {
-  APPROVED: { label: "已获批", className: "border-sky-200 bg-sky-50 text-sky-700" },
-  ON_SHELF: { label: "已上架待开票", className: "border-amber-200 bg-amber-50 text-amber-800" },
-  ON_SALE: { label: "已开票", className: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-  SOLD_OUT: { label: "已售罄", className: "border-slate-200 bg-slate-100 text-slate-600" },
-  ENDED: { label: "已结束", className: "border-slate-200 bg-slate-100 text-slate-500" }
+  APPROVED: { label: "已获批", className: "border-info-rule bg-info-wash text-info" },
+  ON_SHELF: { label: "已上架待开票", className: "border-warning-rule bg-warning-wash text-warning" },
+  ON_SALE: { label: "已开票", className: "border-success-rule bg-success-wash text-success" },
+  SOLD_OUT: { label: "已售罄", className: "border-rule bg-paper text-muted-foreground" },
+  ENDED: { label: "已结束", className: "border-rule bg-paper text-muted-foreground" }
 };
 
 const VALID_STAGES = new Set<EventStage>(["APPROVED", "ON_SHELF", "ON_SALE", "SOLD_OUT", "ENDED"]);
@@ -95,7 +95,7 @@ function isEventCardData(value: unknown): value is EventCardData {
 export function StarlineEventCards({ data }: { data: EventSearchData }) {
   if (data.items.length === 0) {
     return (
-      <div className="space-y-1 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+      <div className="space-y-1 rounded-xl border border-rule bg-paper p-4 text-sm text-muted-foreground">
         {data.notes.map((note, index) => <p key={index}>{note}</p>)}
       </div>
     );
@@ -110,7 +110,7 @@ export function StarlineEventCards({ data }: { data: EventSearchData }) {
         />
       ))}
       {data.notes.map((note, index) => (
-        <p key={"note-" + index} className="px-1 text-xs leading-5 text-slate-500">{note}</p>
+        <p key={"note-" + index} className="px-1 text-xs leading-5 text-muted-foreground">{note}</p>
       ))}
     </div>
   );
@@ -156,28 +156,28 @@ function EventCard({ item }: { item: EventCardData }) {
   };
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="rounded-xl border border-rule bg-paper p-4 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h3 className="min-w-0 flex-1 text-sm font-semibold leading-6 text-slate-900">{item.title}</h3>
+        <h3 className="min-w-0 flex-1 text-sm font-semibold leading-6 text-ink">{item.title}</h3>
         <span className={"shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium " + stage.className}>
           {stage.label}
         </span>
       </div>
 
       {item.daysToSale != null && item.stage === "ON_SHELF" ? (
-        <p className="mt-2 text-sm font-semibold text-amber-700">{countdown(item.daysToSale)}</p>
+        <p className="mt-2 text-sm font-semibold text-warning">{countdown(item.daysToSale)}</p>
       ) : item.daysToSale != null && item.stage === "ON_SALE" && item.daysToSale <= 0 ? (
-        <p className="mt-2 text-sm text-emerald-700">
+        <p className="mt-2 text-sm text-success">
           {item.daysToSale === 0 ? "今天开票" : "已开票 " + Math.abs(item.daysToSale) + " 天"}
         </p>
       ) : null}
 
-      <p className="mt-3 text-sm text-slate-600">
+      <p className="mt-3 text-sm text-muted-foreground">
         {item.eventDate || "演出日期待公布"}{item.city ? " · " + item.city : ""}
       </p>
 
       {item.approvedNote ? (
-        <p className="mt-2 text-sm text-sky-800">
+        <p className="mt-2 text-sm text-info">
           {item.approvedUrl ? (
             <a href={safeExternalUrl(item.approvedUrl)} target="_blank" rel="noreferrer" className="underline underline-offset-2">
               {item.approvedNote} · 查看公示
@@ -187,12 +187,12 @@ function EventCard({ item }: { item: EventCardData }) {
       ) : null}
 
       {item.isStale ? (
-        <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <p className="mt-2 rounded-lg bg-warning-wash px-3 py-2 text-xs text-warning">
           信息时效无法确认或已过期，请打开来源重新核验。
         </p>
       ) : null}
       {item.conflict ? (
-        <div className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-800">
+        <div className="mt-2 rounded-lg bg-error-wash px-3 py-2 text-xs text-error">
           <p>票务来源的状态或开票时间不一致，暂不能据此添加提醒：</p>
           <ul className="mt-1 space-y-1">
             {item.sourceEvidence.map((source, index) => (
@@ -206,8 +206,8 @@ function EventCard({ item }: { item: EventCardData }) {
         </div>
       ) : null}
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-        <a href={safeExternalUrl(item.sourceUrl)} target="_blank" rel="noreferrer" className="text-sm text-indigo-700 underline underline-offset-2">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-3">
+        <a href={safeExternalUrl(item.sourceUrl)} target="_blank" rel="noreferrer" className="text-sm text-accent underline underline-offset-2">
           来源：{item.sourceName}
         </a>
         <div className="flex items-center gap-3">
@@ -217,20 +217,20 @@ function EventCard({ item }: { item: EventCardData }) {
               type="button"
               disabled={saving}
               onClick={() => void addReminder()}
-              className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-60 md:hidden"
+              className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition hover:bg-accent disabled:cursor-wait disabled:opacity-60 md:hidden"
             >
               {saving ? "添加中…" : "添加提醒"}
             </button>
-            <span className="hidden text-xs text-slate-500 md:inline">
+            <span className="hidden text-xs text-muted-foreground md:inline">
               请在手机端添加日历提醒
             </span>
             </>
           ) : item.stage !== "ENDED" && !item.saleStartTime ? (
-            <span className="text-xs text-slate-500">暂无准确开票时间，无法设置提醒</span>
+            <span className="text-xs text-muted-foreground">暂无准确开票时间，无法设置提醒</span>
           ) : item.isStale || item.conflict ? (
-            <span className="text-xs text-slate-500">核验来源后再添加提醒</span>
+            <span className="text-xs text-muted-foreground">核验来源后再添加提醒</span>
           ) : item.saleStartTime && !futureSaleTime ? (
-            <span className="text-xs text-slate-500">开票时间已过，无法添加提醒</span>
+            <span className="text-xs text-muted-foreground">开票时间已过，无法添加提醒</span>
           ) : null}
         </div>
       </div>

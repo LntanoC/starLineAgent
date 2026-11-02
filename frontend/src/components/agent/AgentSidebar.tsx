@@ -347,7 +347,7 @@ export function AgentSidebar({ mobileOpen = false, onMobileNavigate }: AgentSide
                                   重命名
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="rounded-lg px-3 py-2 text-[13px] text-rose-600 focus:text-rose-600 data-[highlighted]:text-rose-600"
+                                  className="rounded-lg px-3 py-2 text-[13px] text-error focus:text-error data-[highlighted]:text-error"
                                   onClick={() =>
                                     setDeleteTarget({
                                       kind: "one",
@@ -424,7 +424,7 @@ export function AgentSidebar({ mobileOpen = false, onMobileNavigate }: AgentSide
               </a>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="rounded-lg px-3 py-2 text-[13px] text-rose-600 focus:text-rose-600 data-[highlighted]:text-rose-600"
+              className="rounded-lg px-3 py-2 text-[13px] text-error focus:text-error data-[highlighted]:text-error"
               onClick={() => logout()}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -455,11 +455,11 @@ export function AgentSidebar({ mobileOpen = false, onMobileNavigate }: AgentSide
           </AlertDialogHeader>
           <AlertDialogFooter>
             {/* 弹窗走 portal 落在 .agent-app 外 焦点圈会吃 RAG 的紫 显式压成橙（token 也够不着 只能写字面值） */}
-            <AlertDialogCancel className="focus-visible:ring-[#d97757]">取消</AlertDialogCancel>
+            <AlertDialogCancel className="focus-visible:ring-focus">取消</AlertDialogCancel>
             {/* 确认钮吃 shadcn 默认 primary 会是 RAG 的紫 这里按删除语义显式压成红 */}
             <AlertDialogAction
               onClick={runDelete}
-              className="bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-600"
+              className="bg-error text-white hover:bg-error focus-visible:ring-focus"
             >
               删除
             </AlertDialogAction>

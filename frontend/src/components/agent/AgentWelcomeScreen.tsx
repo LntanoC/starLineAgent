@@ -67,7 +67,7 @@ function AgentSampleQuestions() {
       {isBlank ? (
         <div className="agent-empty-blank">
           {state.status === "error" ? (
-            <p>示例问题没取到，不影响提问——直接在下面写下你想问的就行。</p>
+            <p>示例问题没取到，不影响提问，直接在下面写下你想问的就行。</p>
           ) : (
             <p>
               管理控制台还没有配置示例问题，直接在下面输入框写下你想问的就行

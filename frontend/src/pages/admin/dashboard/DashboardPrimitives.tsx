@@ -37,10 +37,10 @@ export const compact = (value: number) => {
  * 三档都比 VIZ_COLORS 深一档——状态色是给条与点定的，12px 文字上过不了 4.5:1
  */
 export const successRateClass = (value: number | null) => {
-  if (value === null) return "text-[#B0B8C4]";
-  if (value >= 95) return "text-emerald-700";
-  if (value >= 80) return "text-amber-700";
-  return "text-red-600";
+  if (value === null) return "text-muted-foreground";
+  if (value >= 95) return "text-success";
+  if (value >= 80) return "text-warning";
+  return "text-error";
 };
 
 /** 卡片外壳走公共的 DashCard/CardHead，两个引擎分支共用同一套卡片语言。 */
@@ -77,7 +77,7 @@ export function Card({
  */
 export function Empty({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-24 flex-1 items-center justify-center rounded-xl border border-dashed border-[#EAECF0] px-4 py-6 text-center text-sm leading-relaxed text-[#667085]">
+    <div className="flex min-h-24 flex-1 items-center justify-center rounded-xl border border-dashed border-rule px-4 py-6 text-center text-sm leading-relaxed text-muted-foreground">
       {children}
     </div>
   );
@@ -97,14 +97,14 @@ export function Stat({
 }) {
   return (
     <div className={cn("min-w-0", className)}>
-      <p className="truncate text-xs leading-4 text-[#667085]">{label}</p>
-      <p className="mt-1.5 text-xl font-semibold leading-none tracking-tight text-[#101828]">
+      <p className="truncate text-xs leading-4 text-muted-foreground">{label}</p>
+      <p className="mt-1.5 text-xl font-semibold leading-none tracking-tight text-ink">
         {value === null ? (
-          <span className="text-[#B0B8C4]">—</span>
+          <span className="text-muted-foreground">未记录</span>
         ) : (
           <>
             {value}
-            {unit && <span className="ml-1 text-xs font-normal text-[#98A2B3]">{unit}</span>}
+            {unit && <span className="ml-1 text-xs font-normal text-muted-foreground">{unit}</span>}
           </>
         )}
       </p>
@@ -124,11 +124,11 @@ export function Meter({
 }) {
   return (
     <div
-      className={cn("h-1.5 w-full overflow-hidden rounded-full bg-[#F1F3F7]", className)}
+      className={cn("h-1.5 w-full overflow-hidden rounded-full bg-paper-2", className)}
       aria-hidden="true"
     >
       <div
-        className="h-full rounded-full transition-[width] duration-500"
+        className="h-full rounded-full transition-colors duration-200"
         style={{
           width: `${Math.max(0, Math.min(100, value ?? 0))}%`,
           minWidth: value && value > 0 ? 3 : 0,
@@ -181,12 +181,11 @@ export function Ring({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={circumference - (filled / 100) * circumference}
-            className="transition-[stroke-dashoffset] duration-700 ease-out"
           />
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-        <span className="text-[14px] font-semibold tabular-nums text-[#101828]">
+        <span className="text-[14px] font-semibold tabular-nums text-ink">
           {/*
             字号 14 而不是 15：环内净宽 64−2×6＝52，15px 下「82.9%」要 48.4，两侧各只剩 0.8px，
             读数看上去是贴在环上的。14px 下是 45.5，两侧各留 3.2px 才像一个居中的数。
@@ -194,12 +193,12 @@ export function Ring({
             100 与 100.0 是同一个数，去掉的只是一个恒为零的小数位，口径没变
           */}
           {value === null ? (
-            <span className="text-[#B0B8C4]">—</span>
+            <span className="text-muted-foreground">未记录</span>
           ) : (
             `${value >= 99.95 ? "100" : value.toFixed(1)}%`
           )}
         </span>
-        <span className="mt-1 text-[10px] text-[#98A2B3]">{label}</span>
+        <span className="mt-1 text-xs text-muted-foreground">{label}</span>
       </div>
     </div>
   );
@@ -216,14 +215,14 @@ export function LegendDot({
   value?: string;
 }) {
   return (
-    <span className="inline-flex min-w-0 items-center gap-1.5 text-xs text-[#667085]">
+    <span className="inline-flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
       <span
         className="h-1.5 w-1.5 shrink-0 rounded-full"
         style={{ backgroundColor: color }}
         aria-hidden="true"
       />
       <span className="truncate">{label}</span>
-      {value && <span className="tabular-nums text-[#101828]">{value}</span>}
+      {value && <span className="tabular-nums text-ink">{value}</span>}
     </span>
   );
 }
@@ -262,13 +261,13 @@ export function DetailDialog({
           event.preventDefault();
           contentRef.current?.focus();
         }}
-        className="max-w-[720px] gap-0 rounded-[14px] border-[#EAECF0] bg-white p-0 sm:rounded-[14px]"
+        className="max-w-[720px] gap-0 rounded-[14px] border-rule bg-paper p-0 sm:rounded-[14px]"
       >
-        <DialogHeader className="space-y-1 border-b border-[#EEF0F3] px-6 py-4">
-          <DialogTitle className="text-base font-semibold leading-6 text-[#101828]">
+        <DialogHeader className="space-y-1 border-b border-rule px-6 py-4">
+          <DialogTitle className="text-base font-semibold leading-6 text-ink">
             {title}
           </DialogTitle>
-          <DialogDescription className="text-xs text-[#98A2B3]">
+          <DialogDescription className="text-xs text-muted-foreground">
             统计范围 {windowLabel}，与概览首页一致
           </DialogDescription>
         </DialogHeader>
@@ -294,7 +293,7 @@ export function DialogSection({
   return (
     <section className={cn("min-w-0", className)}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-        <h4 className="text-[13px] font-semibold leading-5 text-[#101828]">{title}</h4>
+        <h4 className="text-[13px] font-semibold leading-5 text-ink">{title}</h4>
         {action}
       </div>
       {children}
@@ -308,7 +307,7 @@ export function DialogSection({
  */
 export function DataNote({ children }: { children: ReactNode }) {
   return (
-    <p className="border-t border-[#EEF0F3] pt-4 text-xs leading-[18px] text-[#667085]">
+    <p className="border-t border-rule pt-4 text-xs leading-[18px] text-muted-foreground">
       {children}
     </p>
   );

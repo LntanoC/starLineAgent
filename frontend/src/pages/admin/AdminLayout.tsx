@@ -434,7 +434,7 @@ export function AdminLayout() {
   const showSuggest = searchFocused && hasQuery;
 
   return (
-    <div className="admin-layout flex h-screen">
+    <div className="admin-layout flex min-h-screen">
       <aside className={cn("admin-sidebar", collapsed && "admin-sidebar--collapsed")}>
         <div className="admin-sidebar__brand">
           <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
@@ -597,7 +597,7 @@ export function AdminLayout() {
 
       <div
         className={cn(
-          "admin-main flex min-h-screen flex-1 flex-col overflow-auto",
+          "admin-main flex min-h-0 flex-1 flex-col overflow-auto",
           isDashboardRoute && "dashboard-scroll-shell"
         )}
       >
@@ -614,7 +614,7 @@ export function AdminLayout() {
                 <Menu className="h-5 w-5" />
               </Button>
               <div className="admin-topbar-search">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   ref={searchInputRef}
                   value={kbQuery}
@@ -629,7 +629,7 @@ export function AdminLayout() {
                   autoCorrect="off"
                   autoCapitalize="off"
                   spellCheck={false}
-                  placeholder="筛选知识库..."
+                  placeholder="筛选知识库…"
                   className="pl-10 pr-16"
                 />
                 <span className="admin-topbar-kbd">Ctrl K</span>
@@ -639,7 +639,7 @@ export function AdminLayout() {
                     onMouseDown={(event) => event.preventDefault()}
                   >
                     {searchLoading && kbOptions.length === 0 && docOptions.length === 0 ? (
-                      <div className="admin-topbar-suggest-item text-slate-400">搜索中...</div>
+                      <div className="admin-topbar-suggest-item text-muted-foreground">搜索中…</div>
                     ) : null}
                     {kbOptions.length > 0 ? (
                       <div className="admin-topbar-suggest-section">
@@ -654,8 +654,8 @@ export function AdminLayout() {
                             }}
                             className="admin-topbar-suggest-item"
                           >
-                            <span className="font-medium text-slate-900">{kb.name}</span>
-                            <span className="text-xs text-slate-400">
+                            <span className="font-medium text-ink">{kb.name}</span>
+                            <span className="text-xs text-muted-foreground">
                               {kb.collectionName || "未设置 Collection"}
                             </span>
                           </button>
@@ -675,8 +675,8 @@ export function AdminLayout() {
                             }}
                             className="admin-topbar-suggest-item"
                           >
-                            <span className="font-medium text-slate-900">{doc.docName}</span>
-                            <span className="text-xs text-slate-400">
+                            <span className="font-medium text-ink">{doc.docName}</span>
+                            <span className="text-xs text-muted-foreground">
                               {doc.kbName || `知识库 ${doc.kbId}`}
                             </span>
                           </button>
@@ -684,7 +684,7 @@ export function AdminLayout() {
                       </div>
                     ) : null}
                     {!searchLoading && kbOptions.length === 0 && docOptions.length === 0 ? (
-                      <div className="admin-topbar-suggest-item text-slate-400">暂无匹配结果</div>
+                      <div className="admin-topbar-suggest-item text-muted-foreground">暂无匹配结果</div>
                     ) : null}
                   </div>
                 ) : null}
@@ -703,12 +703,12 @@ export function AdminLayout() {
                 href="https://github.com/LntanoC/starLineAgent"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                className="flex items-center gap-2 rounded-xl border border-rule bg-paper px-3 py-1.5 text-sm text-muted-foreground transition hover:bg-paper hover:text-ink"
                 aria-label="打开 GitHub 仓库"
               >
                 <Github className="h-4 w-4" />
                 <span className="font-medium">Star</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                <span className="rounded-full bg-paper px-2 py-0.5 text-xs text-muted-foreground">
                   {starLabel}
                 </span>
               </a>
@@ -716,20 +716,20 @@ export function AdminLayout() {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-600 shadow-sm"
+                    className="flex items-center gap-2 rounded-full border border-rule bg-paper px-2.5 py-1.5 text-sm text-muted-foreground shadow-sm"
                     aria-label="用户菜单"
                   >
                     <Avatar
                       name={user?.username || "管理员"}
                       src={showAvatar ? avatarUrl : undefined}
-                      className="h-8 w-8 border-slate-200 bg-indigo-50 text-xs font-semibold text-indigo-600"
+                      className="h-8 w-8 border-rule bg-accent-wash text-xs font-semibold text-accent"
                     />
                     <span className="hidden sm:inline">{user?.username || "管理员"}</span>
-                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" sideOffset={8} className="w-44">
-                  <div className="px-3 py-2 text-xs text-slate-500">
+                  <div className="px-3 py-2 text-xs text-muted-foreground">
                     {user?.username || "管理员"} · {roleLabel}
                   </div>
                   <DropdownMenuSeparator />
@@ -737,7 +737,7 @@ export function AdminLayout() {
                     <KeyRound className="mr-2 h-4 w-4" />
                     修改密码
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="text-rose-600 focus:text-rose-600">
+                  <DropdownMenuItem onClick={handleLogout} className="text-error focus:text-error">
                     <LogOut className="mr-2 h-4 w-4" />
                     退出登录
                   </DropdownMenuItem>
@@ -757,7 +757,7 @@ export function AdminLayout() {
                     {item.to && !isLast ? (
                       <Link to={item.to}>{item.label}</Link>
                     ) : (
-                      <span className={isLast ? "text-slate-700" : undefined}>{item.label}</span>
+                      <span className={isLast ? "text-ink" : undefined}>{item.label}</span>
                     )}
                     {!isLast && <span>/</span>}
                   </span>
@@ -785,7 +785,7 @@ export function AdminLayout() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">当前密码</label>
+              <label className="text-sm font-medium text-ink">当前密码</label>
               <Input
                 type="password"
                 value={passwordForm.currentPassword}
@@ -796,7 +796,7 @@ export function AdminLayout() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">新密码</label>
+              <label className="text-sm font-medium text-ink">新密码</label>
               <Input
                 type="password"
                 value={passwordForm.newPassword}
@@ -807,7 +807,7 @@ export function AdminLayout() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">确认新密码</label>
+              <label className="text-sm font-medium text-ink">确认新密码</label>
               <Input
                 type="password"
                 value={passwordForm.confirmPassword}
@@ -823,7 +823,7 @@ export function AdminLayout() {
               取消
             </Button>
             <Button onClick={handlePasswordSubmit} disabled={passwordSubmitting}>
-              {passwordSubmitting ? "保存中..." : "保存"}
+              {passwordSubmitting ? "保存中…" : "保存"}
             </Button>
           </DialogFooter>
         </DialogContent>

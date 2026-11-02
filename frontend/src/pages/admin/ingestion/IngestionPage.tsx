@@ -407,7 +407,7 @@ export function IngestionPage() {
           </CardHeader>
           <CardContent>
             {pipelineLoading ? (
-              <div className="py-10 text-center text-muted-foreground">加载中...</div>
+              <div className="py-10 text-center text-muted-foreground">加载中…</div>
             ) : pipelines.length === 0 ? (
               <div className="py-10 text-center text-muted-foreground">暂无流水线</div>
             ) : (
@@ -518,7 +518,7 @@ export function IngestionPage() {
           </CardHeader>
           <CardContent>
             {taskLoading ? (
-              <div className="py-10 text-center text-muted-foreground">加载中...</div>
+              <div className="py-10 text-center text-muted-foreground">加载中…</div>
             ) : tasks.length === 0 ? (
               <div className="py-10 text-center text-muted-foreground">暂无任务</div>
             ) : (
@@ -669,7 +669,7 @@ interface PaginationProps {
 function Pagination({ current, pages, total, onPrev, onNext }: PaginationProps) {
   if (total === 0) return null;
   return (
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
       <span>共 {total} 条</span>
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={onPrev} disabled={current <= 1}>
@@ -1758,7 +1758,7 @@ function PipelineDialog({ open, mode, pipeline, onOpenChange, onSubmit }: Pipeli
                 取消
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "保存中..." : "保存"}
+                {saving ? "保存中…" : "保存"}
               </Button>
             </DialogFooter>
           </form>
@@ -1860,9 +1860,9 @@ function TaskDialog({ open, pipelineOptions, onOpenChange, onSubmit, onUpload }:
         };
       case "feishu":
         return {
-          locationPlaceholder: "https://open.feishu.cn/...",
+          locationPlaceholder: "https://open.feishu.cn/…",
           locationHint: "填写飞书文档链接",
-          credentialsHint: '{"tenantAccessToken":"..."} 或 {"app_id":"...","app_secret":"..."}'
+          credentialsHint: '{"tenantAccessToken":"…"} 或 {"app_id":"…","app_secret":"…"}'
         };
       case "url":
       default:
@@ -2111,7 +2111,7 @@ function TaskDialog({ open, pipelineOptions, onOpenChange, onSubmit, onUpload }:
                 取消
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "创建中..." : "创建任务"}
+                {saving ? "创建中…" : "创建任务"}
               </Button>
             </DialogFooter>
           </form>
@@ -2206,7 +2206,7 @@ function UploadDialog({ open, pipelineOptions, onOpenChange, onSubmit }: UploadD
             取消
           </Button>
           <Button onClick={handleSubmit} disabled={saving}>
-            {saving ? "上传中..." : "上传"}
+            {saving ? "上传中…" : "上传"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -2259,7 +2259,7 @@ function TaskDetailDialog({ open, taskId, onOpenChange }: TaskDetailDialogProps)
           <DialogDescription>{taskId || ""}</DialogDescription>
         </DialogHeader>
         {loading || !task ? (
-          <div className="py-6 text-center text-muted-foreground">加载中...</div>
+          <div className="py-6 text-center text-muted-foreground">加载中…</div>
         ) : (
           <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">

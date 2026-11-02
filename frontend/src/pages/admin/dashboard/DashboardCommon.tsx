@@ -206,19 +206,19 @@ export const useDashboardData = () => {
 // ==========================================================================
 
 export const LoadingBlock = ({ className }: { className?: string }) => (
-    <div className={cn("motion-safe:animate-pulse rounded-lg bg-[#F1F3F7]", className)} />
+    <div className={cn("motion-safe:animate-pulse rounded-lg bg-paper-2", className)} />
 );
 
 /**
  * 分段器：选中态用主色浅底而不是深底反白。
  * 深底那一格在浅色页面里是全页最重的一块，而它只是个筛选器，不该比它筛出来的数字更响
  */
-const SEGMENT_TRACK = "inline-flex rounded-lg bg-[#F2F4F7] p-0.5";
+const SEGMENT_TRACK = "inline-flex rounded-lg bg-paper-2 p-0.5";
 const segmentItem = (active: boolean) =>
     cn(
-        "rounded-[7px] px-2.5 py-1 text-xs font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]",
-        active ? "bg-[#EEF2FF] text-[#4F6EF7]" : "text-[#667085] hover:text-[#101828]"
+        "min-h-8 rounded-[7px] px-2.5 py-1 text-xs font-medium transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+        active ? "bg-accent-wash text-accent" : "text-muted-foreground hover:text-ink"
     );
 
 // ==========================================================================
@@ -249,11 +249,11 @@ export const DashboardHeader = ({
       */}
       <div className="min-w-0">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
-          <h1 className="text-[22px] font-[650] leading-7 tracking-[-0.01em] text-[#101828]">
+          <h1 className="text-[22px] font-[650] leading-7 tracking-[-0.01em] text-ink">
             Agent 运行概览
           </h1>
           {/* 标签只说"这些数字是谁的"，不带状态语义，所以走主色浅底而不是任何一档状态色 */}
-          <span className="rounded-md bg-[#EEF2FF] px-2 py-0.5 text-xs font-medium leading-5 text-[#405FE8]">
+          <span className="rounded-md bg-accent-wash px-2 py-0.5 text-xs font-medium leading-5 text-accent">
             {engine ? "Agent · 自主执行" : loading ? "正在读取引擎" : "引擎信息不可用"}
           </span>
         </div>
@@ -278,7 +278,7 @@ export const DashboardHeader = ({
           归组与刷新两段口径挂在"数据更新于"旁边而不是各卡上：它们限定的是这一整页数字的时间坐标，
           挂到某一张卡上等于宣称只有那张卡按这个规则归组
         */}
-        <span className="flex items-center gap-1.5 text-xs text-[#98A2B3]">
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           数据更新于 {formatLastUpdated(lastUpdated)}
           <Hint>
             按回复创建时间归组，状态随后续处理更新。缓存最长 30 秒。暂无精确执行耗时指标。
@@ -291,7 +291,7 @@ export const DashboardHeader = ({
             onClick={onRefresh}
             disabled={loading}
             aria-label="刷新统计"
-            className="h-8 w-8 rounded-lg border-[#EAECF0] bg-white text-[#667085] hover:border-[#D9DDE7] hover:text-[#101828]"
+            className="h-8 w-8 rounded-lg border-rule bg-paper text-muted-foreground hover:border-accent-rule hover:text-ink"
         >
           <RefreshCw className={cn("h-4 w-4", loading && "motion-safe:animate-spin")} />
         </Button>
@@ -327,7 +327,7 @@ const KPICardItem = ({ value, label, change, upIsGood, icon, sub, chipTone = "ac
    * 涨跌用的绿/红比状态色深一档：状态色（#12B76A / #F04438）是给条与点定的，
    * 对白底只有 2.6 / 3.8，落到 12px 文字上过不了 4.5 的门。色相一致、明度压深，语义不变
    */
-  const changeColor = isUp === upIsGood ? "text-emerald-700" : "text-red-600";
+  const changeColor = isUp === upIsGood ? "text-success" : "text-error";
 
   /*
    * 图标独占左列，标题、数字、涨跌共用右列的同一条左边界。
@@ -344,23 +344,23 @@ const KPICardItem = ({ value, label, change, upIsGood, icon, sub, chipTone = "ac
               className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]"
               style={{
                 backgroundColor: chipTone === "good" ? VIZ_SURFACE.goodSoft : VIZ_SURFACE.accentSoft,
-                color: chipTone === "good" ? "#12B76A" : "#4F6EF7"
+                color: chipTone === "good" ? "var(--color-success)" : "var(--color-accent)"
               }}
           >
             {icon}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] leading-5 text-[#667085]">{label}</p>
+            <p className="truncate text-[13px] leading-5 text-muted-foreground">{label}</p>
             {/*
               从属读数贴着数字收尾而不是挤进末行：它补的是这个数字的绝对量，挨着数字才读得成一句。
               末行于是只剩环比，四格都是"标题 / 数字 / 环比"三行。
               数字位数多到与它并排放不下时整行换行（四格同步长高），不截半个词
             */}
             <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2">
-              <p className="text-[30px] font-semibold leading-8 tracking-[-0.02em] text-[#101828]">
-                {value === null ? <span className="text-[#B0B8C4]">—</span> : value}
+              <p className="text-[30px] font-semibold leading-8 tracking-[-0.02em] text-ink">
+                {value === null ? <span className="text-muted-foreground">未记录</span> : value}
               </p>
-              {sub && <span className="min-w-0 truncate text-xs text-[#98A2B3]">{sub}</span>}
+              {sub && <span className="min-w-0 truncate text-xs text-muted-foreground">{sub}</span>}
             </div>
             {/* 没有对比期时这行空着不塌：四格的底边由它对齐 */}
             <div className="mt-1 flex min-h-4 items-center text-xs">
@@ -375,7 +375,7 @@ const KPICardItem = ({ value, label, change, upIsGood, icon, sub, chipTone = "ac
                       {change.value > 0 ? "+" : ""}
                       {change.value.toFixed(1)}%
                     </span>
-                    <span className="text-[#98A2B3]">较上周期</span>
+                    <span className="text-muted-foreground">较上周期</span>
                   </span>
               )}
             </div>
@@ -499,7 +499,7 @@ export const TrafficCard = ({
       loading ? (
           <LoadingBlock className={boxClass} />
       ) : series.length === 0 || current.kpi?.value === 0 ? (
-          <div className={cn("flex items-center justify-center text-sm text-[#98A2B3]", boxClass)}>
+          <div className={cn("flex items-center justify-center text-sm text-muted-foreground", boxClass)}>
             暂无流量数据
           </div>
       ) : (
@@ -547,20 +547,20 @@ export const TrafficCard = ({
               度量名压到数字上方单独一行：大数字自己不说自己是什么，而它跟在数字后面时，
               要和单位、环比排成一串，读者得横着扫过三段小字才知道这个数是什么
             */}
-            <p className="truncate text-xs text-[#667085]">{current.caption}</p>
+            <p className="truncate text-xs text-muted-foreground">{current.caption}</p>
             <div className="mt-0.5 flex items-end gap-2">
-              <span className="text-[30px] font-semibold leading-9 tracking-[-0.02em] text-[#101828]">
+              <span className="text-[30px] font-semibold leading-9 tracking-[-0.02em] text-ink">
                 {formatNumber(current.kpi?.value)}
               </span>
-              <span className="pb-1.5 text-xs text-[#98A2B3]">{current.unit}</span>
+              <span className="pb-1.5 text-xs text-muted-foreground">{current.unit}</span>
               {change && change.trend !== "flat" && (
                   /* 环比给药丸底：它是这行里唯一带方向的读数，纯文字放在 30px 数字旁边会被压没 */
                   <span
                       className={cn(
                           "mb-1 inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium tabular-nums",
                           change.trend === "up"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-red-50 text-red-600"
+                              ? "bg-success-wash text-success"
+                              : "bg-error-wash text-error"
                       )}
                   >
                     {change.trend === "up" ? (

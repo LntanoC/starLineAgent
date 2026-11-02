@@ -1,5 +1,5 @@
 /**
- * Agent 分支的整页正文：KPI 带 + 两层等高分栏。
+ * Agent 分支的整页正文：KPI 带 + 工具分析 + 趋势与运行健康。
  */
 import { ShieldCheck, Sparkles } from "lucide-react";
 
@@ -98,24 +98,8 @@ export const AgentDashboard = ({
         <KpiBand items={agentKpiItems(overview, performance)} className="dashboard-kpi-grid" />
 
         {/*
-          第二层分栏：两张卡都是栅格的直接子元素，靠 grid 默认的 stretch 把矮的那张拉到同高，
-          上下沿才能同时对齐。中间再包一层 div 会把拉伸吃掉，卡片重新变成各撑各的高度
-        */}
-        <div className={cn("grid gap-x-4 gap-y-3", SPLIT_COLS, "dashboard-split--trend")}>
-          <TrafficCard
-              trends={trends}
-              overview={overview}
-              timeWindow={timeWindow}
-              loading={loading}
-              plotFill
-          />
-          <AgentRunHealth data={performance} windowLabel={windowLabel} />
-        </div>
-
-        {/*
-          第三层沿用同一套分栏：两层的列边缘落在同一条线上，页面才只有一套栅格。
-          右列是两张卡叠一列，本身撑不到左列那么高，所以整列拉满再让两张卡各占一半剩余高度，
-          否则左卡的底沿会孤零零地掉在右列下方几十像素处
+          KPI 之后先展示工具调用与待确认操作，让运营者直接看到 Agent 的执行情况。
+          工具详情与确认/记忆卡沿用同一套两列栅格。
         */}
         <div className={cn("grid gap-x-4 gap-y-3", SPLIT_COLS, "dashboard-split--tools")}>
           <div className="min-w-0">
@@ -129,6 +113,17 @@ export const AgentDashboard = ({
             <AgentConfirmations className="dashboard-split-item" data={performance} windowLabel={windowLabel} />
             <AgentMemoryContext className="dashboard-split-item" data={performance} windowLabel={windowLabel} />
           </div>
+        </div>
+
+        <div className={cn("grid gap-x-4 gap-y-3", SPLIT_COLS, "dashboard-split--trend")}>
+          <TrafficCard
+              trends={trends}
+              overview={overview}
+              timeWindow={timeWindow}
+              loading={loading}
+              plotFill
+          />
+          <AgentRunHealth data={performance} windowLabel={windowLabel} />
         </div>
       </div>
   );

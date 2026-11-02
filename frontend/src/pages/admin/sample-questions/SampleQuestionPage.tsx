@@ -188,7 +188,7 @@ export function SampleQuestionPage() {
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">加载中...</div>
+            <div className="text-center py-8 text-muted-foreground">加载中…</div>
           ) : records.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               暂无示例问题，点击上方按钮新增
@@ -245,7 +245,7 @@ export function SampleQuestionPage() {
       </Card>
 
       {pageData ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>共 {pageData.total} 条</span>
           <div className="flex items-center gap-2">
             <Button

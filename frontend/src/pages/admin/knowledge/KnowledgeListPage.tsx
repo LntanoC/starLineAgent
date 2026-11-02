@@ -197,13 +197,13 @@ export function KnowledgeListPage() {
     if (!model) return "-";
     const parts = model.split("-");
     if (parts.length < 2) {
-      return <span className="text-sm text-slate-700">{model}</span>;
+      return <span className="text-sm text-ink">{model}</span>;
     }
     const head = parts.slice(0, -1).join("-");
     const tail = parts[parts.length - 1];
     return (
-      <div className="flex flex-col text-xs text-slate-500">
-        <span className="font-medium text-slate-700">{head}</span>
+      <div className="flex flex-col text-xs text-muted-foreground">
+        <span className="font-medium text-ink">{head}</span>
         <span>{tail}</span>
       </div>
     );
@@ -212,12 +212,12 @@ export function KnowledgeListPage() {
   const getCollectionBadgeClass = (name?: string) => {
     const value = (name || "").toLowerCase();
     if (value.includes("biz")) {
-      return "border-blue-200 bg-blue-50 text-blue-700";
+      return "border-accent-rule bg-accent-wash text-accent";
     }
     if (value.includes("group")) {
-      return "border-purple-200 bg-purple-50 text-purple-700";
+      return "border-accent-rule bg-accent-wash text-accent";
     }
-    return "border-slate-200 bg-slate-100 text-slate-600";
+    return "border-rule bg-paper text-muted-foreground";
   };
 
   const handleRename = async () => {
@@ -298,7 +298,7 @@ export function KnowledgeListPage() {
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">加载中...</div>
+            <div className="text-center py-8 text-muted-foreground">加载中…</div>
           ) : knowledgeBases.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               暂无知识库，点击上方按钮创建
@@ -421,7 +421,7 @@ export function KnowledgeListPage() {
       </Dialog>
 
       {pageData ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>共 {pageData.total} 条</span>
           <div className="flex items-center gap-2">
             <Button

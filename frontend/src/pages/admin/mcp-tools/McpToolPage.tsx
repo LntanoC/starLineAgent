@@ -248,7 +248,7 @@ export function McpToolPage() {
           <CardDescription>同步只登记远端工具，不会自动开放权限。新工具须人工审核后启用。</CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? <div className="py-8 text-center text-muted-foreground">加载中...</div> : visibleTools.length === 0 ? (
+          {loading ? <div className="py-8 text-center text-muted-foreground">加载中…</div> : visibleTools.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">暂无工具。请确认 API 已连接 MCP 服务后同步。</div>
           ) : (
             <div className="overflow-x-auto">
@@ -291,7 +291,7 @@ export function McpToolPage() {
           {recallResult ? <div className="grid gap-4 md:grid-cols-2">
             <RecallList title="常驻工具" items={recallResult.residents} />
             <RecallList title="本次召回" items={recallResult.recalled} />
-            {recallResult.vectorFallback ? <p className="text-sm text-amber-700 md:col-span-2">语义召回暂不可用，本次结果已降级使用关键词匹配。</p> : null}
+            {recallResult.vectorFallback ? <p className="text-sm text-warning md:col-span-2">语义召回暂不可用，本次结果已降级使用关键词匹配。</p> : null}
           </div> : null}
         </CardContent>
       </Card>

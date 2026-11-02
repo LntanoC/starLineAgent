@@ -101,7 +101,7 @@ export function AgentRunHealth({ data, windowLabel, className }: CardProps) {
           <div className="grid grid-cols-3 gap-x-3">
             {primary.map((state) => (
               <div key={state.label} className="min-w-0">
-                <p className="flex items-center gap-1.5 text-xs leading-4 text-[#667085]">
+                <p className="flex items-center gap-1.5 text-xs leading-4 text-muted-foreground">
                   <span
                     className="h-1.5 w-1.5 shrink-0 rounded-full"
                     style={{ backgroundColor: state.color }}
@@ -113,10 +113,10 @@ export function AgentRunHealth({ data, windowLabel, className }: CardProps) {
                   计数与占比上下两行，不并排：并排时「100」和「90.9%」中间只有一个空格，
                   两个数会先读成一个数（一百九十点九），换行后计数是主、占比是注，主次立刻分开
                 */}
-                <p className="mt-2 text-[22px] font-semibold leading-none tracking-tight text-[#101828]">
+                <p className="mt-2 text-[22px] font-semibold leading-none tracking-tight text-ink">
                   {number(state.value)}
                 </p>
-                <p className="mt-1.5 text-xs leading-4 tabular-nums text-[#98A2B3]">
+                <p className="mt-1.5 text-xs leading-4 tabular-nums text-muted-foreground">
                   {percent(ratio(state.value, replies.total))}
                 </p>
               </div>
@@ -126,8 +126,8 @@ export function AgentRunHealth({ data, windowLabel, className }: CardProps) {
           {/* 标签与读数一行、条另起一行：三段挤成一行时条只剩半截宽，读不出它填了多少 */}
           <div>
             <div className="flex items-baseline justify-between gap-3">
-              <span className="text-xs leading-4 text-[#667085]">轨迹覆盖率</span>
-              <span className="text-sm font-semibold tabular-nums text-[#101828]">{percent(coverage)}</span>
+              <span className="text-xs leading-4 text-muted-foreground">轨迹覆盖率</span>
+              <span className="text-sm font-semibold tabular-nums text-ink">{percent(coverage)}</span>
             </div>
             <div className="mt-2">
               <Meter value={coverage} />
@@ -135,10 +135,10 @@ export function AgentRunHealth({ data, windowLabel, className }: CardProps) {
           </div>
 
           <div>
-            <p className="mb-2 text-xs leading-4 text-[#667085]">回复状态分布</p>
+            <p className="mb-2 text-xs leading-4 text-muted-foreground">回复状态分布</p>
             {/* 段间 2px 用表面色留缝，相邻两段靠缝隙分开，不给标记描边；色点交给下面的图例 */}
             <div
-              className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-[#F1F3F7]"
+              className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-paper-2"
               aria-hidden="true"
             >
               {states
@@ -174,8 +174,8 @@ export function AgentRunHealth({ data, windowLabel, className }: CardProps) {
             一句限定语要用一个色块把自己框起来才站得住的话，那说明它没被写清楚；
             图标和灰字已经把它和上面的读数分开了，省下的 16px 直接进第二层的高度
           */}
-          <p className="flex items-start gap-1.5 text-xs leading-[18px] text-[#667085]">
-            <Info className="mt-px h-3.5 w-3.5 shrink-0 text-[#98A2B3]" aria-hidden="true" />
+          <p className="flex items-start gap-1.5 text-xs leading-[18px] text-muted-foreground">
+            <Info className="mt-px h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
             正常回复不代表任务最终成功
           </p>
         </div>
@@ -264,8 +264,8 @@ export function AgentToolAnalysis({ data, windowLabel, className }: CardProps) {
             {shapeRatios.map((item) => (
               <div key={item.label} className="min-w-0">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="truncate text-xs leading-4 text-[#667085]">{item.label}</span>
-                  <span className="shrink-0 text-xs font-semibold tabular-nums text-[#101828]">
+                  <span className="truncate text-xs leading-4 text-muted-foreground">{item.label}</span>
+                  <span className="shrink-0 text-xs font-semibold tabular-nums text-ink">
                     {percent(item.value)}
                   </span>
                 </div>
@@ -295,7 +295,7 @@ export function AgentToolAnalysis({ data, windowLabel, className }: CardProps) {
                   表头只靠一条发丝线与首行分开：行高拉到 43px 后表头与数据已经分得清，
                   再加一条浅底色条就是在正文里又画一个容器
                 */}
-                <tr className="h-8 text-left align-middle text-[#98A2B3] [&>th]:border-b [&>th]:border-[#EEF0F3] [&>th]:font-medium">
+                <tr className="h-8 text-left align-middle text-muted-foreground [&>th]:border-b [&>th]:border-rule [&>th]:font-medium">
                   {/* 25% 在最窄的 1280 控制台里是 134px，装得下十个字的工具名，再长才截 */}
                   <th scope="col" className="w-[25%] pr-3">
                     工具名称
@@ -324,19 +324,19 @@ export function AgentToolAnalysis({ data, windowLabel, className }: CardProps) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F4F5F8]">
+              <tbody className="divide-y divide-paper-2">
                 {shown.map((tool) => (
                   <tr key={tool.name} className="h-[43px] align-middle">
-                    <td className="truncate pr-3 font-medium text-[#101828]" title={tool.name}>
+                    <td data-label="工具名称" className="truncate pr-3 font-medium text-ink" title={tool.name}>
                       {tool.displayName}
                     </td>
-                    <td className="pr-3 text-right tabular-nums text-[#101828]">
+                    <td data-label="调用次数" className="pr-3 text-right tabular-nums text-ink">
                       {number(tool.count)}
                     </td>
-                    <td className="pr-4">
+                    <td data-label="占比" className="pr-4">
                       {/* 数在左、条在右：百分数各行都右对齐在同一个 44px 盒子里，条形从盒子右侧起跑，起点也就各行一致 */}
                       <div className="flex items-center gap-2.5">
-                        <span className="w-11 shrink-0 text-right tabular-nums text-[#667085]">
+                        <span className="w-11 shrink-0 text-right tabular-nums text-muted-foreground">
                           {percent(ratio(tool.count, tools.total))}
                         </span>
                         <Meter className="min-w-[24px] flex-1" value={ratio(tool.count, tools.total)} />
@@ -344,12 +344,14 @@ export function AgentToolAnalysis({ data, windowLabel, className }: CardProps) {
                     </td>
                     {/* 失败为 0 时转中性灰：全表零失败还整列红字，会把「没事」读成「到处是事」 */}
                     <td
+                      data-label="失败数"
                       className="pr-3 text-right tabular-nums"
                       style={{ color: tool.failed > 0 ? VIZ_COLORS.critical : VIZ_COLORS.neutral }}
                     >
                       {number(tool.failed)}
                     </td>
                     <td
+                      data-label="成功率"
                       className={cn(
                         "text-right font-medium tabular-nums",
                         successRateClass(tool.successRate)
@@ -367,7 +369,7 @@ export function AgentToolAnalysis({ data, windowLabel, className }: CardProps) {
               这里也不再放一个「查看详情」——同一张卡开两道通往同一处的门，读者会以为是两个地方
             */}
             {otherCalls > 0 && (
-              <p className="mt-2.5 text-xs leading-4 text-[#98A2B3]">
+              <p className="mt-2.5 text-xs leading-4 text-muted-foreground">
                 另有 {number(otherCalls)} 次调用（占 {percent(ratio(otherCalls, tools.total))}）来自未进前{" "}
                 {TOOL_ROW_LIMIT} 名的工具。
               </p>
@@ -446,7 +448,7 @@ export function AgentConfirmations({ data, windowLabel, className }: CardProps) 
                 标签宽度定死，四格的数字仍然各自成列对得齐
               */
               <div key={state.label} className="flex items-center gap-2 py-0.5">
-                <span className="flex w-16 shrink-0 items-center gap-1.5 text-xs text-[#667085]">
+                <span className="flex w-16 shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
                   <span
                     className="h-1.5 w-1.5 shrink-0 rounded-full"
                     style={{ backgroundColor: state.color }}
@@ -454,7 +456,7 @@ export function AgentConfirmations({ data, windowLabel, className }: CardProps) 
                   />
                   <span className="truncate">{state.label}</span>
                 </span>
-                <span className="text-sm font-semibold tabular-nums text-[#101828]">
+                <span className="text-sm font-semibold tabular-nums text-ink">
                   {number(state.value)}
                 </span>
               </div>
@@ -511,8 +513,8 @@ export function AgentMemoryContext({ data, windowLabel, className }: CardProps) 
           </div>
 
           {/* 这行是上一格「有效长期记忆」的增减来源，贴着它走，与下面的压缩条分属两件事 */}
-          <p className="mt-2 text-xs tabular-nums text-[#98A2B3]">
-            新增 {number(memory.addedMemories)} · 失效 {number(memory.invalidatedMemories)} · 净增长{" "}
+          <p className="mt-2 text-xs tabular-nums text-muted-foreground">
+            新增 {number(memory.addedMemories)}，失效 {number(memory.invalidatedMemories)}，净增长{" "}
             {net > 0 ? "+" : ""}
             {number(net)}
           </p>
@@ -534,7 +536,7 @@ export function AgentMemoryContext({ data, windowLabel, className }: CardProps) 
                 ].map((bar) => (
                   /* 标签、条、读数并成一行：分成上下两层时两条对比条被读数隔开，量级差反而不好比 */
                   <div key={bar.label} className="flex items-center gap-2.5">
-                    <span className="w-10 shrink-0 text-xs text-[#667085]">{bar.label}</span>
+                    <span className="w-10 shrink-0 text-xs text-muted-foreground">{bar.label}</span>
                     <span className="min-w-0 flex-1">
                       <Meter value={bar.width} color={bar.color} />
                     </span>
@@ -543,16 +545,16 @@ export function AgentMemoryContext({ data, windowLabel, className }: CardProps) 
                       两条条各多一行、整卡多 32px，而这张卡的高度直接进第三层。
                       宽出来的 16px 从中间那条比例条身上出，比例条只读长短，短一档不影响
                     */}
-                    <span className="w-20 shrink-0 whitespace-nowrap text-right text-xs tabular-nums text-[#101828]">
+                    <span className="w-20 shrink-0 whitespace-nowrap text-right text-xs tabular-nums text-ink">
                       {compact(bar.value)}
-                      <span className="ml-1 font-normal text-[#98A2B3]">字符</span>
+                      <span className="ml-1 font-normal text-muted-foreground">字符</span>
                     </span>
                   </div>
                 ))}
               </div>
               {/* 缩减比例贴在两条条的右侧、跨两行居中：它说的是这两条之间的关系，不属于任何一行 */}
               {memory.contextReductionPct !== null && (
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-[#101828]">
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-ink">
                   ↓ {memory.contextReductionPct.toFixed(1)}%
                 </span>
               )}
@@ -567,7 +569,7 @@ export function AgentMemoryContext({ data, windowLabel, className }: CardProps) 
            * 没有字符数时整块消失会读成"这张卡到这就画完了"，而实际是两种完全不同的情况：
            * 一次都没压缩，和压过但没记字符数。两句话分开写，不合并成一句含糊的"暂无数据"
            */
-          <p className="text-xs text-[#98A2B3]">
+          <p className="text-xs text-muted-foreground">
             {memory.compactions === 0
               ? "本窗口未触发上下文压缩，因此没有压缩前后字符数。"
               : `本窗口 ${number(memory.compactions)} 次压缩均未记录压缩前后字符数。`}

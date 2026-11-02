@@ -42,23 +42,23 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-blue-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900" />
-      <div className="relative z-10 w-full max-w-md rounded-3xl border border-border/70 bg-background/80 p-8 shadow-soft backdrop-blur">
+    <main className="auth-screen">
+      <section className="auth-panel">
         <div className="mb-6">
-          <p className="font-display text-2xl font-semibold">创建星序账号</p>
+          <h1 className="font-display font-semibold">创建星序账号</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             注册后即可登录，账号默认拥有普通用户权限。
           </p>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="register-username" className="text-sm font-medium text-muted-foreground">
               用户名
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
+                id="register-username"
                 placeholder="3 到 64 个字符"
                 value={form.username}
                 onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))}
@@ -69,12 +69,13 @@ export function RegisterPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="register-password" className="text-sm font-medium text-muted-foreground">
               密码
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
+                id="register-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="至少 8 个字符"
                 value={form.password}
@@ -93,10 +94,11 @@ export function RegisterPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <label htmlFor="register-confirm-password" className="text-sm font-medium text-muted-foreground">
               确认密码
             </label>
             <Input
+              id="register-confirm-password"
               type={showPassword ? "text" : "password"}
               placeholder="再次输入密码"
               value={form.confirmPassword}
@@ -115,7 +117,7 @@ export function RegisterPage() {
             返回登录
           </Link>
         </p>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

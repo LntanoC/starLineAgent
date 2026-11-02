@@ -57,7 +57,7 @@ function BreakdownRow({
 }) {
   return (
     <div className="flex items-center gap-3 py-1.5">
-      <span className="flex w-24 shrink-0 items-center gap-1.5 text-xs text-[#667085]">
+      <span className="flex w-24 shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
         <span
           className="h-1.5 w-1.5 shrink-0 rounded-full"
           style={{ backgroundColor: color }}
@@ -68,10 +68,10 @@ function BreakdownRow({
       <span className="min-w-0 flex-1">
         <Meter value={share} color={color} />
       </span>
-      <span className="w-12 shrink-0 text-right text-xs font-medium tabular-nums text-[#101828]">
+      <span className="w-12 shrink-0 text-right text-xs font-medium tabular-nums text-ink">
         {number(value)}
       </span>
-      <span className="w-12 shrink-0 text-right text-xs tabular-nums text-[#98A2B3]">
+      <span className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
         {percent(share)}
       </span>
     </div>
@@ -102,9 +102,9 @@ function SortableHead({
         onClick={() => onSort(sortKey)}
         aria-sort={active ? (desc ? "descending" : "ascending") : "none"}
         className={cn(
-          "inline-flex w-full items-center justify-end gap-0.5 transition-colors hover:text-[#667085]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]",
-          active && "text-[#4F6EF7] hover:text-[#405FE8]"
+          "inline-flex w-full items-center justify-end gap-0.5 transition-colors hover:text-muted-foreground",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+          active && "text-accent hover:text-accent"
         )}
       >
         {label}
@@ -153,7 +153,7 @@ export function HealthDetailDialog({
         </DialogSection>
 
         <DialogSection title="回复状态构成">
-          <div className="divide-y divide-[#F4F5F8]">
+          <div className="divide-y divide-paper-2">
             {states.map((state) => (
               <BreakdownRow
                 key={state.label}
@@ -168,10 +168,10 @@ export function HealthDetailDialog({
 
         {/* 覆盖率是后面几张卡的共同分母，把分子分母摊开写，省得每张卡各解释一遍 */}
         <DialogSection title="轨迹覆盖口径">
-          <p className="text-xs leading-5 text-[#667085]">
-            有轨迹的回复 <span className="font-medium tabular-nums text-[#101828]">{number(replies.withBlocks)}</span> ÷
+          <p className="text-xs leading-5 text-muted-foreground">
+            有轨迹的回复 <span className="font-medium tabular-nums text-ink">{number(replies.withBlocks)}</span> ÷
             全部回复 <span className="tabular-nums">{number(replies.total)}</span> ={" "}
-            <span className="font-semibold tabular-nums text-[#101828]">
+            <span className="font-semibold tabular-nums text-ink">
               {percent(ratio(replies.withBlocks, replies.total))}
             </span>
             。余下 <span className="tabular-nums">{number(missing)}</span> 条缺少执行轨迹，不代表未调用工具，工具与确认统计均未覆盖。
@@ -259,7 +259,7 @@ export function ToolDetailDialog({
 
         {tools.total > 0 && (
           <DialogSection title="调用状态构成">
-            <div className="divide-y divide-[#F4F5F8]">
+            <div className="divide-y divide-paper-2">
               <BreakdownRow
                 label="完成"
                 value={tools.done}
@@ -291,7 +291,7 @@ export function ToolDetailDialog({
         {replies.withBlocks > 0 && (
           <DialogSection title="回复形态">
             {/* 分母是有轨迹的回复而不是全部回复，三档相加正好等于它，所以能并成一组读 */}
-            <div className="divide-y divide-[#F4F5F8]">
+            <div className="divide-y divide-paper-2">
               <BreakdownRow
                 label="直接回答"
                 value={replies.directReplies}
@@ -319,7 +319,7 @@ export function ToolDetailDialog({
           action={
             <div className="relative w-48">
               <Search
-                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#B0B8C4]"
+                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
                 aria-hidden="true"
               />
               <Input
@@ -327,21 +327,21 @@ export function ToolDetailDialog({
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="搜索工具名称"
                 aria-label="搜索工具名称"
-                className="h-8 rounded-lg border-[#EAECF0] bg-white pl-8 text-xs"
+                className="h-8 rounded-lg border-rule bg-paper pl-8 text-xs"
               />
             </div>
           }
         >
           {tools.topTools.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-[#EAECF0] px-4 py-6 text-center text-sm text-[#667085]">
+            <p className="rounded-xl border border-dashed border-rule px-4 py-6 text-center text-sm text-muted-foreground">
               当前统计范围内没有工具调用轨迹。
             </p>
           ) : (
             /* 表体单独滚动，表头钉住：工具数变多时弹框自身高度不动 */
             <div className="max-h-[264px] overflow-y-auto">
               <table className="w-full min-w-[600px] border-collapse text-xs">
-                <thead className="sticky top-0 z-10 bg-white">
-                  <tr className="h-8 text-left align-middle text-[#98A2B3] [&>th]:border-b [&>th]:border-[#EEF0F3] [&>th]:font-medium">
+                <thead className="sticky top-0 z-10 bg-paper">
+                  <tr className="h-8 text-left align-middle text-muted-foreground [&>th]:border-b [&>th]:border-rule [&>th]:font-medium">
                     <th scope="col" className="w-40 pr-3">
                       工具名称
                     </th>
@@ -386,18 +386,18 @@ export function ToolDetailDialog({
                     />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F4F5F8]">
+                <tbody className="divide-y divide-paper-2">
                   {rows.map((tool) => (
                     <tr key={tool.name} className="h-10 align-middle">
-                      <td className="max-w-40 truncate pr-3 font-medium text-[#101828]" title={tool.name}>
+                      <td className="max-w-40 truncate pr-3 font-medium text-ink" title={tool.name}>
                         {tool.displayName}
                       </td>
-                      <td className="pr-3 text-right tabular-nums text-[#101828]">
+                      <td className="pr-3 text-right tabular-nums text-ink">
                         {number(tool.count)}
                       </td>
                       <td className="pr-3">
                         <div className="flex items-center gap-2.5">
-                          <span className="w-11 shrink-0 text-right tabular-nums text-[#667085]">
+                          <span className="w-11 shrink-0 text-right tabular-nums text-muted-foreground">
                             {percent(ratio(tool.count, tools.total))}
                           </span>
                           <Meter className="min-w-[24px] flex-1" value={ratio(tool.count, tools.total)} />
@@ -417,14 +417,14 @@ export function ToolDetailDialog({
                       >
                         {percent(tool.successRate)}
                       </td>
-                      <td className="text-right tabular-nums text-[#667085]">
-                        {clockTime(tool.lastCallAt) ?? <span className="text-[#B0B8C4]">—</span>}
+                      <td className="text-right tabular-nums text-muted-foreground">
+                        {clockTime(tool.lastCallAt) ?? <span className="text-muted-foreground">未记录</span>}
                       </td>
                     </tr>
                   ))}
                   {rows.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="h-16 text-center text-[#98A2B3]">
+                      <td colSpan={6} className="h-16 text-center text-muted-foreground">
                         没有匹配「{query}」的工具
                       </td>
                     </tr>
@@ -433,7 +433,7 @@ export function ToolDetailDialog({
                 {/* 残余桶固定在表尾，不参与搜索与排序：它不是一个工具，是这张表之外的量 */}
                 {otherCalls > 0 && (
                   <tfoot>
-                    <tr className="h-10 align-middle border-t border-[#EEF0F3] text-[#667085]">
+                    <tr className="h-10 align-middle border-t border-rule text-muted-foreground">
                       <td className="pr-3 font-medium">其他工具</td>
                       <td className="pr-3 text-right tabular-nums">{number(otherCalls)}</td>
                       <td className="pr-3">
@@ -448,9 +448,9 @@ export function ToolDetailDialog({
                           />
                         </div>
                       </td>
-                      <td className="pr-3 text-right tabular-nums text-[#98A2B3]">—</td>
-                      <td className="pr-3 text-right tabular-nums text-[#98A2B3]">—</td>
-                      <td className="text-right tabular-nums text-[#98A2B3]">—</td>
+                      <td className="pr-3 text-right tabular-nums text-muted-foreground">未记录</td>
+                      <td className="pr-3 text-right tabular-nums text-muted-foreground">未记录</td>
+                      <td className="text-right tabular-nums text-muted-foreground">未记录</td>
                     </tr>
                   </tfoot>
                 )}
@@ -510,7 +510,7 @@ export function ConfirmDetailDialog({
         {confirm.total > 0 ? (
           <>
             <DialogSection title="状态构成">
-              <div className="divide-y divide-[#F4F5F8]">
+              <div className="divide-y divide-paper-2">
                 {states.map((state) => (
                   <BreakdownRow
                     key={state.label}
@@ -525,12 +525,12 @@ export function ConfirmDetailDialog({
 
             {/* 批准率的分子分母直接写出来：它与上面那张表用的不是同一个分母，不写清就会被当成占总数的比例 */}
             <DialogSection title="批准率口径">
-              <p className="text-xs leading-5 text-[#667085]">
-                已批准 <span className="font-medium tabular-nums text-[#101828]">{number(confirm.approved)}</span> ÷
+              <p className="text-xs leading-5 text-muted-foreground">
+                已批准 <span className="font-medium tabular-nums text-ink">{number(confirm.approved)}</span> ÷
                 （已批准 <span className="tabular-nums">{number(confirm.approved)}</span> + 已拒绝{" "}
                 <span className="tabular-nums">{number(confirm.denied)}</span> ={" "}
                 <span className="tabular-nums">{number(decided)}</span>） ={" "}
-                <span className="font-semibold tabular-nums text-[#101828]">
+                <span className="font-semibold tabular-nums text-ink">
                   {percent(confirm.approvalRate)}
                 </span>
                 。待确认与已过期这 {number(confirm.pending + confirm.expired)} 张还没有结论，不进分母。
@@ -542,8 +542,8 @@ export function ConfirmDetailDialog({
               <DialogSection title="涉及的工具（按调用计）">
                 <div className="max-h-[220px] overflow-y-auto">
                   <table className="w-full border-collapse text-xs">
-                    <thead className="sticky top-0 z-10 bg-white">
-                      <tr className="h-8 text-left align-middle text-[#98A2B3] [&>th]:border-b [&>th]:border-[#EEF0F3] [&>th]:font-medium">
+                    <thead className="sticky top-0 z-10 bg-paper">
+                      <tr className="h-8 text-left align-middle text-muted-foreground [&>th]:border-b [&>th]:border-rule [&>th]:font-medium">
                         <th scope="col" className="pr-3">
                           工具名称
                         </th>
@@ -561,15 +561,15 @@ export function ConfirmDetailDialog({
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#F4F5F8]">
+                    <tbody className="divide-y divide-paper-2">
                       {confirm.topTools.map((tool) => {
                         const undecided = Math.max(0, tool.calls - tool.approved - tool.denied);
                         return (
                           <tr key={tool.name} className="h-10 align-middle">
-                            <td className="truncate pr-3 font-medium text-[#101828]" title={tool.name}>
+                            <td className="truncate pr-3 font-medium text-ink" title={tool.name}>
                               {tool.displayName}
                             </td>
-                            <td className="pr-3 text-right tabular-nums text-[#101828]">
+                            <td className="pr-3 text-right tabular-nums text-ink">
                               {number(tool.calls)}
                             </td>
                             <td
@@ -588,7 +588,7 @@ export function ConfirmDetailDialog({
                             >
                               {number(tool.denied)}
                             </td>
-                            <td className="text-right tabular-nums text-[#98A2B3]">
+                            <td className="text-right tabular-nums text-muted-foreground">
                               {number(undecided)}
                             </td>
                           </tr>
@@ -601,7 +601,7 @@ export function ConfirmDetailDialog({
             )}
           </>
         ) : (
-          <p className="rounded-xl border border-dashed border-[#EAECF0] px-4 py-6 text-center text-sm text-[#667085]">
+          <p className="rounded-xl border border-dashed border-rule px-4 py-6 text-center text-sm text-muted-foreground">
             当前统计范围内没有确认卡片。
           </p>
         )}
@@ -661,27 +661,27 @@ export function MemoryDetailDialog({
                 { label: "压缩后", value: after, width: (after / before) * 100, color: VIZ_COLORS.accent }
               ].map((bar) => (
                 <div key={bar.label} className="flex items-center gap-3">
-                  <span className="w-12 shrink-0 text-xs text-[#667085]">{bar.label}</span>
+                  <span className="w-12 shrink-0 text-xs text-muted-foreground">{bar.label}</span>
                   <span className="min-w-0 flex-1">
                     <Meter value={bar.width} color={bar.color} className="h-2" />
                   </span>
-                  <span className="w-24 shrink-0 text-right text-xs tabular-nums text-[#101828]">
+                  <span className="w-24 shrink-0 text-right text-xs tabular-nums text-ink">
                     {number(bar.value)}
-                    <span className="ml-1 font-normal text-[#98A2B3]">字符</span>
+                    <span className="ml-1 font-normal text-muted-foreground">字符</span>
                   </span>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs text-[#667085]">
-              共省下 <span className="font-semibold tabular-nums text-[#101828]">{number(saved)}</span> 个字符，相当于压缩前的{" "}
-              <span className="font-semibold tabular-nums text-[#101828]">{percent(memory.contextReductionPct)}</span>。
+            <p className="mt-3 text-xs text-muted-foreground">
+              共省下 <span className="font-semibold tabular-nums text-ink">{number(saved)}</span> 个字符，相当于压缩前的{" "}
+              <span className="font-semibold tabular-nums text-ink">{percent(memory.contextReductionPct)}</span>。
             </p>
             {sampled > 0 && (
               /* 分母写在句子里：这两个平均值除的是「记了字符的那 N 次」，不是上面那格压缩总次数 */
-              <p className="mt-1.5 text-xs text-[#667085]">
-                平均每次 <span className="font-semibold tabular-nums text-[#101828]">
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                平均每次 <span className="font-semibold tabular-nums text-ink">
                   {number(Math.round(before / sampled))}
-                </span> → <span className="font-semibold tabular-nums text-[#101828]">
+                </span> → <span className="font-semibold tabular-nums text-ink">
                   {number(Math.round(after / sampled))}
                 </span> 字符，取自 <span className="tabular-nums">{number(sampled)}</span> 次记录了压缩前后字符数的压缩
                 {unsampled > 0 && (
@@ -695,7 +695,7 @@ export function MemoryDetailDialog({
           </DialogSection>
         ) : (
           <DialogSection title="压缩效果">
-            <p className="text-xs leading-5 text-[#667085]">
+            <p className="text-xs leading-5 text-muted-foreground">
               {memory.compactions === 0
                 ? "本窗口未触发上下文压缩，因此没有压缩前后的字符数可比。"
                 : `本窗口 ${number(memory.compactions)} 次压缩都没有记录压缩前后字符数，因此算不出缩减比例与平均值。`}
@@ -711,7 +711,7 @@ export function MemoryDetailDialog({
             <Stat label="净增长" value={`${net > 0 ? "+" : ""}${number(net)}`} unit="条" />
           </div>
           {memory.addedMemories + memory.invalidatedMemories > 0 && (
-            <div className="mt-4 divide-y divide-[#F4F5F8]">
+            <div className="mt-4 divide-y divide-paper-2">
               <BreakdownRow
                 label="新增"
                 value={memory.addedMemories}

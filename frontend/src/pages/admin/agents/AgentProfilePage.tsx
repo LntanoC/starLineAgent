@@ -212,7 +212,7 @@ export function AgentProfilePage() {
                     <AgentAvatar avatar={agent.avatar} seed={agent.id} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h2 className="truncate text-[15px] font-semibold text-slate-900">
+                        <h2 className="truncate text-[15px] font-semibold text-ink">
                           {agent.name}
                         </h2>
                         {agent.builtin ? (
@@ -234,7 +234,7 @@ export function AgentProfilePage() {
                   <div className="agent-card__meta">
                     {slotTotal ? (
                       <span className="agent-card__chip">
-                        <Layers className="h-3 w-3 shrink-0 text-slate-400" />
+                        <Layers className="h-3 w-3 shrink-0 text-muted-foreground" />
                         {slots.label}
                         {slots.pending ? (
                           <span className="agent-card__pending" title={slots.hint}>
@@ -245,7 +245,7 @@ export function AgentProfilePage() {
                     ) : null}
                     <span className="agent-card__chip">
                       {/* 时钟图标已经说明这是时间，再写「更新 · 」白占 32px，跨年时间戳会把胶囊挤换行 */}
-                      <Clock className="h-3 w-3 shrink-0 text-slate-400" />
+                      <Clock className="h-3 w-3 shrink-0 text-muted-foreground" />
                       <RelativeTime value={agent.updateTime} className="text-[11px]" />
                     </span>
                   </div>
@@ -298,13 +298,21 @@ export function AgentProfilePage() {
             })}
 
         {loading && agents.length === 0 ? null : (
-          <button type="button" className="agent-card agent-card--add" onClick={openCreate}>
-            <span className="agent-card__add-icon">
-              <Plus className="h-5 w-5" />
-            </span>
-            <span className="text-sm font-medium text-slate-600">新建智能体</span>
-            <span className="text-xs text-slate-400">先整套沿用「默认助手」，你改哪条生效哪条</span>
-          </button>
+          <div className="agent-card agent-card--add">
+            <button
+              type="button"
+              aria-label="新建智能体"
+              aria-describedby="agent-create-hint"
+              className="agent-add-action"
+              onClick={openCreate}
+            >
+              <span className="agent-card__add-icon">
+                <Plus className="h-5 w-5" />
+              </span>
+              <span className="text-sm font-medium text-muted-foreground">新建智能体</span>
+            </button>
+            <span id="agent-create-hint" className="text-xs text-muted-foreground">先沿用「默认助手」的配置，之后可逐项修改</span>
+          </div>
         )}
       </div>
 
@@ -330,7 +338,7 @@ export function AgentProfilePage() {
                     onClick={() => setForm((prev) => ({ ...prev, avatar: preset.key }))}
                     className={cn(
                       "inline-flex rounded-xl border-2 border-transparent p-0.5 transition-transform hover:scale-105",
-                      form.avatar === preset.key && "border-indigo-500"
+                      form.avatar === preset.key && "border-accent-rule"
                     )}
                   >
                     <AgentAvatar

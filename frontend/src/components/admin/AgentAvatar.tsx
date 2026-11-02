@@ -68,6 +68,7 @@ interface AgentAvatarProps {
  * <p>
  * 样式全部走 utilities 而非 globals.css —— 弹窗里的选择器由 portal 渲染在 .admin-layout 之外
  */
+/* Hallmark · waive 26b · AgentAvatar is a display-only span, not an interactive control. */
 export function AgentAvatar({ avatar, seed, className, iconClassName }: AgentAvatarProps) {
   const { Icon, gradient, shadow } = presetFor(avatar, seed);
   return (

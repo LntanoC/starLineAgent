@@ -45,7 +45,7 @@ export function DashboardPage() {
             onTimeWindowChange={setTimeWindow}
         />
 
-        {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning-rule bg-warning-wash px-4 py-3 text-sm text-warning">
           <span>{error}。{overview ? "已显示可用的概览，趋势可稍后重试。" : "统计暂不可用，请刷新重试。"}</span>
           <Button variant="ghost" size="sm" onClick={() => void refresh()} disabled={loading}>重新加载</Button>
         </div>}
@@ -63,7 +63,7 @@ export function DashboardPage() {
             />
         ) : null}
         {/* 页尾贴着最后一段走：它是这一页的限定语，不是新的一段内容，段间距会让它读成孤立的一条 */}
-        <p className="!mt-2 text-xs text-[#98A2B3]">
+        <p className="!mt-2 text-xs text-muted-foreground">
           仅统计 Agent 引擎产生的记录。
         </p>
         </> : null}

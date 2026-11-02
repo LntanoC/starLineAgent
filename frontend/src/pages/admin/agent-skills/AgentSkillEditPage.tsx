@@ -261,7 +261,7 @@ export function AgentSkillEditPage() {
             <label className="agent-skill-field__label">
               配置为加载后解锁的工具
               {form.toolIds.length > 0 ? (
-                <span className="ml-2 text-[11px] font-normal text-slate-400">
+                <span className="ml-2 text-[11px] font-normal text-muted-foreground">
                   已选 {form.toolIds.length} 个
                 </span>
               ) : null}
@@ -273,7 +273,7 @@ export function AgentSkillEditPage() {
             </p>
             <div className="agent-skill-tools">
               {toolOptions.length === 0 ? (
-                <p className="px-1 py-2 text-xs text-slate-400">
+                <p className="px-1 py-2 text-xs text-muted-foreground">
                   {loading ? "加载中…" : "MCP 工具注册表里还没有可解锁的工具，先去 MCP 工具管理配置"}
                 </p>
               ) : (
@@ -291,12 +291,12 @@ export function AgentSkillEditPage() {
                         className="mt-0.5"
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="text-[13px] font-medium text-slate-700">{option.name}</span>
-                        <span className="mt-0.5 block font-mono text-[11px] text-slate-400">
+                        <span className="text-[13px] font-medium text-ink">{option.name}</span>
+                        <span className="mt-0.5 block font-mono text-[11px] text-muted-foreground">
                           {option.toolId}
                         </span>
                         {owner ? (
-                          <span className="mt-0.5 block text-[11px] text-slate-400">
+                          <span className="mt-0.5 block text-[11px] text-muted-foreground">
                             已由「{owner}」解锁
                           </span>
                         ) : null}
@@ -311,12 +311,12 @@ export function AgentSkillEditPage() {
 
         <section className="agent-skill-pane">
           <header className="agent-skill-pane__header">
-            <h2 className="text-sm font-semibold text-slate-900">技能正文</h2>
-            <span className="text-xs text-slate-400">Markdown</span>
+            <h2 className="text-sm font-semibold text-ink">技能正文</h2>
+            <span className="text-xs text-muted-foreground">Markdown</span>
           </header>
 
           <div className="agent-skill-pane__hint">
-            <Info className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span>
               写给模型看的办事手册：先说清楚什么情况下用，再按步骤写清先问什么、再调哪个工具、结果怎么回复
             </span>
@@ -332,7 +332,7 @@ export function AgentSkillEditPage() {
 
           <footer className="agent-skill-pane__footer">
             <span>{stats}</span>
-            <span className="text-slate-400">正文只在模型主动加载时才进上下文</span>
+            <span className="text-muted-foreground">正文只在模型主动加载时才进上下文</span>
           </footer>
         </section>
       </div>

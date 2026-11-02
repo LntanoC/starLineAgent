@@ -529,8 +529,8 @@ function ToolCallBox({ block, messageId }: { block: AgentBlockUI; messageId?: st
     return (
       <div className="agent-toolbox space-y-3">
         <StarlineEventCards data={eventSearch} />
-        <details className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-          <summary className="cursor-pointer text-xs text-slate-500">查看原始工具返回</summary>
+        <details className="rounded-lg border border-rule bg-paper px-3 py-2">
+          <summary className="cursor-pointer text-xs text-muted-foreground">查看原始工具返回</summary>
           <pre className="agent-pre mt-2">{stringify(eventSearch)}</pre>
         </details>
       </div>

@@ -243,7 +243,7 @@ export function AgentPromptPage() {
             <>
               <header className="agent-prompt-pane__header">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <h2 className="text-sm font-semibold text-slate-900">{activeSlot.displayName}</h2>
+                  <h2 className="text-sm font-semibold text-ink">{activeSlot.displayName}</h2>
                   {activeSlot.effective ? (
                     <Badge className="text-[11px] font-normal">当前生效</Badge>
                   ) : (
@@ -257,7 +257,7 @@ export function AgentPromptPage() {
                     </Badge>
                   )}
                   {builtin ? (
-                    <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                       <Lock className="h-3 w-3" />
                       只读
                     </span>
@@ -286,14 +286,14 @@ export function AgentPromptPage() {
 
               {activeSlot.editorHint ? (
                 <div className="agent-prompt-pane__hint">
-                  <Info className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   <span>{activeSlot.editorHint}</span>
                 </div>
               ) : null}
 
               {activeSlot.requiredPlaceholders.length > 0 ? (
                 <div className="agent-prompt-pane__placeholders">
-                  <span className="text-slate-400">必需占位符</span>
+                  <span className="text-muted-foreground">必需占位符</span>
                   {activeSlot.requiredPlaceholders.map((placeholder) => (
                     <code
                       key={placeholder}
@@ -306,7 +306,7 @@ export function AgentPromptPage() {
                     </code>
                   ))}
                   {missingPlaceholders.length > 0 ? (
-                    <span className="text-rose-500">缺失的占位符会导致保存被拒绝</span>
+                    <span className="text-error">缺失的占位符会导致保存被拒绝</span>
                   ) : null}
                 </div>
               ) : null}
@@ -326,13 +326,13 @@ export function AgentPromptPage() {
 
               <footer className="agent-prompt-pane__footer">
                 <span>{stats}</span>
-                <span className={cn(dirty ? "text-amber-600" : "text-slate-400")}>
+                <span className={cn(dirty ? "text-warning" : "text-muted-foreground")}>
                   {dirty ? "有未保存的改动" : "已与服务端一致"}
                 </span>
               </footer>
             </>
           ) : (
-            <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
+            <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
               {loading ? "加载中…" : "暂无可配置的提示词"}
             </div>
           )}

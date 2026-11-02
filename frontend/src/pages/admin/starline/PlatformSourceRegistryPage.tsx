@@ -33,13 +33,13 @@ const CHECK_FIELDS = [
 ] as const;
 const STATUS = { ACTIVE: "已启用", DISABLED: "已停用" };
 const STATUS_CLASS = {
-  ACTIVE: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  DISABLED: "border-slate-200 bg-slate-100 text-slate-600"
+  ACTIVE: "border-success-rule bg-success-wash text-success",
+  DISABLED: "border-rule bg-paper text-muted-foreground"
 };
 const STABILITY: Record<PlatformFieldStability, string> = { STABLE: "稳定", PARTIAL: "部分稳定", UNSTABLE: "不稳定" };
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-1.5 block text-sm font-medium text-slate-700">{children}</label>;
+  return <label className="mb-1.5 block text-sm font-medium text-ink">{children}</label>;
 }
 
 function formFrom(source: StarlinePlatformSource): FormState {
@@ -123,10 +123,10 @@ export function PlatformSourceRegistryPage() {
   return <div className="space-y-6 pb-8">
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
-        <p className="mb-2 flex items-center gap-2 text-sm font-medium text-indigo-600"><Globe2 className="h-4 w-4" />星序 · 信息来源治理</p>
-        <h1 className="text-2xl font-semibold text-slate-950">官方来源白名单</h1>
-        <p className="mt-2 text-sm text-slate-600">管理员新增、编辑或停用来源后立即生效。演出查询只返回 URL 主机名匹配当前启用白名单的结果。</p>
-        <p className="mt-1 text-xs text-slate-500">填写根域名后，该域名及其子域名都可匹配；例如 example.cn 同时允许 www.example.cn。</p>
+        <p className="mb-2 flex items-center gap-2 text-sm font-medium text-accent"><Globe2 className="h-4 w-4" />星序 · 信息来源治理</p>
+        <h1 className="text-2xl font-semibold text-ink">官方来源白名单</h1>
+        <p className="mt-2 text-sm text-muted-foreground">管理员新增、编辑或停用来源后立即生效。演出查询只返回 URL 主机名匹配当前启用白名单的结果。</p>
+        <p className="mt-1 text-xs text-muted-foreground">填写根域名后，该域名及其子域名都可匹配；例如 example.cn 同时允许 www.example.cn。</p>
       </div>
       <div className="flex gap-2">
         <Button variant="outline" disabled={loading} onClick={() => void refresh()}><RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />刷新</Button>
@@ -135,12 +135,12 @@ export function PlatformSourceRegistryPage() {
     </div>
 
     <div className="grid gap-3 sm:grid-cols-3">
-      <Card><CardContent className="p-5"><p className="text-sm text-slate-500">来源总数</p><p className="mt-2 text-2xl font-semibold">{counts.total}</p></CardContent></Card>
-      <Card><CardContent className="p-5"><p className="text-sm text-slate-500">已启用</p><p className="mt-2 text-2xl font-semibold text-emerald-600">{counts.active}</p></CardContent></Card>
-      <Card><CardContent className="p-5"><p className="text-sm text-slate-500">已停用</p><p className="mt-2 text-2xl font-semibold text-slate-500">{counts.disabled}</p></CardContent></Card>
+      <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">来源总数</p><p className="mt-2 text-2xl font-semibold">{counts.total}</p></CardContent></Card>
+      <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">已启用</p><p className="mt-2 text-2xl font-semibold text-success">{counts.active}</p></CardContent></Card>
+      <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">已停用</p><p className="mt-2 text-2xl font-semibold text-muted-foreground">{counts.disabled}</p></CardContent></Card>
     </div>
 
-    {formOpen && <Card className="border-indigo-200">
+    {formOpen && <Card className="border-accent-rule">
       <CardHeader><CardTitle className="text-lg">{editingId ? "编辑白名单来源" : "添加白名单来源"}</CardTitle><CardDescription>保存后立即影响下一次演出查询；将页面可公开访问设为“否”会自动停用该来源。</CardDescription></CardHeader>
       <CardContent className="space-y-5">
         <div className="grid gap-4 md:grid-cols-2">
@@ -156,7 +156,7 @@ export function PlatformSourceRegistryPage() {
               <SelectItem value="TICKETING">票务平台（上架 / 开票 / 售罄）</SelectItem>
             </SelectContent>
           </Select>
-          <p className="mt-1 text-xs text-slate-500">该层级参与演出阶段判定，保存后立即生效。</p>
+          <p className="mt-1 text-xs text-muted-foreground">该层级参与演出阶段判定，保存后立即生效。</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {CHECK_FIELDS.map((field) => <div key={field.key}>
@@ -177,16 +177,16 @@ export function PlatformSourceRegistryPage() {
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="outline" disabled={saving} onClick={() => setFormOpen(false)}>取消</Button>
-          <Button disabled={!valid || saving} onClick={() => void save()}>{saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{saving ? "保存中..." : "保存并生效"}</Button>
+          <Button disabled={!valid || saving} onClick={() => void save()}>{saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{saving ? "保存中…" : "保存并生效"}</Button>
         </div>
       </CardContent>
     </Card>}
 
-    {loading && items.length === 0 ? <Card><CardContent className="flex items-center justify-center gap-2 p-10 text-slate-500"><LoaderCircle className="h-4 w-4 animate-spin" />正在加载...</CardContent></Card>
-      : items.length === 0 ? <Card><CardContent className="flex flex-col items-center p-10 text-center"><ClipboardCheck className="mb-3 h-8 w-8 text-slate-400" /><p className="font-medium">还没有白名单来源</p><p className="mt-1 text-sm text-slate-500">添加一个官方域名后，演出查询就会使用它过滤搜索结果。</p></CardContent></Card>
+    {loading && items.length === 0 ? <Card><CardContent className="flex items-center justify-center gap-2 p-10 text-muted-foreground"><LoaderCircle className="h-4 w-4 animate-spin" />正在加载…</CardContent></Card>
+      : items.length === 0 ? <Card><CardContent className="flex flex-col items-center p-10 text-center"><ClipboardCheck className="mb-3 h-8 w-8 text-muted-foreground" /><p className="font-medium">还没有白名单来源</p><p className="mt-1 text-sm text-muted-foreground">添加一个官方域名后，演出查询就会使用它过滤搜索结果。</p></CardContent></Card>
       : <div className="space-y-4">{items.map((item) => <Card key={item.id} className="overflow-hidden">
         <CardHeader className="gap-3 border-b sm:flex-row sm:items-start sm:justify-between">
-          <div><div className="flex flex-wrap items-center gap-2"><CardTitle className="text-lg">{item.platformName}</CardTitle><Badge variant="outline" className={item.sourceTier === "GOV" ? "border-sky-200 bg-sky-50 text-sky-700" : "border-amber-200 bg-amber-50 text-amber-700"}>{item.sourceTier === "GOV" ? "文旅许可" : "票务平台"}</Badge><Badge variant="outline" className={STATUS_CLASS[item.status]}>{STATUS[item.status]}</Badge><span className="font-mono text-sm text-slate-500">{item.officialDomain}</span></div><CardDescription className="mt-2">更新于 {new Date(item.updateTime).toLocaleString("zh-CN")}</CardDescription></div>
+          <div><div className="flex flex-wrap items-center gap-2"><CardTitle className="text-lg">{item.platformName}</CardTitle><Badge variant="outline" className={item.sourceTier === "GOV" ? "border-info-rule bg-info-wash text-info" : "border-warning-rule bg-warning-wash text-warning"}>{item.sourceTier === "GOV" ? "文旅许可" : "票务平台"}</Badge><Badge variant="outline" className={STATUS_CLASS[item.status]}>{STATUS[item.status]}</Badge><span className="font-mono text-sm text-muted-foreground">{item.officialDomain}</span></div><CardDescription className="mt-2">更新于 {new Date(item.updateTime).toLocaleString("zh-CN")}</CardDescription></div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={changingStatus === item.id} onClick={() => void toggleEnabled(item)}>
               {changingStatus === item.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : item.status === "ACTIVE" ? <Power className="h-4 w-4" /> : <Check className="h-4 w-4" />}
@@ -196,15 +196,15 @@ export function PlatformSourceRegistryPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-5 pt-5">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{CHECK_FIELDS.map((field) => <div key={field.key} className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">{field.label}</p><p className="mt-1 text-sm font-medium">{item[field.key] ? "可获取" : "不可获取"}</p></div>)}</div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{CHECK_FIELDS.map((field) => <div key={field.key} className="rounded-xl bg-paper p-3"><p className="text-xs text-muted-foreground">{field.label}</p><p className="mt-1 text-sm font-medium">{item[field.key] ? "可获取" : "不可获取"}</p></div>)}</div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div><p className="text-xs text-slate-500">字段稳定性</p><p className="mt-1 text-sm font-medium">{STABILITY[item.fieldStability]}</p></div>
-            <div><p className="text-xs text-slate-500">官方身份依据</p><p className="mt-1 whitespace-pre-wrap text-sm">{item.officialIdentityEvidence}</p></div>
-            <div><p className="text-xs text-slate-500">更新频率</p><p className="mt-1 whitespace-pre-wrap text-sm">{item.updateFrequency}</p></div>
-            <div><p className="text-xs text-slate-500">访问 / 授权边界</p><p className="mt-1 whitespace-pre-wrap text-sm">{item.accessBoundary}</p></div>
+            <div><p className="text-xs text-muted-foreground">字段稳定性</p><p className="mt-1 text-sm font-medium">{STABILITY[item.fieldStability]}</p></div>
+            <div><p className="text-xs text-muted-foreground">官方身份依据</p><p className="mt-1 whitespace-pre-wrap text-sm">{item.officialIdentityEvidence}</p></div>
+            <div><p className="text-xs text-muted-foreground">更新频率</p><p className="mt-1 whitespace-pre-wrap text-sm">{item.updateFrequency}</p></div>
+            <div><p className="text-xs text-muted-foreground">访问 / 授权边界</p><p className="mt-1 whitespace-pre-wrap text-sm">{item.accessBoundary}</p></div>
           </div>
-          {item.status === "ACTIVE" && item.publicAccessible && <div className="flex gap-2 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-800"><Check className="h-4 w-4 shrink-0" />此来源已进入实时查询白名单；停用后将立即从查询结果中排除。</div>}
-          {item.status === "ACTIVE" && !item.publicAccessible && <div className="flex gap-2 rounded-xl border border-amber-100 bg-amber-50 p-3 text-sm text-amber-800"><X className="h-4 w-4 shrink-0" />该来源标记为不可公开访问，因此不会被查询服务使用。</div>}
+          {item.status === "ACTIVE" && item.publicAccessible && <div className="flex gap-2 rounded-xl border border-success-rule bg-success-wash p-3 text-sm text-success"><Check className="h-4 w-4 shrink-0" />此来源已进入实时查询白名单；停用后将立即从查询结果中排除。</div>}
+          {item.status === "ACTIVE" && !item.publicAccessible && <div className="flex gap-2 rounded-xl border border-warning-rule bg-warning-wash p-3 text-sm text-warning"><X className="h-4 w-4 shrink-0" />该来源标记为不可公开访问，因此不会被查询服务使用。</div>}
         </CardContent>
       </Card>)}</div>}
   </div>;

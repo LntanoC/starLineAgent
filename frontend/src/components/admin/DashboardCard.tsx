@@ -12,8 +12,8 @@ export function DashCard({ children, className }: { children: ReactNode; classNa
   return (
       <section
           className={cn(
-              "min-w-0 rounded-[14px] border border-[#EAECF0] bg-white p-5",
-              "shadow-[0_1px_2px_rgba(16,24,40,0.025)] transition-colors hover:border-[#D9DDE7]",
+              "min-w-0 rounded-[14px] border border-rule bg-paper p-5",
+              "shadow-card transition-colors hover:border-accent-rule",
               className
           )}
       >
@@ -34,7 +34,7 @@ export function Hint({ children }: { children: ReactNode }) {
             <button
                 type="button"
                 aria-label="口径说明"
-                className="inline-flex shrink-0 text-[#B0B8C4] transition-colors hover:text-[#667085] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]"
+                className="inline-flex shrink-0 text-muted-foreground transition-colors hover:text-muted-foreground focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               <Info className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
@@ -57,9 +57,9 @@ export function DetailButton({ onClick, label = "查看详情" }: { onClick: () 
           type="button"
           onClick={onClick}
           className={cn(
-              "inline-flex shrink-0 items-center gap-1 rounded text-xs font-medium",
-              "text-[#4F6EF7] transition-colors hover:text-[#405FE8]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]"
+              "inline-flex min-h-8 shrink-0 items-center gap-1 rounded text-xs font-medium",
+              "text-accent transition-colors hover:text-accent",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           )}
       >
         {label}
@@ -82,7 +82,7 @@ export function CardHead({
 }) {
   return (
       <div className={cn("flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5", className)}>
-        <h3 className="flex items-center gap-1.5 text-base font-semibold leading-6 text-[#101828]">
+        <h3 className="flex items-center gap-1.5 text-base font-semibold leading-6 text-ink">
           {title}
           {hint && <Hint>{hint}</Hint>}
         </h3>

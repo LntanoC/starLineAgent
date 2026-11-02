@@ -146,7 +146,7 @@ export function AgentSkillPage() {
       <Card>
         <CardContent className="pt-6">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">加载中...</div>
+            <div className="text-center py-8 text-muted-foreground">加载中…</div>
           ) : records.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               暂无技能，点击上方按钮新建
@@ -170,7 +170,7 @@ export function AgentSkillPage() {
                     <TableCell className="font-medium max-w-[190px] truncate" title={item.name}>
                       {item.name}
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-500">{item.skillCode}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{item.skillCode}</TableCell>
                     <TableCell className="max-w-[290px] truncate text-muted-foreground" title={item.description}>
                       {item.description}
                     </TableCell>
@@ -223,7 +223,7 @@ export function AgentSkillPage() {
       </Card>
 
       {pageData ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>共 {pageData.total} 条</span>
           <div className="flex items-center gap-2">
             <Button

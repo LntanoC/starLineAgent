@@ -35,21 +35,21 @@ export function DocPreviewPage() {
   }, [docId]);
 
   return (
-    <div className="flex h-screen flex-col bg-white">
-      <header className="flex shrink-0 items-center gap-2 border-b border-[#EFEFEF] px-6 py-3.5">
-        <FileText className="h-5 w-5 shrink-0 text-[#666666]" />
-        <h1 className="truncate text-base font-medium text-[#1A1A1A]" title={doc?.docName || ""}>
+    <div className="flex h-screen flex-col bg-paper">
+      <header className="flex shrink-0 items-center gap-2 border-b border-rule px-6 py-3.5">
+        <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
+        <h1 className="truncate text-base font-medium text-ink" title={doc?.docName || ""}>
           {doc?.docName || "文档预览"}
         </h1>
       </header>
       <div className="flex flex-1 flex-col overflow-hidden">
         {status === "loading" ? (
-          <div className="flex flex-1 items-center justify-center gap-2 text-sm text-[#999999]">
+          <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             正在加载…
           </div>
         ) : status === "error" || !doc || !docId ? (
-          <div className="flex flex-1 items-center justify-center text-sm text-[#999999]">
+          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             无法加载该文档，可能已被删除。
           </div>
         ) : (

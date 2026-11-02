@@ -246,7 +246,7 @@ export function KnowledgeChunksPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="py-8 text-center text-muted-foreground">加载中...</div>
+            <div className="py-8 text-center text-muted-foreground">加载中…</div>
           ) : chunks.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">暂无分块</div>
           ) : (
@@ -328,7 +328,7 @@ export function KnowledgeChunksPage() {
           )}
 
           {pageData ? (
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
               <span>共 {pageData.total} 条</span>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => setPageNo((prev) => Math.max(1, prev - 1))} disabled={pageData.current <= 1}>
@@ -464,7 +464,7 @@ function ChunkDialog({ mode, open, chunk, onOpenChange, onSubmit }: ChunkDialogP
                 type="number"
                 min={0}
                 step={1}
-                placeholder="0、1..."
+                placeholder="0、1…"
                 className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none h-8 w-24"
                 value={chunkIndex}
                 onChange={(e) => setChunkIndex(e.target.value)}
@@ -486,7 +486,7 @@ function ChunkDialog({ mode, open, chunk, onOpenChange, onSubmit }: ChunkDialogP
             取消
           </Button>
           <Button onClick={handleSubmit} disabled={saving}>
-            {saving ? "保存中..." : "保存"}
+            {saving ? "保存中…" : "保存"}
           </Button>
         </DialogFooter>
       </DialogContent>

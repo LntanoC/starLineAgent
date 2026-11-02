@@ -794,7 +794,13 @@ export function SimpleLineChart({
         <ChartLegend series={normalizedSeries} className="mb-2" style={{ color: palette.legend }} />
       )}
 
-      <svg width={outerWidth} height={outerHeight} className="w-full overflow-visible">
+      <svg
+        width={outerWidth}
+        height={outerHeight}
+        className="w-full overflow-visible"
+        role="img"
+        aria-label={`趋势图：${normalizedSeries.map((item) => item.name).join("、")}`}
+      >
         {showArea && (
           <defs>
             {areaTones.map((tone) => (

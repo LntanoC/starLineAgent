@@ -19,12 +19,12 @@ export function AgentModeLabel({ mode }: { mode: OrchestrationMode }) {
   return (
     <>
       <span
-        className="font-medium text-slate-600"
+        className="font-medium text-muted-foreground"
         title={`由 starlineagent.engine.type 配置，控制台只读；${OTHER_MODE_LABEL[mode]} 架构的槽位暂不参与运行`}
       >
         {MODE_LABEL[mode]} 架构
       </span>
-      <span className="mx-1.5 text-slate-400">·</span>
+      <span className="mx-1.5 text-muted-foreground">·</span>
     </>
   );
 }

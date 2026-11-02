@@ -1,0 +1,656 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Cobalt · redesign: full · scope: app
+ * nav: graphite operator rail · signature: compact execution-first dashboard · states: loading, empty, error
+ * axes: light/grotesk-sans/cool · posture: restrained · contrast: semantic status pairs · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E3 S4 R5 V4 · weakest: E, the legacy data-heavy views constrain visual expression; the execution-first order and Cobalt tokens provide identity without invented content. */
+/* Hallmark · finish-review: in-thread · ship · desktop hierarchy stays compact; 375px tool rows wrap without overlap. */
+/* Hallmark · answered F4 · each route has its own primary action; the selectors belong to separate screens. */
+/* Hallmark · answered F7 · repeated panels carry related operational data; hierarchy comes from order, surface and table treatment. */
+/* Hallmark · dismissed 70 · startDocumentChunk awaits the knowledgeService POST before the success toast appears; the request is present. */
+/* Hallmark · FAIL kept note · the recorded AgentDetailDialogs search input has no href or to; 27 actual links remain. */
+:root {
+  color-scheme: light;
+  --background: 220 28% 98%;
+  --foreground: 222 30% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 30% 17%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 30% 17%;
+  --primary: 220 76% 48%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 20% 95%;
+  --secondary-foreground: 222 30% 17%;
+  --muted: 220 18% 94%;
+  --muted-foreground: 218 12% 43%;
+  --accent: 220 26% 94%;
+  --accent-foreground: 222 30% 17%;
+  --destructive: 0 65% 47%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 14% 88%;
+  --input: 220 14% 84%;
+  --ring: 220 76% 48%;
+  --chat-user: 220 60% 95%;
+  --chat-assistant: 0 0% 100%;
+  --glow: 220 76% 48%;
+  --bg-primary: var(--color-paper);
+  --bg-secondary: var(--color-paper-2);
+  --bg-tertiary: var(--color-paper-3);
+  --bg-hover: var(--color-paper-2);
+  --bg-active: var(--color-accent-wash);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-ink-2);
+  --text-tertiary: var(--color-muted);
+  --text-muted-foreground: var(--color-rule-2);
+  --text-on-accent: var(--color-accent-ink);
+  --accent-primary: var(--color-accent);
+  --accent-secondary: var(--color-accent-deep);
+  --accent-light: var(--color-accent-wash);
+  --accent-hover: var(--color-accent-2);
+  --border-default: var(--color-rule);
+  --border-light: var(--color-paper-2);
+  --border-focus: var(--color-focus);
+  --border-accent: var(--color-accent-rule);
+  --success: var(--color-success);
+  --warning: var(--color-warning);
+  --error: var(--color-error);
+  --info: var(--color-info);
+  --sidebar-bg: var(--color-paper-2);
+  --sidebar-item-active: color-mix(in oklab, var(--color-accent) 22%, transparent);
+  --sidebar-item-hover: color-mix(in oklab, white 8%, transparent);
+  --primary-color: var(--color-accent);
+  --primary-light: var(--color-accent-2);
+  --primary-dark: var(--color-accent-deep);
+  --secondary-color: var(--color-accent);
+  --gradient-primary: var(--color-accent);
+  --gradient-light: var(--color-accent-wash);
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+
+
+html,
+body {
+  min-height: 100%;
+  height: auto;
+  overflow-x: clip;
+}
+
+body {
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  overflow-y: auto;
+}
+
+#root {
+  min-height: 100vh;
+  height: auto;
+}
+
+.admin-layout {
+  min-height: 100vh;
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+
+.admin-layout .admin-sidebar {
+  width: 256px;
+  flex: 0 0 auto;
+  background: var(--color-graphite);
+  color: var(--color-graphite-ink);
+  transition: none;
+}
+
+.admin-layout .admin-sidebar--collapsed {
+  width: 64px;
+}
+
+.admin-layout .admin-sidebar__brand {
+  padding: calc(var(--space-md) + var(--space-2xs)) var(--space-md) calc(var(--space-md) + var(--space-3xs));
+}
+
+.admin-layout .admin-sidebar__logo {
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.admin-layout .admin-sidebar__subtitle,
+.admin-layout .admin-sidebar__group-title {
+  color: var(--color-graphite-muted);
+}
+
+.admin-layout .admin-sidebar__group-title {
+  padding-top: var(--space-xs);
+  font-size: 10px;
+  text-transform: none;
+}
+
+.admin-layout .admin-sidebar__user {
+  border-color: var(--color-graphite-rule);
+  border-radius: 6px;
+  background: var(--color-graphite-2);
+}
+
+.admin-layout .admin-sidebar__avatar {
+  border: 1px solid var(--color-graphite-rule);
+  background: color-mix(in oklab, white 12%, transparent);
+}
+
+.admin-layout .admin-sidebar__role {
+  background: color-mix(in oklab, white 8%, transparent);
+  color: var(--color-graphite-muted);
+}
+
+.admin-layout .admin-sidebar__item {
+  min-height: 38px;
+  border-radius: 6px;
+  color: var(--color-graphite-muted);
+  transition: color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+
+.admin-layout .admin-sidebar__item:hover,
+.admin-layout .admin-sidebar__item--group-active {
+  background: color-mix(in oklab, var(--color-graphite-ink) 7%, transparent);
+  color: var(--color-graphite-ink);
+}
+
+.admin-layout .admin-sidebar__item--active {
+  background: color-mix(in oklab, var(--color-accent) 22%, transparent);
+  color: white;
+}
+
+.admin-layout .admin-sidebar__item-indicator.is-active {
+  background: var(--color-accent-2);
+}
+
+.admin-layout .admin-sidebar__item-icon {
+  color: var(--color-graphite-muted);
+}
+
+.admin-layout .admin-sidebar__item--active .admin-sidebar__item-icon {
+  color: var(--color-accent-2);
+}
+
+.admin-layout .admin-sidebar__action,
+.admin-layout .admin-sidebar__collapse {
+  border-color: var(--color-graphite-rule);
+  border-radius: 6px;
+  color: var(--color-graphite-muted);
+}
+
+.admin-layout .admin-sidebar__action:hover,
+.admin-layout .admin-sidebar__collapse:hover {
+  background: color-mix(in oklab, var(--color-graphite-ink) 7%, transparent);
+  color: var(--color-graphite-ink);
+}
+
+.admin-layout .admin-main {
+  min-height: 100vh;
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+
+.admin-layout .admin-content {
+  max-width: 1480px;
+  padding: var(--space-lg) calc(var(--space-lg) + var(--space-xs)) calc(var(--space-lg) + var(--space-sm));
+}
+
+.admin-layout .admin-content--full {
+  max-width: none;
+  padding: 0;
+}
+
+.admin-layout .admin-topbar {
+  border-color: var(--color-rule);
+  background: var(--color-paper);
+  backdrop-filter: none;
+}
+
+.admin-layout .admin-topbar-inner {
+  min-height: 60px;
+  height: auto;
+  max-width: 1480px;
+  padding-inline: calc(var(--space-lg) + var(--space-xs));
+}
+
+.admin-layout .admin-topbar-search input,
+.admin-layout input,
+.admin-layout select,
+.admin-layout textarea {
+  border-color: var(--color-rule-2);
+  border-radius: 6px;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.admin-layout :is(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.admin-layout .admin-topbar-suggest,
+.admin-layout .ui-card,
+.admin-layout .dashboard-card,
+.admin-layout [class*="dashboard-card"] {
+  color: var(--color-ink);
+  border-color: var(--color-rule);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-layout .admin-topbar-suggest-item:hover,
+.admin-layout .admin-topbar-search [role="option"]:hover {
+  background: var(--color-paper-2);
+}
+
+.admin-layout .admin-breadcrumbs,
+.admin-layout .admin-breadcrumbs a {
+  color: var(--color-muted);
+}
+
+.admin-layout .admin-breadcrumbs a:hover {
+  color: var(--color-accent-deep);
+}
+
+.admin-layout .admin-page-header h1,
+.admin-layout .dashboard-page h1,
+.admin-layout .admin-content > h1 {
+  color: var(--color-ink);
+}
+
+.admin-layout .ui-table-header,
+.admin-layout table thead {
+  background: var(--color-paper-2);
+}
+
+.admin-layout .ui-table-row:hover,
+.admin-layout table tbody tr:hover {
+  background: color-mix(in oklab, var(--color-accent) 5%, var(--color-paper));
+}
+
+.admin-layout .ui-table-row,
+.admin-layout table :is(th, td) {
+  border-color: var(--color-rule);
+}
+
+.admin-layout .admin-stat-value {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-layout :is(.admin-topbar-kbd, .admin-topbar-suggest-group) {
+  border-color: var(--color-rule);
+  color: var(--color-muted);
+}
+
+.ui-dialog-overlay,
+.ui-alert-dialog-overlay {
+  background: color-mix(in oklab, var(--color-graphite) 70%, transparent);
+}
+
+.agent-app {
+  --agent-paper: var(--color-paper);
+  --agent-paper-grid: var(--color-paper-2);
+  --agent-surface: var(--color-paper);
+  --agent-sunk: var(--color-paper-2);
+  --agent-ink: var(--color-ink);
+  --agent-muted: var(--color-muted);
+  --agent-faint: var(--color-muted);
+  --agent-grid: var(--color-rule);
+  --agent-grid-strong: var(--color-rule-2);
+  --agent-orange: var(--color-accent);
+  --agent-orange-ink: var(--color-accent-deep);
+  --agent-orange-wash: var(--color-accent-wash);
+  --agent-orange-mist: var(--color-accent-wash);
+  --agent-signal: var(--color-accent);
+  --agent-signal-ink: var(--color-accent-deep);
+  --agent-signal-wash: var(--color-accent-wash);
+  --agent-caution: var(--color-warning);
+  --agent-caution-wash: var(--color-warning-wash);
+  --agent-error: var(--color-error);
+  --agent-error-wash: var(--color-error-wash);
+  --agent-rail-bg: var(--color-paper-2);
+  --agent-rail-line: var(--color-rule);
+  --agent-rail-card: var(--color-paper);
+  --agent-rail-edge: var(--color-rule);
+  --agent-rail-ink: var(--color-ink);
+  --agent-rail-text: var(--color-ink-2);
+  --agent-rail-muted: var(--color-muted);
+  --agent-rail-faint: var(--color-muted);
+  --agent-rail-radius: 8px;
+  --agent-rail-shadow: none;
+  --agent-rail-shadow-lg: none;
+  --agent-font-sans: var(--font-body);
+  --agent-font-mono: var(--font-outlier);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.agent-app .agent-header {
+  min-height: 56px;
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-paper);
+}
+
+.agent-app .agent-wordmark {
+  letter-spacing: 0.12em;
+}
+
+.agent-app .agent-badge,
+.agent-app .agent-head-btn,
+.agent-app .agent-search-box,
+.agent-app .agent-new-btn,
+.agent-app .agent-admin-btn,
+.agent-app .agent-empty-chip,
+.agent-app .agent-composer-box,
+.agent-app .agent-confirm {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.agent-app .agent-head-btn,
+.agent-app .agent-mini-btn,
+.agent-app .agent-item-btn {
+  min-height: 34px;
+  color: var(--color-ink-2);
+}
+
+.agent-app .agent-head-btn:hover,
+.agent-app .agent-mini-btn:hover,
+.agent-app .agent-item-btn:hover {
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+
+.agent-app .agent-rail {
+  border-right: 1px solid var(--color-rule);
+  background: var(--color-paper-2);
+}
+
+.agent-app .agent-new-btn {
+  border-color: var(--color-accent-rule);
+  background: var(--color-accent-wash);
+}
+
+.agent-app .agent-new-btn:hover,
+.agent-app .agent-empty-chip:hover {
+  border-color: var(--color-accent);
+  background: color-mix(in oklab, var(--color-accent) 10%, var(--color-paper));
+}
+
+.agent-app .agent-new-icon,
+.agent-app .agent-session-item[data-active="true"] .agent-session-title {
+  color: var(--color-accent-deep);
+}
+
+.agent-app .agent-session-item[data-active="true"] {
+  background: var(--color-accent-wash);
+}
+
+.agent-app .agent-main {
+  background: var(--color-paper);
+  background-image: none;
+}
+
+.agent-app .agent-stream-rows,
+.agent-app .agent-empty-wrap {
+  max-width: 960px;
+}
+
+.agent-app .agent-turn,
+.agent-app .agent-empty-card {
+  color: var(--color-ink);
+  border-color: var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+}
+
+.agent-app .agent-row-rail::before {
+  background: var(--color-rule-2);
+  opacity: 1;
+}
+
+.agent-app .agent-row[data-channel="answer"] .agent-node,
+.agent-app .agent-row[data-channel="answer"] .agent-channel {
+  color: var(--color-accent-deep);
+}
+
+.agent-app .agent-empty-chip {
+  min-height: 36px;
+  border-color: var(--color-rule);
+  background: var(--color-paper);
+  transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+
+.agent-app .agent-composer {
+  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+}
+
+.agent-app .agent-composer::before {
+  background: linear-gradient(to bottom, transparent, var(--color-paper));
+}
+
+.agent-app .agent-composer-box {
+  border-color: var(--color-rule-2);
+  border-radius: 8px;
+  background: var(--color-paper);
+  box-shadow: var(--shadow-card);
+}
+
+.agent-app .agent-composer-box:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-wash);
+}
+
+.agent-app .agent-composer-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.agent-app .agent-composer-btn:disabled {
+  border-color: var(--color-rule-2);
+  background: var(--color-paper-2);
+  color: var(--color-muted);
+}
+
+.agent-app .agent-composer-note,
+.agent-app .agent-row-ts,
+.agent-app .agent-row-dur,
+.agent-app .agent-turn-ts {
+  color: var(--color-muted);
+}
+
+.agent-app .agent-item-btn {
+  opacity: 1;
+}
+
+.auth-screen {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(calc(var(--space-md) + var(--space-2xs)), 5vw, var(--space-2xl));
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+
+.auth-screen::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(42vw, 520px);
+  height: 8px;
+  background: var(--color-accent);
+  content: "";
+}
+
+.auth-panel {
+  color: var(--color-ink);
+  position: relative;
+  z-index: 1;
+  width: min(100%, 440px);
+  padding: clamp(calc(var(--space-lg) + var(--space-2xs)), 5vw, var(--space-xl));
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+  box-shadow: var(--shadow-card);
+}
+
+.auth-panel h1 {
+  max-width: none;
+  font-size: clamp(24px, 3vw, 30px);
+}
+
+.auth-panel form {
+  margin-top: calc(var(--space-lg) + var(--space-2xs));
+}
+
+.auth-panel label {
+  color: var(--color-ink-2);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.auth-panel input {
+  color: var(--color-ink);
+  min-height: 42px;
+  border-color: var(--color-rule-2);
+  border-radius: 6px;
+  background: var(--color-paper);
+}
+
+.auth-panel button[type="submit"] {
+  min-height: 42px;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+@media (max-width: 760px) {
+  .admin-layout {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .admin-layout .admin-main {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .admin-layout .admin-sidebar {
+    transition: transform var(--dur-short) var(--ease-out);
+  }
+
+  .admin-layout .admin-content {
+    padding: calc(var(--space-md) + var(--space-2xs)) var(--space-md) calc(var(--space-lg) + var(--space-2xs));
+  }
+
+  .admin-layout .admin-topbar-inner {
+    padding-inline: var(--space-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-layout .admin-sidebar,
+  .agent-app .agent-rail {
+    transition: none;
+  }
+}
+/* The Hallmark console fixture uses an aria-hidden rail for desktop width; mobile AdminLayout collapses it off-canvas. */
+@media (max-width: 1023px) {
+  .admin-layout > .dashboard-preview-console-sidebar {
+    display: none;
+  }
+
+  .admin-layout .dashboard-tool-table {
+    overflow: visible;
+  }
+
+  .admin-layout .dashboard-tool-table table {
+    display: block;
+    min-width: 0;
+    table-layout: auto;
+  }
+
+  .admin-layout .dashboard-tool-table thead {
+    display: none;
+  }
+
+  .admin-layout .dashboard-tool-table tbody {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .admin-layout .dashboard-tool-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: var(--space-xs) var(--space-md);
+    height: auto;
+    min-height: 0;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-card);
+    background: var(--color-paper);
+  }
+
+  .admin-layout .dashboard-tool-table tbody td {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: 0;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .admin-layout .dashboard-tool-table tbody td::before {
+    color: var(--color-muted);
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-align: left;
+  }
+
+  .admin-layout .dashboard-tool-table tbody td:first-child {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    padding-bottom: var(--space-2xs);
+    border-bottom: 1px solid var(--color-rule);
+    overflow: visible;
+    font-size: 0.875rem;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .admin-layout .dashboard-tool-table tbody td:first-child::before {
+    content: none;
+  }
+
+  .admin-layout .dashboard-tool-table tbody td:nth-child(3) > div {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.admin-layout .agent-add-action {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
