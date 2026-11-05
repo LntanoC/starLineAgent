@@ -56,6 +56,17 @@ public final class McpToolSchema {
         return new Property(name, "number", description);
     }
 
+    public static Property bool(String name, String description) { return new Property(name, "boolean", description); }
+
+    public static Property strings(String name, String description, List<String> options) {
+        Property property = new Property(name, "array", description);
+        property.attributes.put("items", Map.of("type", "string", "enum", List.copyOf(options)));
+        property.attributes.put("minItems", 1);
+        property.attributes.put("maxItems", 8);
+        property.attributes.put("uniqueItems", true);
+        return property;
+    }
+
     public static Property array(String name, String description, McpToolSchema itemSchema) {
         Property property = new Property(name, "array", description);
         property.attributes.put("items", Map.of(

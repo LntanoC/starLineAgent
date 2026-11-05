@@ -55,7 +55,7 @@ public class ToolSearchTool implements AgentTool {
 
     @Override
     public String getDescription() {
-        return "任务进入新的阶段，或当前可见工具无法完成下一步时，先用本工具按当前子目标检索可用 MCP 工具。query 只写新阶段的独立目标和必要的已确认条件，不要复制整段对话。工具会在下一轮推理中刷新匹配的工具 schema；若结果提示需加载技能，先调用 load_skill。该工具只检索已启用且可分发的工具，不能绕过权限或确认规则。";
+        return "任务进入新的阶段，或当前可见工具无法完成下一步时，先用本工具按当前子目标检索可用 MCP 工具。query 只写新阶段的独立目标和必要的已确认条件，不要复制整段对话。若返回 NO_NEW_CANDIDATES，只允许基于新条件改写子目标再搜索一次；若返回 EXHAUSTED，不要在当前阶段继续搜索。成功执行业务工具或加载技能并推进任务后，后续阶段可以按新子目标重新搜索。若结果提示需加载技能，先调用 load_skill。该工具只检索已启用且可分发的工具，不能绕过权限或确认规则。";
     }
 
     @Override
@@ -96,17 +96,23 @@ public class ToolSearchTool implements AgentTool {
         }
         RuntimeContext context = param.getRuntimeContext();
         try {
-            ToolRagService.RecallResult recall = routingService.updateQuery(context, query);
+            AgentToolRoutingService.ToolSearchUpdate update = routingService.updateQuery(context, query);
             if (TaskCancellation.isCancelled()) {
                 return result(callId, "用户已停止，本次工具目录刷新未完成", ToolResultState.INTERRUPTED);
             }
-            List<String> matches = recall.selectedTools().stream()
+            List<String> matches = update.recall().selectedTools().stream()
                     .map(this::renderTool)
                     .toList();
-            String response = matches.isEmpty()
-                    ? "当前子目标没有匹配到可用 MCP 工具。下一轮只保留常驻工具；请确认需求是否超出当前能力，或进一步改写当前子目标。"
-                    : "当前子目标的工具候选已更新，下一轮推理会收到匹配 schema：\n"
-                    + matches.stream().collect(Collectors.joining("\n"));
+            String response = switch (update.status()) {
+                case UPDATED -> matches.isEmpty()
+                        ? "当前子目标没有匹配到可用 MCP 工具。请使用已有能力，或说明当前能力缺口。"
+                        : "UPDATED：当前子目标的工具候选已更新，下一轮推理会收到匹配 schema：\n"
+                        + matches.stream().collect(Collectors.joining("\n"));
+                case NO_NEW_CANDIDATES -> "NO_NEW_CANDIDATES：没有带来新的动态 MCP 候选（查询未变化、候选集重复或候选为空）。当前子目标对应的工具仍会提供给下一轮推理；最多再用一个包含新条件的子目标改写搜索一次，否则请使用现有工具或说明能力缺口。\n"
+                        + String.join("\n", matches);
+                case EXHAUSTED -> "EXHAUSTED：本阶段连续搜索没有带来新工具，当前阶段不再继续搜索。请使用当前可见工具继续；若它们无法完成目标，请明确说明缺少的能力并询问用户是否补充条件或接入相应工具。成功执行业务工具或加载技能并推进任务后，后续阶段可以按新子目标重新搜索。\n"
+                        + String.join("\n", matches);
+            };
             return result(callId, response, ToolResultState.SUCCESS);
         } catch (Exception e) {
             if (TaskCancellation.isCancellation(e)) {

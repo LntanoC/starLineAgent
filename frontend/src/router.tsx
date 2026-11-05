@@ -1,4 +1,4 @@
-import { Navigate, createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter, useLocation } from "react-router-dom";
 
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
@@ -26,14 +26,17 @@ import { AgentSkillPage } from "@/pages/admin/agent-skills/AgentSkillPage";
 import { AgentSkillEditPage } from "@/pages/admin/agent-skills/AgentSkillEditPage";
 import { UserListPage } from "@/pages/admin/users/UserListPage";
 import { StarlineRemindersPage } from "@/pages/StarlineRemindersPage";
+import { SeatViewPage } from "@/pages/SeatViewPage";
+import { SeatViewAdminPage } from "@/pages/admin/starline/SeatViewAdminPage";
 import { PlatformSourceRegistryPage } from "@/pages/admin/starline/PlatformSourceRegistryPage";
 import { McpToolPage } from "@/pages/admin/mcp-tools/McpToolPage";
 import { useAuthStore } from "@/stores/authStore";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const location = useLocation();
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ returnTo: location.pathname + location.search }} replace />;
   }
   return children;
 }
@@ -55,7 +58,11 @@ function RequireAdmin({ children }: { children: JSX.Element }) {
 
 function RedirectIfAuth({ children }: { children: JSX.Element }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const location = useLocation();
   if (isAuthenticated) {
+    // 登录态变化会先触发本守卫，座位分享链接需在这里恢复，避免先被送回聊天。
+    const returnTo = location.state?.returnTo;
+    if (typeof returnTo === "string" && (returnTo === "/seat" || returnTo.startsWith("/seat?"))) return <Navigate to={returnTo} replace />;
     return <Navigate to="/chat" replace />;
   }
   return children;
@@ -67,6 +74,10 @@ function HomeRedirect() {
 }
 
 export const router = createBrowserRouter([
+  {
+    path: "/seat",
+    element: <RequireAuth><SeatViewPage /></RequireAuth>
+  },
   {
     path: "/",
     element: <HomeRedirect />
@@ -214,6 +225,10 @@ export const router = createBrowserRouter([
       {
         path: "starline-sources",
         element: <PlatformSourceRegistryPage />
+      },
+      {
+        path: "seat-views",
+        element: <SeatViewAdminPage />
       },
       {
         path: "users",

@@ -24,6 +24,23 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "starlineagent.trip-planning")
 public class TripPlanProperties {
 
+    private int railStationBufferMinutes = 30;
+    private int crowdBufferMinutes = 20;
+    private int maxConcurrentRequests = 4;
+    private java.math.BigDecimal litresPer100km = new java.math.BigDecimal("8");
+    private java.math.BigDecimal yuanPerLitre = new java.math.BigDecimal("8");
+
+    public int getRailStationBufferMinutes() { return railStationBufferMinutes; }
+    public void setRailStationBufferMinutes(int value) { railStationBufferMinutes = value; }
+    public int getCrowdBufferMinutes() { return crowdBufferMinutes; }
+    public void setCrowdBufferMinutes(int value) { crowdBufferMinutes = value; }
+    public int getMaxConcurrentRequests() { return maxConcurrentRequests; }
+    public void setMaxConcurrentRequests(int value) { maxConcurrentRequests = value; }
+    public java.math.BigDecimal getLitresPer100km() { return litresPer100km; }
+    public void setLitresPer100km(java.math.BigDecimal value) { litresPer100km = value; }
+    public java.math.BigDecimal getYuanPerLitre() { return yuanPerLitre; }
+    public void setYuanPerLitre(java.math.BigDecimal value) { yuanPerLitre = value; }
+
     private int defaultArrivalBufferMinutes = 30;
 
     public int getDefaultArrivalBufferMinutes() {

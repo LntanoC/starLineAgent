@@ -1,0 +1,13 @@
+# 合成场景；JourneyPlanningTest 验证同一组编排行为，在线模型通过率与延迟另行评测。
+schema: trip-plan.v3
+cases:
+  - { id: artist_city, input: "帮我规划去薛之谦上海站的路线", expect: "核实事件后只追问缺少的出发地/场次，最多两问" }
+  - { id: cross_city_roundtrip, input: "我从南京去上海看薛之谦，2个人，当天回", expect: "去程、独立返程费用、未知门票和散场缺口" }
+  - { id: local, input: "我在上海，怎么去上海场", expect: "同城默认单程，不把直辖市区码差异当跨城" }
+  - { id: event_only, input: "薛之谦上海站几号开唱", expect: "仅查询演出，不规划路线" }
+  - { id: station_alias, input: "上海站到梅奔怎么走", expect: "上海站保留铁路地点，梅奔按可核实POI解析" }
+  - { id: station_origin, input: "从上海站出发去场馆", expect: "origin不归一化成城市中心" }
+  - { id: return_last_service, input: "看完演出怎么回南京", expect: "返程和末班车明确，赶不上不推荐；可提示次日返程" }
+  - { id: budget_unknown, input: "预算1000，两个人够吗", expect: "未知项不填0，不保证预算够；仅已知部分可提示超额" }
+  - { id: provider_partial, input: "高德查不到公交怎么办", expect: "保留其他可用方式，返回PARTIAL及警告" }
+  - { id: missing_event, input: "帮我规划去不存在的演出", expect: "FAILED且不编造场馆/时刻" }

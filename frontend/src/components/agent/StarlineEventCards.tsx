@@ -5,113 +5,57 @@ import { toast } from "sonner";
 import { createStarlineEvent } from "@/services/starlineService";
 import { getErrorMessage } from "@/utils/error";
 
-type EventStage = "APPROVED" | "ON_SHELF" | "ON_SALE" | "SOLD_OUT" | "ENDED";
-type SourceTier = "GOV" | "TICKETING";
-
-interface SourceEvidence {
-  sourceName: string;
-  tier: SourceTier;
-  sourceUrl: string;
-  stage: EventStage;
-}
-
-interface EventCardData {
-  artistName: string;
-  title: string;
-  stage: EventStage;
-  tier: SourceTier;
-  city: string | null;
-  eventDate: string | null;
-  saleStartTime: string | null;
-  daysToSale: number | null;
-  canBuyTicket: boolean;
-  sourceName: string;
-  sourceUrl: string;
-  approvedNote: string | null;
-  approvedUrl: string | null;
-  isStale: boolean;
-  conflict: boolean;
-  sourceEvidence: SourceEvidence[];
-}
-
-interface EventSearchData {
-  artist: string;
-  total: number;
-  items: EventCardData[];
-  notes: string[];
-}
-
-const STAGE: Record<EventStage, { label: string; className: string }> = {
-  APPROVED: { label: "已获批", className: "border-info-rule bg-info-wash text-info" },
-  ON_SHELF: { label: "已上架待开票", className: "border-warning-rule bg-warning-wash text-warning" },
-  ON_SALE: { label: "已开票", className: "border-success-rule bg-success-wash text-success" },
-  SOLD_OUT: { label: "已售罄", className: "border-rule bg-paper text-muted-foreground" },
-  ENDED: { label: "已结束", className: "border-rule bg-paper text-muted-foreground" }
-};
-
-const VALID_STAGES = new Set<EventStage>(["APPROVED", "ON_SHELF", "ON_SALE", "SOLD_OUT", "ENDED"]);
-const VALID_TIERS = new Set<SourceTier>(["GOV", "TICKETING"]);
-
-/** Return null for truncated or incompatible historical tool output; the caller then shows its raw trace. */
-export function parseStarlineEventSearchResult(raw: string): EventSearchData | null {
-  try {
-    const value: unknown = JSON.parse(raw);
-    if (!value || typeof value !== "object") return null;
-    const data = value as Partial<EventSearchData>;
-    if (
-      typeof data.artist !== "string" ||
-      typeof data.total !== "number" ||
-      !Array.isArray(data.items) ||
-      !Array.isArray(data.notes) ||
-      !data.notes.every((note) => typeof note === "string") ||
-      !data.items.every(isEventCardData)
-    ) {
-      return null;
-    }
-    return data as EventSearchData;
-  } catch {
-    return null;
-  }
-}
-
-function isEventCardData(value: unknown): value is EventCardData {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Partial<EventCardData>;
-  return (
-    typeof item.artistName === "string" &&
-    typeof item.title === "string" &&
-    typeof item.stage === "string" &&
-    VALID_STAGES.has(item.stage as EventStage) &&
-    typeof item.tier === "string" &&
-    VALID_TIERS.has(item.tier as SourceTier) &&
-    typeof item.sourceName === "string" &&
-    typeof item.sourceUrl === "string" &&
-    typeof item.isStale === "boolean" &&
-    typeof item.conflict === "boolean" &&
-    Array.isArray(item.sourceEvidence)
-  );
-}
+import { STAGE, parseStarlineEventSearchResult } from "@/lib/eventSearch";
+import type { EventCardData, EventSearchData } from "@/lib/eventSearch";
+import { api } from "@/services/api";
+export { parseStarlineEventSearchResult };
 
 export function StarlineEventCards({ data }: { data: EventSearchData }) {
-  if (data.items.length === 0) {
-    return (
-      <div className="space-y-1 rounded-xl border border-rule bg-paper p-4 text-sm text-muted-foreground">
-        {data.notes.map((note, index) => <p key={index}>{note}</p>)}
-      </div>
-    );
+  const [pages, setPages] = useState<EventSearchData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const current = pages.at(-1) ?? data;
+  const items = [data, ...pages].flatMap(page => page.items);
+  const byCity = new Map<string, EventCardData[]>();
+  for (const item of items) {
+    const key = item.city || "城市待核实";
+    byCity.set(key, [...(byCity.get(key) ?? []), item]);
   }
+  const loadMore = async () => {
+    if (loading || !current.nextCursor) return;
+    setLoading(true); setLoadError(null);
+    try {
+      const response = await api.post<unknown, unknown>("/starline/event-search", {
+        artist: data.artist, city: data.city ?? undefined, window: data.window ?? "year",
+        includeEnded: data.includeEnded ?? false, pageSize: data.pageSize ?? 20, cursor: current.nextCursor
+      });
+      const next = parseStarlineEventSearchResult(JSON.stringify(response));
+      if (!next) throw new Error("演出结果格式变化，请重新查询");
+      setPages(previous => [...previous, next]);
+    } catch (error) { setLoadError(getErrorMessage(error, "加载失败，分页可能已过期，请重新查询")); }
+    finally { setLoading(false); }
+  };
 
   return (
     <div className="space-y-3">
-      {data.items.map((item, index) => (
-        <EventCard
-          key={[item.eventDate || "date-tbd", item.city || "city-tbd", item.sourceUrl, index].join("-")}
-          item={item}
-        />
-      ))}
-      {data.notes.map((note, index) => (
+      <div className="rounded-xl border border-rule bg-paper p-3 text-xs leading-6 text-muted-foreground">
+        <p><span className="mr-2 rounded-full border border-warning-rule bg-warning-wash px-2 py-1 text-warning">
+          {current.coverage.completeness === "UNKNOWN" ? "覆盖未知" : current.coverage.completeness === "PARTIAL" ? "覆盖受限" : "按预算检索"}
+        </span>本次检索到 · 已展示 {items.length} / {current.coverage.merged} 条</p>
+        <p>窗口：{current.coverage.window} · {current.coverage.queries.length} 个查询 · {current.coverage.sources?.length ?? "—"} 个已配置来源</p>
+        {current.coverage.providerPageLimit && <p>搜索提供方存在单页或分页预算上限</p>}
+        {current.coverage.sources?.map(source => <span key={source.domain} className="mr-3 inline-block">{source.platform} · {source.status === "OK" ? "检索有命中" : source.status === "QUERY_FAILED" ? "查询失败" : source.status === "QUERY_COMPLETED_NO_MATCH" ? "本次未命中" : "尚未观察到"}</span>)}
+      </div>
+      {[...byCity].map(([city, events]) => <section key={city} className="space-y-2" aria-label={city + "演出"}>
+        <h4 className="px-1 text-sm font-medium">{city} · {events.length} 条</h4>
+        {events.map((item, index) => <EventCard key={[item.eventDate, item.sourceUrl, index].join("-")} item={item} />)}
+      </section>)}
+      {current.notes.map((note, index) => (
         <p key={"note-" + index} className="px-1 text-xs leading-5 text-muted-foreground">{note}</p>
       ))}
+      {loadError && <p role="alert" className="text-sm text-error">{loadError}</p>}
+      {current.nextCursor && <button type="button" onClick={() => void loadMore()} disabled={loading}
+        className="rounded-lg border border-rule px-4 py-2 text-sm disabled:opacity-60">{loading ? "加载中…" : "加载更多（还有 " + current.coverage.truncated + " 条）"}</button>}
     </div>
   );
 }
@@ -127,6 +71,8 @@ function EventCard({ item }: { item: EventCardData }) {
     item.stage !== "ENDED" &&
     !item.isStale &&
     !item.conflict &&
+    !item.dateUnknown &&
+    !item.cityUnknown &&
     futureSaleTime
   );
 
@@ -173,8 +119,11 @@ function EventCard({ item }: { item: EventCardData }) {
       ) : null}
 
       <p className="mt-3 text-sm text-muted-foreground">
-        {item.eventDate || "演出日期待公布"}{item.city ? " · " + item.city : ""}
+        {item.eventDate || "日期待核实"}{item.city ? " · " + item.city : ""}{item.cityUnknown ? "（城市待核实）" : ""}
       </p>
+      {(item.venueName || item.showStartTime) && <p className="mt-2 text-sm text-muted-foreground">
+        {item.venueName || "场馆待核实"} / 开场 {item.showStartTime ? item.showStartTime.replace("T", " ") : "待核实"}（北京时间）
+      </p>}
 
       {item.approvedNote ? (
         <p className="mt-2 text-sm text-info">

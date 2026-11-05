@@ -11,9 +11,9 @@
 - 6 条知识型示例问题；预热不执行创建提醒等写操作。
 - 星序助手人设和 3 个 Agent 提示词槽位。
 
-演出查询需要 MCP 服务配置 `YDC_API_KEY`。未配置时，联网搜索 MCP 工具不注册；日期工具仍可用。不要将密钥写入本页。
+演出查询需要 MCP 服务配置 `YUANBAO_SEARCH_API_KEY`。未配置时，演出搜索 MCP 工具不注册；日期工具仍可用。不要将密钥写入本页。
 
-普通路线与观演出行规划需要 MCP 服务配置高德 Web 服务 Key `AMAP_API_KEY`。未配置时，`plan_trip` 和 `plan_event_trip` 工具不会注册。
+普通路线与观演出行规划需要 MCP 服务配置高德 Web 服务 Key `AMAP_API_KEY`。未配置时，`plan_journey` 和 `plan_event_journey` 工具不会注册。v3 使用结构化时间轴和费用，旧的 `plan_trip`/`plan_event_trip` 已退役；运行 `node scripts/sync-journey-metadata.mjs` 可同步工具说明、生成增量迁移和重算模板校验和。
 
 ## 初始化影响
 

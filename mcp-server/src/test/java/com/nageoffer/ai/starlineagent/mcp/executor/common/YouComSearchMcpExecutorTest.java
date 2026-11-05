@@ -168,6 +168,16 @@ class YouComSearchMcpExecutorTest {
     }
 
     @Test
+    void eventPaginationUsesPageOffsetAndCount() {
+        var adapter = new YouComWebSearchClient(new MockEnvironment().withProperty("YDC_API_KEY", "test-key"), stubUrl);
+        var page = adapter.searchPage(new com.nageoffer.ai.starlineagent.mcp.executor.starline.event.SearchProvider.SearchRequest("tour", null, 1, 3, null));
+        assertEquals("1", lastQueryParams.get().get("offset"));
+        assertEquals("3", lastQueryParams.get().get("count"));
+        assertTrue(page.hasMore());
+        assertFalse(page.providerPageLimit());
+    }
+
+    @Test
     @DisplayName("count 参数：超过上限截断为 20，非法值回退默认 5")
     void countDefaultAndCap() {
         executor("k").handleCall(request(Map.of("query", "t", "count", 50)));

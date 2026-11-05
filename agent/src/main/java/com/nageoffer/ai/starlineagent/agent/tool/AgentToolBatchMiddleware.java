@@ -19,6 +19,7 @@ package com.nageoffer.ai.starlineagent.agent.tool;
 
 import com.nageoffer.ai.starlineagent.agent.config.ConditionalOnAgentEngine;
 import com.nageoffer.ai.starlineagent.agent.enums.AgentToolStatus;
+import com.nageoffer.ai.starlineagent.agent.skill.SkillLoadTool;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolExecutionFacts.ToolBatchFact;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolExecutionFacts.ToolFact;
 import io.agentscope.core.agent.Agent;
@@ -58,19 +59,50 @@ public class AgentToolBatchMiddleware implements MiddlewareBase {
                                      Function<ActingInput, Flux<AgentEvent>> next) {
         AgentToolExecutionFacts facts = AgentToolExecutionFacts.from(runtimeContext);
         if (facts == null) {
-            return next.apply(input);
+            return next.apply(input).doOnNext(event -> resetSearchAfterProgress(runtimeContext, event));
         }
         ToolBatchFact batch = facts.beginBatch();
         if (batch == null) {
             // 上一批没收口，此时开新批会让两批的成员混在一起，宁可这一批不归批
             log.warn("上一批工具尚未收口，本批不再归批, sessionId: {}", runtimeContext.getSessionId());
-            return next.apply(input);
+            return next.apply(input).doOnNext(event -> resetSearchAfterProgress(runtimeContext, event));
         }
         facts.enroll(batch, toolCallIds(input));
         // 成功、异常、取消三条路都要收口，否则批永远停在进行中
         return next.apply(input)
-                .doOnNext(event -> markPreExecutionShortCircuit(facts, event))
+                .doOnNext(event -> {
+                    markPreExecutionShortCircuit(facts, event);
+                    resetSearchAfterProgress(runtimeContext, event);
+                })
                 .doFinally(signal -> facts.endBatch(batch));
+    }
+
+    /**
+     * MCP 工具成功或技能手册成功加载后重开搜索窗口；失败、拒绝与 search_tools 自身不清除无进展计数。
+     */
+    private void resetSearchAfterProgress(RuntimeContext runtimeContext, AgentEvent event) {
+        if (!(event instanceof ToolResultEndEvent end)
+                || AgentToolStatus.of(end.getState()) != AgentToolStatus.DONE) {
+            return;
+        }
+        String toolName = end.getToolCallName();
+        if (ToolSearchTool.TOOL_NAME.equals(toolName)
+                || (!SkillLoadTool.TOOL_NAME.equals(toolName) && !isDispatchableMcpTool(runtimeContext, toolName))) {
+            return;
+        }
+        // 成功的业务 MCP 调用代表任务阶段有了实际进展，重开后续阶段的工具搜索窗口。
+        synchronized (runtimeContext) {
+            runtimeContext.put(AgentRuntimeContextKeys.TOOL_SEARCH_PROGRESS, Boolean.FALSE);
+            runtimeContext.put(AgentRuntimeContextKeys.TOOL_SEARCH_EXHAUSTED, false);
+        }
+    }
+
+    private static boolean isDispatchableMcpTool(RuntimeContext runtimeContext, String toolName) {
+        if (runtimeContext == null || toolName == null) {
+            return false;
+        }
+        Object configured = runtimeContext.get(AgentRuntimeContextKeys.DISPATCHABLE_TOOL_IDS);
+        return configured instanceof java.util.Set<?> toolIds && toolIds.contains(toolName);
     }
 
     /**

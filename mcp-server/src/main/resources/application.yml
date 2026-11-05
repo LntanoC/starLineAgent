@@ -8,11 +8,11 @@ spring:
 
 starlineagent:
   artist-event-search:
-    official-domains:
-      - damai.cn
-      - maoyan.com
-      - showstart.com
-      - piaoxingqiu.com
-      - 228.com.cn
     stale-hours: 168
-    max-items: 10
+    max-items: 50
+    max-queries: 6
+    max-pages-per-query: 2
+    max-page-size: 20
+    max-raw-results: 200
+    discovery-window: year
+    discovery-timeout-millis: 8000

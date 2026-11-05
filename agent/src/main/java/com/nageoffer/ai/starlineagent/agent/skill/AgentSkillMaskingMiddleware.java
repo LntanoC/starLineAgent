@@ -18,6 +18,7 @@
 package com.nageoffer.ai.starlineagent.agent.skill;
 
 import com.nageoffer.ai.starlineagent.agent.config.ConditionalOnAgentEngine;
+import com.nageoffer.ai.starlineagent.agent.tool.AgentRuntimeContextKeys;
 import com.nageoffer.ai.starlineagent.agent.tool.AgentToolRoutingService;
 import com.nageoffer.ai.starlineagent.agent.tool.KnowledgeSearchTool;
 import com.nageoffer.ai.starlineagent.agent.tool.MemoryFlushTool;
@@ -87,6 +88,8 @@ public class AgentSkillMaskingMiddleware implements MiddlewareBase {
                     log.warn("动态工具路由失败，本轮仅保留内置工具", e);
                     return Mono.just(failClosedTools(input.tools()));
                 })
+                // 耗尽状态必须在 schema 生成前生效，避免模型忽略工具结果后再次发起同一搜索
+                .map(masked -> maskExhaustedSearch(runtimeContext, masked))
                 .flatMapMany(masked -> {
                     if (runtimeContext != null) {
                         runtimeContext.put(MASKED_TOOLS_ATTRIBUTE, masked);
@@ -135,6 +138,16 @@ public class AgentSkillMaskingMiddleware implements MiddlewareBase {
         return tools.stream().map(ToolSchema::getName)
                 .filter(name -> !alwaysAvailable.contains(name))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private Set<String> maskExhaustedSearch(RuntimeContext runtimeContext, Set<String> masked) {
+        if (runtimeContext == null
+                || !Boolean.TRUE.equals(runtimeContext.get(AgentRuntimeContextKeys.TOOL_SEARCH_EXHAUSTED))) {
+            return masked;
+        }
+        Set<String> result = new LinkedHashSet<>(masked);
+        result.add(ToolSearchTool.TOOL_NAME);
+        return result;
     }
 
     /**

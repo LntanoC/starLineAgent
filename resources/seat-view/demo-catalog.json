@@ -1,0 +1,5487 @@
+[
+  {
+    "venue": {
+      "id": "demo-national-stadium",
+      "name": "国家体育场（鸟巢）",
+      "city": "北京",
+      "aliases": []
+    },
+    "show": {
+      "id": "demo-national-stadium-preview",
+      "name": "分区演示（非真实演出）",
+      "startsAt": null,
+      "status": "PUBLISHED",
+      "provenance": "DEMO",
+      "sourceUrl": "https://github.com/cuihairu/venue-seats/blob/main/packages/venues-demo/venues/demo-national-stadium.json",
+      "sourceNote": "来源：venue-seats，MIT，main 分支 2026-11-04 快照。分区、舞台和票档均为上游简化示例；不是官方票务图。坐标为示意图单位，不是米。",
+      "stageLayout": "END",
+      "stage": {
+        "x": 620,
+        "y": 602,
+        "width": 300,
+        "height": 56,
+        "rotation": 180
+      },
+      "sections": [
+        {
+          "code": "demo-national-stadium-floor-A",
+          "label": "内场A",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              468,
+              336
+            ],
+            [
+              532,
+              336
+            ],
+            [
+              532,
+              439
+            ],
+            [
+              468,
+              439
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-national-stadium-floor-B",
+          "label": "内场B",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              548,
+              336
+            ],
+            [
+              612,
+              336
+            ],
+            [
+              612,
+              439
+            ],
+            [
+              548,
+              439
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-national-stadium-floor-C",
+          "label": "内场C",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              628,
+              336
+            ],
+            [
+              692,
+              336
+            ],
+            [
+              692,
+              439
+            ],
+            [
+              628,
+              439
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-national-stadium-floor-D",
+          "label": "内场D",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              708,
+              336
+            ],
+            [
+              772,
+              336
+            ],
+            [
+              772,
+              439
+            ],
+            [
+              708,
+              439
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-national-stadium-floor-E",
+          "label": "内场E",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              468,
+              451
+            ],
+            [
+              532,
+              451
+            ],
+            [
+              532,
+              554
+            ],
+            [
+              468,
+              554
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-national-stadium-floor-F",
+          "label": "内场F",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              548,
+              451
+            ],
+            [
+              612,
+              451
+            ],
+            [
+              612,
+              554
+            ],
+            [
+              548,
+              554
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-national-stadium-floor-G",
+          "label": "内场G",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              628,
+              451
+            ],
+            [
+              692,
+              451
+            ],
+            [
+              692,
+              554
+            ],
+            [
+              628,
+              554
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-national-stadium-floor-H",
+          "label": "内场H",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              708,
+              451
+            ],
+            [
+              772,
+              451
+            ],
+            [
+              772,
+              554
+            ],
+            [
+              708,
+              554
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-national-stadium-lower-A",
+          "label": "A区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              1004.8,
+              508.5
+            ],
+            [
+              992.5,
+              572.1
+            ],
+            [
+              1120.2,
+              605.6
+            ],
+            [
+              1136.8,
+              512.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-B",
+          "label": "B区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              986,
+              588.4
+            ],
+            [
+              949.9,
+              646.9
+            ],
+            [
+              1063,
+              714.9
+            ],
+            [
+              1111.5,
+              629.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-C",
+          "label": "C区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              937.6,
+              661.1
+            ],
+            [
+              880.6,
+              709.8
+            ],
+            [
+              970,
+              806.9
+            ],
+            [
+              1046.4,
+              735.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-D",
+          "label": "D区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              863.4,
+              720.8
+            ],
+            [
+              790.3,
+              755.6
+            ],
+            [
+              848.6,
+              874
+            ],
+            [
+              946.8,
+              823.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-H",
+          "label": "H区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              449.7,
+              755.6
+            ],
+            [
+              376.6,
+              720.8
+            ],
+            [
+              293.2,
+              823.1
+            ],
+            [
+              391.4,
+              874
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-I",
+          "label": "I区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              359.4,
+              709.8
+            ],
+            [
+              302.4,
+              661.1
+            ],
+            [
+              193.6,
+              735.8
+            ],
+            [
+              270,
+              806.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-J",
+          "label": "J区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              290.1,
+              646.9
+            ],
+            [
+              254,
+              588.4
+            ],
+            [
+              128.5,
+              629.3
+            ],
+            [
+              177,
+              714.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-K",
+          "label": "K区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              247.5,
+              572.1
+            ],
+            [
+              235.2,
+              508.5
+            ],
+            [
+              103.2,
+              512.4
+            ],
+            [
+              119.8,
+              605.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-L",
+          "label": "L区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              235.2,
+              491.5
+            ],
+            [
+              247.5,
+              427.9
+            ],
+            [
+              119.8,
+              394.4
+            ],
+            [
+              103.2,
+              487.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-M",
+          "label": "M区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              254,
+              411.6
+            ],
+            [
+              290.1,
+              353.1
+            ],
+            [
+              177,
+              285.1
+            ],
+            [
+              128.5,
+              370.7
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-N",
+          "label": "N区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              302.4,
+              338.9
+            ],
+            [
+              359.4,
+              290.2
+            ],
+            [
+              270,
+              193.1
+            ],
+            [
+              193.6,
+              264.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-O",
+          "label": "O区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              376.6,
+              279.2
+            ],
+            [
+              449.7,
+              244.4
+            ],
+            [
+              391.4,
+              126
+            ],
+            [
+              293.2,
+              176.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-P",
+          "label": "P区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              470.5,
+              237.4
+            ],
+            [
+              553.9,
+              219.2
+            ],
+            [
+              531.3,
+              89.2
+            ],
+            [
+              419.3,
+              115.7
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-Q",
+          "label": "Q区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              576.5,
+              216.8
+            ],
+            [
+              663.5,
+              216.8
+            ],
+            [
+              678.4,
+              85.7
+            ],
+            [
+              561.6,
+              85.7
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-R",
+          "label": "R区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              686.1,
+              219.2
+            ],
+            [
+              769.5,
+              237.4
+            ],
+            [
+              820.7,
+              115.7
+            ],
+            [
+              708.7,
+              89.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-S",
+          "label": "S区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              790.3,
+              244.4
+            ],
+            [
+              863.4,
+              279.2
+            ],
+            [
+              946.8,
+              176.9
+            ],
+            [
+              848.6,
+              126
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-T",
+          "label": "T区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              880.6,
+              290.2
+            ],
+            [
+              937.6,
+              338.9
+            ],
+            [
+              1046.4,
+              264.2
+            ],
+            [
+              970,
+              193.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-U",
+          "label": "U区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              949.9,
+              353.1
+            ],
+            [
+              986,
+              411.6
+            ],
+            [
+              1111.5,
+              370.7
+            ],
+            [
+              1063,
+              285.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-lower-V",
+          "label": "V区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              992.5,
+              427.9
+            ],
+            [
+              1004.8,
+              491.5
+            ],
+            [
+              1136.8,
+              487.6
+            ],
+            [
+              1120.2,
+              394.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-A",
+          "label": "A区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1164.8,
+              512.4
+            ],
+            [
+              1152.6,
+              594.4
+            ],
+            [
+              1258.1,
+              617.3
+            ],
+            [
+              1272.7,
+              515.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-B",
+          "label": "B区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1145.3,
+              618.5
+            ],
+            [
+              1109.5,
+              695.7
+            ],
+            [
+              1206.5,
+              743.2
+            ],
+            [
+              1249.4,
+              647.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-C",
+          "label": "C区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1095.3,
+              717.7
+            ],
+            [
+              1037.9,
+              785.7
+            ],
+            [
+              1120.7,
+              855
+            ],
+            [
+              1189.5,
+              770.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-D",
+          "label": "D区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1017.7,
+              804.3
+            ],
+            [
+              942,
+              859
+            ],
+            [
+              1005.8,
+              946.2
+            ],
+            [
+              1096.5,
+              878.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-E",
+          "label": "E区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              917,
+              873.1
+            ],
+            [
+              827.4,
+              911.5
+            ],
+            [
+              868.5,
+              1011.4
+            ],
+            [
+              975.8,
+              963.7
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-I",
+          "label": "I区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              412.6,
+              911.5
+            ],
+            [
+              323,
+              873.1
+            ],
+            [
+              264.2,
+              963.7
+            ],
+            [
+              371.5,
+              1011.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-J",
+          "label": "J区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              298,
+              859
+            ],
+            [
+              222.3,
+              804.3
+            ],
+            [
+              143.5,
+              878.1
+            ],
+            [
+              234.2,
+              946.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-K",
+          "label": "K区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              202.1,
+              785.7
+            ],
+            [
+              144.7,
+              717.7
+            ],
+            [
+              50.5,
+              770.6
+            ],
+            [
+              119.3,
+              855
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-L",
+          "label": "L区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              130.5,
+              695.7
+            ],
+            [
+              94.7,
+              618.5
+            ],
+            [
+              -9.4,
+              647.3
+            ],
+            [
+              33.5,
+              743.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-M",
+          "label": "M区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              87.4,
+              594.4
+            ],
+            [
+              75.2,
+              512.4
+            ],
+            [
+              -32.7,
+              515.4
+            ],
+            [
+              -18.1,
+              617.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-N",
+          "label": "N区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              75.2,
+              487.6
+            ],
+            [
+              87.4,
+              405.6
+            ],
+            [
+              -18.1,
+              382.7
+            ],
+            [
+              -32.7,
+              484.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-O",
+          "label": "O区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              94.7,
+              381.5
+            ],
+            [
+              130.5,
+              304.3
+            ],
+            [
+              33.5,
+              256.8
+            ],
+            [
+              -9.4,
+              352.7
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-P",
+          "label": "P区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              144.7,
+              282.3
+            ],
+            [
+              202.1,
+              214.3
+            ],
+            [
+              119.3,
+              145
+            ],
+            [
+              50.5,
+              229.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-Q",
+          "label": "Q区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              222.3,
+              195.7
+            ],
+            [
+              298,
+              141
+            ],
+            [
+              234.2,
+              53.8
+            ],
+            [
+              143.5,
+              121.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-R",
+          "label": "R区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              323,
+              126.9
+            ],
+            [
+              412.6,
+              88.5
+            ],
+            [
+              371.5,
+              -11.4
+            ],
+            [
+              264.2,
+              36.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-S",
+          "label": "S区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              441,
+              79.7
+            ],
+            [
+              539.2,
+              59.9
+            ],
+            [
+              523.2,
+              -46.9
+            ],
+            [
+              405.6,
+              -22.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-T",
+          "label": "T区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              569.4,
+              56.9
+            ],
+            [
+              670.6,
+              56.9
+            ],
+            [
+              680.6,
+              -50.6
+            ],
+            [
+              559.4,
+              -50.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-U",
+          "label": "U区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              700.8,
+              59.9
+            ],
+            [
+              799,
+              79.7
+            ],
+            [
+              834.4,
+              -22.3
+            ],
+            [
+              716.8,
+              -46.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-V",
+          "label": "V区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              827.4,
+              88.5
+            ],
+            [
+              917,
+              126.9
+            ],
+            [
+              975.8,
+              36.3
+            ],
+            [
+              868.5,
+              -11.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-W",
+          "label": "W区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              942,
+              141
+            ],
+            [
+              1017.7,
+              195.7
+            ],
+            [
+              1096.5,
+              121.9
+            ],
+            [
+              1005.8,
+              53.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-X",
+          "label": "X区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              1037.9,
+              214.3
+            ],
+            [
+              1095.3,
+              282.3
+            ],
+            [
+              1189.5,
+              229.4
+            ],
+            [
+              1120.7,
+              145
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-Y",
+          "label": "Y区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              1109.5,
+              304.3
+            ],
+            [
+              1145.3,
+              381.5
+            ],
+            [
+              1249.4,
+              352.7
+            ],
+            [
+              1206.5,
+              256.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-national-stadium-upper-Z",
+          "label": "Z区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1152.6,
+              405.6
+            ],
+            [
+              1164.8,
+              487.6
+            ],
+            [
+              1272.7,
+              484.6
+            ],
+            [
+              1258.1,
+              382.7
+            ]
+          ],
+          "frontEdge": 0
+        }
+      ]
+    }
+  },
+  {
+    "venue": {
+      "id": "demo-shanghai-stadium",
+      "name": "上海体育场",
+      "city": "上海",
+      "aliases": []
+    },
+    "show": {
+      "id": "demo-shanghai-stadium-preview",
+      "name": "分区演示（非真实演出）",
+      "startsAt": null,
+      "status": "PUBLISHED",
+      "provenance": "DEMO",
+      "sourceUrl": "https://github.com/cuihairu/venue-seats/blob/main/packages/venues-demo/venues/demo-shanghai-stadium.json",
+      "sourceNote": "来源：venue-seats，MIT，main 分支 2026-11-04 快照。分区、舞台和票档均为上游简化示例；不是官方票务图。坐标为示意图单位，不是米。",
+      "stageLayout": "END",
+      "stage": {
+        "x": 650,
+        "y": 582,
+        "width": 300,
+        "height": 56,
+        "rotation": 180
+      },
+      "sections": [
+        {
+          "code": "demo-shanghai-stadium-floor-A",
+          "label": "内场A",
+          "level": 1,
+          "priceTier": 1180,
+          "ring": [
+            [
+              498,
+              326
+            ],
+            [
+              562,
+              326
+            ],
+            [
+              562,
+              424
+            ],
+            [
+              498,
+              424
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shanghai-stadium-floor-B",
+          "label": "内场B",
+          "level": 1,
+          "priceTier": 1180,
+          "ring": [
+            [
+              578,
+              326
+            ],
+            [
+              642,
+              326
+            ],
+            [
+              642,
+              424
+            ],
+            [
+              578,
+              424
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shanghai-stadium-floor-C",
+          "label": "内场C",
+          "level": 1,
+          "priceTier": 1180,
+          "ring": [
+            [
+              658,
+              326
+            ],
+            [
+              722,
+              326
+            ],
+            [
+              722,
+              424
+            ],
+            [
+              658,
+              424
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shanghai-stadium-floor-D",
+          "label": "内场D",
+          "level": 1,
+          "priceTier": 1180,
+          "ring": [
+            [
+              738,
+              326
+            ],
+            [
+              802,
+              326
+            ],
+            [
+              802,
+              424
+            ],
+            [
+              738,
+              424
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shanghai-stadium-floor-E",
+          "label": "内场E",
+          "level": 1,
+          "priceTier": 1580,
+          "ring": [
+            [
+              498,
+              436
+            ],
+            [
+              562,
+              436
+            ],
+            [
+              562,
+              534
+            ],
+            [
+              498,
+              534
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shanghai-stadium-floor-F",
+          "label": "内场F",
+          "level": 1,
+          "priceTier": 1580,
+          "ring": [
+            [
+              578,
+              436
+            ],
+            [
+              642,
+              436
+            ],
+            [
+              642,
+              534
+            ],
+            [
+              578,
+              534
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shanghai-stadium-floor-G",
+          "label": "内场G",
+          "level": 1,
+          "priceTier": 1580,
+          "ring": [
+            [
+              658,
+              436
+            ],
+            [
+              722,
+              436
+            ],
+            [
+              722,
+              534
+            ],
+            [
+              658,
+              534
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shanghai-stadium-floor-H",
+          "label": "内场H",
+          "level": 1,
+          "priceTier": 1580,
+          "ring": [
+            [
+              738,
+              436
+            ],
+            [
+              802,
+              436
+            ],
+            [
+              802,
+              534
+            ],
+            [
+              738,
+              534
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-A",
+          "label": "A区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              1069.9,
+              497.9
+            ],
+            [
+              1058.4,
+              560
+            ],
+            [
+              1182.9,
+              589.9
+            ],
+            [
+              1197.8,
+              501.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-B",
+          "label": "B区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              1052.7,
+              575.2
+            ],
+            [
+              1019.1,
+              633.1
+            ],
+            [
+              1131.6,
+              694.2
+            ],
+            [
+              1175.4,
+              611.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-C",
+          "label": "C区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              1008.1,
+              646.7
+            ],
+            [
+              954.7,
+              696.5
+            ],
+            [
+              1047.5,
+              784.6
+            ],
+            [
+              1117.2,
+              713.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-D",
+          "label": "D区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              939.1,
+              707.6
+            ],
+            [
+              869.4,
+              745.8
+            ],
+            [
+              936.3,
+              854.9
+            ],
+            [
+              1027.2,
+              800.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-E",
+          "label": "E区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              850.4,
+              753.6
+            ],
+            [
+              769.3,
+              777.6
+            ],
+            [
+              805.6,
+              900.4
+            ],
+            [
+              911.5,
+              866.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-H",
+          "label": "H区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              530.7,
+              777.6
+            ],
+            [
+              449.6,
+              753.6
+            ],
+            [
+              388.5,
+              866.1
+            ],
+            [
+              494.4,
+              900.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-I",
+          "label": "I区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              430.6,
+              745.8
+            ],
+            [
+              360.9,
+              707.6
+            ],
+            [
+              272.8,
+              800.5
+            ],
+            [
+              363.7,
+              854.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-J",
+          "label": "J区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              345.3,
+              696.5
+            ],
+            [
+              291.9,
+              646.7
+            ],
+            [
+              182.8,
+              713.6
+            ],
+            [
+              252.5,
+              784.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-K",
+          "label": "K区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              280.9,
+              633.1
+            ],
+            [
+              247.3,
+              575.2
+            ],
+            [
+              124.6,
+              611.6
+            ],
+            [
+              168.4,
+              694.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-L",
+          "label": "L区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              241.6,
+              560
+            ],
+            [
+              230.1,
+              497.9
+            ],
+            [
+              102.2,
+              501.2
+            ],
+            [
+              117.1,
+              589.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-M",
+          "label": "M区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              230.1,
+              482.1
+            ],
+            [
+              241.6,
+              420
+            ],
+            [
+              117.1,
+              390.1
+            ],
+            [
+              102.2,
+              478.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-N",
+          "label": "N区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              247.3,
+              404.8
+            ],
+            [
+              280.9,
+              346.9
+            ],
+            [
+              168.4,
+              285.8
+            ],
+            [
+              124.6,
+              368.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-O",
+          "label": "O区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              291.9,
+              333.3
+            ],
+            [
+              345.3,
+              283.5
+            ],
+            [
+              252.5,
+              195.4
+            ],
+            [
+              182.8,
+              266.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-P",
+          "label": "P区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              360.9,
+              272.4
+            ],
+            [
+              430.6,
+              234.2
+            ],
+            [
+              363.7,
+              125.1
+            ],
+            [
+              272.8,
+              179.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-Q",
+          "label": "Q区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              449.6,
+              226.4
+            ],
+            [
+              530.7,
+              202.4
+            ],
+            [
+              494.4,
+              79.6
+            ],
+            [
+              388.5,
+              113.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-R",
+          "label": "R区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              552,
+              198.3
+            ],
+            [
+              639,
+              190.1
+            ],
+            [
+              635.7,
+              62.1
+            ],
+            [
+              522.1,
+              73.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-S",
+          "label": "S区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              661,
+              190.1
+            ],
+            [
+              748,
+              198.3
+            ],
+            [
+              777.9,
+              73.8
+            ],
+            [
+              664.3,
+              62.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-T",
+          "label": "T区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              769.3,
+              202.4
+            ],
+            [
+              850.4,
+              226.4
+            ],
+            [
+              911.5,
+              113.9
+            ],
+            [
+              805.6,
+              79.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-U",
+          "label": "U区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              869.4,
+              234.2
+            ],
+            [
+              939.1,
+              272.4
+            ],
+            [
+              1027.2,
+              179.5
+            ],
+            [
+              936.3,
+              125.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-V",
+          "label": "V区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              954.7,
+              283.5
+            ],
+            [
+              1008.1,
+              333.3
+            ],
+            [
+              1117.2,
+              266.4
+            ],
+            [
+              1047.5,
+              195.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-W",
+          "label": "W区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              1019.1,
+              346.9
+            ],
+            [
+              1052.7,
+              404.8
+            ],
+            [
+              1175.4,
+              368.4
+            ],
+            [
+              1131.6,
+              285.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-lower-X",
+          "label": "X区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              1058.4,
+              420
+            ],
+            [
+              1069.9,
+              482.1
+            ],
+            [
+              1197.8,
+              478.8
+            ],
+            [
+              1182.9,
+              390.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-A",
+          "label": "A区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1225.8,
+              501.1
+            ],
+            [
+              1214.5,
+              580.6
+            ],
+            [
+              1312.5,
+              600.4
+            ],
+            [
+              1325.8,
+              503.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-B",
+          "label": "B区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1208.3,
+              602.3
+            ],
+            [
+              1174.9,
+              677.8
+            ],
+            [
+              1266,
+              718.9
+            ],
+            [
+              1305.2,
+              626.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-C",
+          "label": "C区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1162.7,
+              697.8
+            ],
+            [
+              1109,
+              765.5
+            ],
+            [
+              1188.7,
+              825.9
+            ],
+            [
+              1251.7,
+              743.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-D",
+          "label": "D区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1091.4,
+              782.9
+            ],
+            [
+              1020,
+              839.5
+            ],
+            [
+              1084.3,
+              916.1
+            ],
+            [
+              1168.1,
+              847.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-E",
+          "label": "E区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              998,
+              853.4
+            ],
+            [
+              912.5,
+              895.9
+            ],
+            [
+              958.1,
+              984.9
+            ],
+            [
+              1058.4,
+              933
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-J",
+          "label": "J区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              387.5,
+              895.9
+            ],
+            [
+              302,
+              853.4
+            ],
+            [
+              241.6,
+              933
+            ],
+            [
+              341.9,
+              984.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-K",
+          "label": "K区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              280,
+              839.5
+            ],
+            [
+              208.6,
+              782.9
+            ],
+            [
+              131.9,
+              847.2
+            ],
+            [
+              215.7,
+              916.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-L",
+          "label": "L区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              191,
+              765.5
+            ],
+            [
+              137.3,
+              697.8
+            ],
+            [
+              48.3,
+              743.4
+            ],
+            [
+              111.3,
+              825.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-M",
+          "label": "M区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              125.1,
+              677.8
+            ],
+            [
+              91.7,
+              602.3
+            ],
+            [
+              -5.2,
+              626.9
+            ],
+            [
+              34,
+              718.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-N",
+          "label": "N区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              85.5,
+              580.6
+            ],
+            [
+              74.2,
+              501.1
+            ],
+            [
+              -25.8,
+              503.6
+            ],
+            [
+              -12.5,
+              600.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-O",
+          "label": "O区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              74.2,
+              478.9
+            ],
+            [
+              85.5,
+              399.4
+            ],
+            [
+              -12.5,
+              379.6
+            ],
+            [
+              -25.8,
+              476.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-P",
+          "label": "P区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              91.7,
+              377.7
+            ],
+            [
+              125.1,
+              302.2
+            ],
+            [
+              34,
+              261.1
+            ],
+            [
+              -5.2,
+              353.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-Q",
+          "label": "Q区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              137.3,
+              282.2
+            ],
+            [
+              191,
+              214.5
+            ],
+            [
+              111.3,
+              154.1
+            ],
+            [
+              48.3,
+              236.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-R",
+          "label": "R区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              208.6,
+              197.1
+            ],
+            [
+              280,
+              140.5
+            ],
+            [
+              215.7,
+              63.9
+            ],
+            [
+              131.9,
+              132.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-S",
+          "label": "S区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              302,
+              126.6
+            ],
+            [
+              387.5,
+              84.1
+            ],
+            [
+              341.9,
+              -4.9
+            ],
+            [
+              241.6,
+              47
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-T",
+          "label": "T区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              412.8,
+              74.4
+            ],
+            [
+              508.1,
+              48
+            ],
+            [
+              483.5,
+              -48.9
+            ],
+            [
+              371.7,
+              -16.7
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-U",
+          "label": "U区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              535.6,
+              43.1
+            ],
+            [
+              635.9,
+              34.1
+            ],
+            [
+              633.5,
+              -65.8
+            ],
+            [
+              515.7,
+              -54.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-V",
+          "label": "V区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              664.1,
+              34.1
+            ],
+            [
+              764.4,
+              43.1
+            ],
+            [
+              784.3,
+              -54.9
+            ],
+            [
+              666.5,
+              -65.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-W",
+          "label": "W区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              791.9,
+              48
+            ],
+            [
+              887.2,
+              74.4
+            ],
+            [
+              928.3,
+              -16.7
+            ],
+            [
+              816.5,
+              -48.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-X",
+          "label": "X区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              912.5,
+              84.1
+            ],
+            [
+              998,
+              126.6
+            ],
+            [
+              1058.4,
+              47
+            ],
+            [
+              958.1,
+              -4.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-Y",
+          "label": "Y区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              1020,
+              140.5
+            ],
+            [
+              1091.4,
+              197.1
+            ],
+            [
+              1168.1,
+              132.8
+            ],
+            [
+              1084.3,
+              63.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-Z",
+          "label": "Z区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              1109,
+              214.5
+            ],
+            [
+              1162.7,
+              282.2
+            ],
+            [
+              1251.7,
+              236.6
+            ],
+            [
+              1188.7,
+              154.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-u5b",
+          "label": "上层示意分区53",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              1174.9,
+              302.2
+            ],
+            [
+              1208.3,
+              377.7
+            ],
+            [
+              1305.2,
+              353.1
+            ],
+            [
+              1266,
+              261.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shanghai-stadium-upper-u5c",
+          "label": "上层示意分区54",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              1214.5,
+              399.4
+            ],
+            [
+              1225.8,
+              478.9
+            ],
+            [
+              1325.8,
+              476.4
+            ],
+            [
+              1312.5,
+              379.6
+            ]
+          ],
+          "frontEdge": 0
+        }
+      ]
+    }
+  },
+  {
+    "venue": {
+      "id": "demo-mercedes-arena",
+      "name": "梅赛德斯-奔驰文化中心",
+      "city": "上海",
+      "aliases": []
+    },
+    "show": {
+      "id": "demo-mercedes-arena-preview",
+      "name": "分区演示（非真实演出）",
+      "startsAt": null,
+      "status": "PUBLISHED",
+      "provenance": "DEMO",
+      "sourceUrl": "https://github.com/cuihairu/venue-seats/blob/main/packages/venues-demo/venues/demo-mercedes-arena.json",
+      "sourceNote": "来源：venue-seats，MIT，main 分支 2026-11-04 快照。分区、舞台和票档均为上游简化示例；不是官方票务图。坐标为示意图单位，不是米。",
+      "stageLayout": "END",
+      "stage": {
+        "x": 450,
+        "y": 539,
+        "width": 210,
+        "height": 48,
+        "rotation": 180
+      },
+      "sections": [
+        {
+          "code": "demo-mercedes-arena-floor-A",
+          "label": "内场A",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              257,
+              225
+            ],
+            [
+              376.3,
+              225
+            ],
+            [
+              376.3,
+              357.5
+            ],
+            [
+              257,
+              357.5
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-mercedes-arena-floor-B",
+          "label": "内场B",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              390.3,
+              225
+            ],
+            [
+              509.7,
+              225
+            ],
+            [
+              509.7,
+              357.5
+            ],
+            [
+              390.3,
+              357.5
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-mercedes-arena-floor-C",
+          "label": "内场C",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              523.7,
+              225
+            ],
+            [
+              643,
+              225
+            ],
+            [
+              643,
+              357.5
+            ],
+            [
+              523.7,
+              357.5
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-mercedes-arena-floor-D",
+          "label": "内场D",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              257,
+              367.5
+            ],
+            [
+              376.3,
+              367.5
+            ],
+            [
+              376.3,
+              500
+            ],
+            [
+              257,
+              500
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-mercedes-arena-floor-E",
+          "label": "内场E",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              390.3,
+              367.5
+            ],
+            [
+              509.7,
+              367.5
+            ],
+            [
+              509.7,
+              500
+            ],
+            [
+              390.3,
+              500
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-mercedes-arena-floor-F",
+          "label": "内场F",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              523.7,
+              367.5
+            ],
+            [
+              643,
+              367.5
+            ],
+            [
+              643,
+              500
+            ],
+            [
+              523.7,
+              500
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-A",
+          "label": "A区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              197.8,
+              92
+            ],
+            [
+              442.2,
+              92
+            ],
+            [
+              442.2,
+              0
+            ],
+            [
+              197.8,
+              0
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-B",
+          "label": "B区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              457.8,
+              92
+            ],
+            [
+              702.2,
+              92
+            ],
+            [
+              702.2,
+              0
+            ],
+            [
+              457.8,
+              0
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-K",
+          "label": "K区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              711.5,
+              93.5
+            ],
+            [
+              757.5,
+              139.5
+            ],
+            [
+              802.2,
+              92.1
+            ],
+            [
+              712.9,
+              2.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-L",
+          "label": "L区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              760.5,
+              142.5
+            ],
+            [
+              806.5,
+              188.5
+            ],
+            [
+              897.2,
+              187.2
+            ],
+            [
+              807.9,
+              97.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-U",
+          "label": "U区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              808,
+              200.2
+            ],
+            [
+              808,
+              519.8
+            ],
+            [
+              900,
+              519.8
+            ],
+            [
+              900,
+              200.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-u5f",
+          "label": "下层示意分区12",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              806.5,
+              531.5
+            ],
+            [
+              760.5,
+              577.5
+            ],
+            [
+              807.9,
+              622.2
+            ],
+            [
+              897.2,
+              532.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-u60",
+          "label": "下层示意分区13",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              757.5,
+              580.5
+            ],
+            [
+              711.5,
+              626.5
+            ],
+            [
+              712.9,
+              717.2
+            ],
+            [
+              802.2,
+              627.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-s",
+          "label": "s区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              187.1,
+              625.1
+            ],
+            [
+              94.9,
+              532.9
+            ],
+            [
+              5.7,
+              535.7
+            ],
+            [
+              184.3,
+              714.3
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-u7d",
+          "label": "下层示意分区15",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              92,
+              524.9
+            ],
+            [
+              92,
+              365.1
+            ],
+            [
+              0,
+              365.1
+            ],
+            [
+              0,
+              524.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-u7e",
+          "label": "下层示意分区16",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              92,
+              354.9
+            ],
+            [
+              92,
+              195.1
+            ],
+            [
+              0,
+              195.1
+            ],
+            [
+              0,
+              354.9
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-u87",
+          "label": "下层示意分区17",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              93.5,
+              188.5
+            ],
+            [
+              139.5,
+              142.5
+            ],
+            [
+              92.1,
+              97.9
+            ],
+            [
+              2.9,
+              187.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-lower-u88",
+          "label": "下层示意分区18",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              142.5,
+              139.5
+            ],
+            [
+              188.5,
+              93.5
+            ],
+            [
+              187.2,
+              2.8
+            ],
+            [
+              97.9,
+              92.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-A",
+          "label": "A区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              118.1,
+              7.3
+            ],
+            [
+              439.7,
+              7.3
+            ],
+            [
+              440.9,
+              -60
+            ],
+            [
+              155.8,
+              -60
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-B",
+          "label": "B区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              460.3,
+              7.3
+            ],
+            [
+              781.9,
+              7.3
+            ],
+            [
+              744.2,
+              -60
+            ],
+            [
+              459.1,
+              -60
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-K",
+          "label": "K区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              793.4,
+              8.6
+            ],
+            [
+              831.7,
+              50
+            ],
+            [
+              823.1,
+              12.4
+            ],
+            [
+              755.5,
+              -57.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-L",
+          "label": "L区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              834.2,
+              52.7
+            ],
+            [
+              872.6,
+              94
+            ],
+            [
+              895.1,
+              87
+            ],
+            [
+              827.5,
+              16.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-M",
+          "label": "M区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              875,
+              96.7
+            ],
+            [
+              913.4,
+              138.1
+            ],
+            [
+              967.1,
+              161.6
+            ],
+            [
+              899.4,
+              91.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-U",
+          "label": "U区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              914.6,
+              152.6
+            ],
+            [
+              914.6,
+              567.4
+            ],
+            [
+              969.2,
+              544.4
+            ],
+            [
+              969.2,
+              175.6
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-u5f",
+          "label": "上层示意分区25",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              913.4,
+              581.9
+            ],
+            [
+              875,
+              623.3
+            ],
+            [
+              899.4,
+              628.5
+            ],
+            [
+              967.1,
+              558.4
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-u60",
+          "label": "上层示意分区26",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              872.6,
+              626
+            ],
+            [
+              834.2,
+              667.3
+            ],
+            [
+              827.5,
+              703.1
+            ],
+            [
+              895.1,
+              633
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-a",
+          "label": "a区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              831.7,
+              670
+            ],
+            [
+              793.4,
+              711.4
+            ],
+            [
+              755.5,
+              777.8
+            ],
+            [
+              823.1,
+              707.6
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-i",
+          "label": "i区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              781.9,
+              712.7
+            ],
+            [
+              460.3,
+              712.7
+            ],
+            [
+              459.1,
+              780
+            ],
+            [
+              744.2,
+              780
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-j",
+          "label": "j区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              439.7,
+              712.7
+            ],
+            [
+              118.1,
+              712.7
+            ],
+            [
+              155.8,
+              780
+            ],
+            [
+              440.9,
+              780
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-s",
+          "label": "s区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              104.2,
+              708.7
+            ],
+            [
+              -10.9,
+              584.6
+            ],
+            [
+              -62.7,
+              562.9
+            ],
+            [
+              140.2,
+              773.3
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-u7d",
+          "label": "上层示意分区31",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              -14.6,
+              576.2
+            ],
+            [
+              -14.6,
+              438
+            ],
+            [
+              -69.2,
+              429.3
+            ],
+            [
+              -69.2,
+              552.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-u7e",
+          "label": "上层示意分区32",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              -14.6,
+              429.1
+            ],
+            [
+              -14.6,
+              290.9
+            ],
+            [
+              -69.2,
+              298.5
+            ],
+            [
+              -69.2,
+              421.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-u7f",
+          "label": "上层示意分区33",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              -14.6,
+              282
+            ],
+            [
+              -14.6,
+              143.8
+            ],
+            [
+              -69.2,
+              167.8
+            ],
+            [
+              -69.2,
+              290.7
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-u87",
+          "label": "上层示意分区34",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              -12.8,
+              137.4
+            ],
+            [
+              44.8,
+              75.3
+            ],
+            [
+              35.5,
+              55.3
+            ],
+            [
+              -66,
+              160.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-mercedes-arena-lv-upper-u88",
+          "label": "上层示意分区35",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              48.5,
+              71.4
+            ],
+            [
+              106,
+              9.3
+            ],
+            [
+              143.4,
+              -56.6
+            ],
+            [
+              42,
+              48.6
+            ]
+          ],
+          "frontEdge": 0
+        }
+      ]
+    }
+  },
+  {
+    "venue": {
+      "id": "demo-cadillac-arena",
+      "name": "凯迪拉克中心（五棵松）",
+      "city": "北京",
+      "aliases": []
+    },
+    "show": {
+      "id": "demo-cadillac-arena-preview",
+      "name": "分区演示（非真实演出）",
+      "startsAt": null,
+      "status": "PUBLISHED",
+      "provenance": "DEMO",
+      "sourceUrl": "https://github.com/cuihairu/venue-seats/blob/main/packages/venues-demo/venues/demo-cadillac-arena.json",
+      "sourceNote": "来源：venue-seats，MIT，main 分支 2026-11-04 快照。分区、舞台和票档均为上游简化示例；不是官方票务图。坐标为示意图单位，不是米。",
+      "stageLayout": "END",
+      "stage": {
+        "x": 430,
+        "y": 508,
+        "width": 200,
+        "height": 46,
+        "rotation": 180
+      },
+      "sections": [
+        {
+          "code": "demo-cadillac-arena-floor-A",
+          "label": "内场A",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              242,
+              210
+            ],
+            [
+              358,
+              210
+            ],
+            [
+              358,
+              335
+            ],
+            [
+              242,
+              335
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-cadillac-arena-floor-B",
+          "label": "内场B",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              372,
+              210
+            ],
+            [
+              488,
+              210
+            ],
+            [
+              488,
+              335
+            ],
+            [
+              372,
+              335
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-cadillac-arena-floor-C",
+          "label": "内场C",
+          "level": 1,
+          "priceTier": 1280,
+          "ring": [
+            [
+              502,
+              210
+            ],
+            [
+              618,
+              210
+            ],
+            [
+              618,
+              335
+            ],
+            [
+              502,
+              335
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-cadillac-arena-floor-D",
+          "label": "内场D",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              242,
+              345
+            ],
+            [
+              358,
+              345
+            ],
+            [
+              358,
+              470
+            ],
+            [
+              242,
+              470
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-cadillac-arena-floor-E",
+          "label": "内场E",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              372,
+              345
+            ],
+            [
+              488,
+              345
+            ],
+            [
+              488,
+              470
+            ],
+            [
+              372,
+              470
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-cadillac-arena-floor-F",
+          "label": "内场F",
+          "level": 1,
+          "priceTier": 1680,
+          "ring": [
+            [
+              502,
+              345
+            ],
+            [
+              618,
+              345
+            ],
+            [
+              618,
+              470
+            ],
+            [
+              502,
+              470
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-A",
+          "label": "A区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              177.8,
+              88
+            ],
+            [
+              422.2,
+              88
+            ],
+            [
+              422.2,
+              0
+            ],
+            [
+              177.8,
+              0
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-B",
+          "label": "B区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              437.8,
+              88
+            ],
+            [
+              682.2,
+              88
+            ],
+            [
+              682.2,
+              0
+            ],
+            [
+              437.8,
+              0
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-K",
+          "label": "K区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              691.2,
+              89.2
+            ],
+            [
+              729.8,
+              127.8
+            ],
+            [
+              772.5,
+              82.5
+            ],
+            [
+              692.6,
+              2.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-L",
+          "label": "L区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              732.2,
+              130.2
+            ],
+            [
+              770.8,
+              168.8
+            ],
+            [
+              857.5,
+              167.5
+            ],
+            [
+              777.6,
+              87.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-U",
+          "label": "U区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              772,
+              180.2
+            ],
+            [
+              772,
+              499.8
+            ],
+            [
+              860,
+              499.8
+            ],
+            [
+              860,
+              180.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-u5f",
+          "label": "下层示意分区12",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              770.8,
+              511.2
+            ],
+            [
+              732.2,
+              549.8
+            ],
+            [
+              777.6,
+              592.5
+            ],
+            [
+              857.5,
+              512.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-u60",
+          "label": "下层示意分区13",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              729.8,
+              552.2
+            ],
+            [
+              691.2,
+              590.8
+            ],
+            [
+              692.6,
+              677.5
+            ],
+            [
+              772.5,
+              597.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-s",
+          "label": "s区",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              167.5,
+              589.5
+            ],
+            [
+              90.5,
+              512.5
+            ],
+            [
+              5.1,
+              515.1
+            ],
+            [
+              164.9,
+              674.9
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-u7d",
+          "label": "下层示意分区15",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              88,
+              504.9
+            ],
+            [
+              88,
+              345.1
+            ],
+            [
+              0,
+              345.1
+            ],
+            [
+              0,
+              504.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-u7e",
+          "label": "下层示意分区16",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              88,
+              334.9
+            ],
+            [
+              88,
+              175.1
+            ],
+            [
+              0,
+              175.1
+            ],
+            [
+              0,
+              334.9
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-u87",
+          "label": "下层示意分区17",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              89.2,
+              168.8
+            ],
+            [
+              127.8,
+              130.2
+            ],
+            [
+              82.5,
+              87.6
+            ],
+            [
+              2.6,
+              167.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-lower-u88",
+          "label": "下层示意分区18",
+          "level": 2,
+          "priceTier": 880,
+          "ring": [
+            [
+              130.2,
+              127.8
+            ],
+            [
+              168.8,
+              89.2
+            ],
+            [
+              167.5,
+              2.6
+            ],
+            [
+              87.6,
+              82.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-A",
+          "label": "A区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              98.4,
+              8.7
+            ],
+            [
+              419.7,
+              8.7
+            ],
+            [
+              420.9,
+              -55.6
+            ],
+            [
+              136.6,
+              -55.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-B",
+          "label": "B区",
+          "level": 3,
+          "priceTier": 580,
+          "ring": [
+            [
+              440.3,
+              8.7
+            ],
+            [
+              761.6,
+              8.7
+            ],
+            [
+              723.4,
+              -55.6
+            ],
+            [
+              439.1,
+              -55.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-K",
+          "label": "K区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              772.9,
+              9.8
+            ],
+            [
+              804.9,
+              44.4
+            ],
+            [
+              794.8,
+              9
+            ],
+            [
+              734.4,
+              -53.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-L",
+          "label": "L区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              807,
+              46.6
+            ],
+            [
+              839,
+              81.3
+            ],
+            [
+              859,
+              75.6
+            ],
+            [
+              798.6,
+              13
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-M",
+          "label": "M区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              841,
+              83.5
+            ],
+            [
+              873.1,
+              118.2
+            ],
+            [
+              923.2,
+              142.3
+            ],
+            [
+              862.8,
+              79.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-U",
+          "label": "U区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              874.1,
+              132.5
+            ],
+            [
+              874.1,
+              547.5
+            ],
+            [
+              925.1,
+              524
+            ],
+            [
+              925.1,
+              156
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-u5f",
+          "label": "上层示意分区25",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              873.1,
+              561.8
+            ],
+            [
+              841,
+              596.5
+            ],
+            [
+              862.8,
+              600.4
+            ],
+            [
+              923.2,
+              537.7
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-u60",
+          "label": "上层示意分区26",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              839,
+              598.7
+            ],
+            [
+              807,
+              633.4
+            ],
+            [
+              798.6,
+              667
+            ],
+            [
+              859,
+              604.4
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-a",
+          "label": "a区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              804.9,
+              635.6
+            ],
+            [
+              772.9,
+              670.2
+            ],
+            [
+              734.4,
+              733.6
+            ],
+            [
+              794.8,
+              671
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-i",
+          "label": "i区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              761.6,
+              671.3
+            ],
+            [
+              440.3,
+              671.3
+            ],
+            [
+              439.1,
+              735.6
+            ],
+            [
+              723.4,
+              735.6
+            ]
+          ],
+          "frontEdge": 1
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-j",
+          "label": "j区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              419.7,
+              671.3
+            ],
+            [
+              98.4,
+              671.3
+            ],
+            [
+              136.6,
+              735.6
+            ],
+            [
+              420.9,
+              735.6
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-s",
+          "label": "s区",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              85.1,
+              668
+            ],
+            [
+              -11,
+              564.1
+            ],
+            [
+              -59.3,
+              541.7
+            ],
+            [
+              121.7,
+              729.6
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-u7d",
+          "label": "上层示意分区31",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              -14.1,
+              556.3
+            ],
+            [
+              -14.1,
+              418
+            ],
+            [
+              -65.1,
+              409.2
+            ],
+            [
+              -65.1,
+              531.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-u7e",
+          "label": "上层示意分区32",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              -14.1,
+              409.2
+            ],
+            [
+              -14.1,
+              270.8
+            ],
+            [
+              -65.1,
+              278.7
+            ],
+            [
+              -65.1,
+              401.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-u7f",
+          "label": "上层示意分区33",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              -14.1,
+              262
+            ],
+            [
+              -14.1,
+              123.7
+            ],
+            [
+              -65.1,
+              148.2
+            ],
+            [
+              -65.1,
+              270.8
+            ]
+          ],
+          "frontEdge": 3
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-u87",
+          "label": "上层示意分区34",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              -12.6,
+              117.6
+            ],
+            [
+              35.5,
+              65.6
+            ],
+            [
+              28.3,
+              47.3
+            ],
+            [
+              -62.2,
+              141.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-cadillac-arena-lv-upper-u88",
+          "label": "上层示意分区35",
+          "level": 3,
+          "priceTier": 380,
+          "ring": [
+            [
+              38.6,
+              62.3
+            ],
+            [
+              86.6,
+              10.3
+            ],
+            [
+              124.6,
+              -52.6
+            ],
+            [
+              34.1,
+              41.3
+            ]
+          ],
+          "frontEdge": 0
+        }
+      ]
+    }
+  },
+  {
+    "venue": {
+      "id": "demo-shenzhen-bay",
+      "name": "深圳湾体育中心体育馆",
+      "city": "深圳",
+      "aliases": []
+    },
+    "show": {
+      "id": "demo-shenzhen-bay-preview",
+      "name": "分区演示（非真实演出）",
+      "startsAt": null,
+      "status": "PUBLISHED",
+      "provenance": "DEMO",
+      "sourceUrl": "https://github.com/cuihairu/venue-seats/blob/main/packages/venues-demo/venues/demo-shenzhen-bay.json",
+      "sourceNote": "来源：venue-seats，MIT，main 分支 2026-11-04 快照。分区、舞台和票档均为上游简化示例；不是官方票务图。坐标为示意图单位，不是米。",
+      "stageLayout": "END",
+      "stage": {
+        "x": 500,
+        "y": 489,
+        "width": 240,
+        "height": 50,
+        "rotation": 180
+      },
+      "sections": [
+        {
+          "code": "demo-shenzhen-bay-floor-A",
+          "label": "内场A",
+          "level": 1,
+          "priceTier": 1080,
+          "ring": [
+            [
+              368,
+              256
+            ],
+            [
+              445.3,
+              256
+            ],
+            [
+              445.3,
+              344
+            ],
+            [
+              368,
+              344
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shenzhen-bay-floor-B",
+          "label": "内场B",
+          "level": 1,
+          "priceTier": 1080,
+          "ring": [
+            [
+              461.3,
+              256
+            ],
+            [
+              538.7,
+              256
+            ],
+            [
+              538.7,
+              344
+            ],
+            [
+              461.3,
+              344
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shenzhen-bay-floor-C",
+          "label": "内场C",
+          "level": 1,
+          "priceTier": 1080,
+          "ring": [
+            [
+              554.7,
+              256
+            ],
+            [
+              632,
+              256
+            ],
+            [
+              632,
+              344
+            ],
+            [
+              554.7,
+              344
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shenzhen-bay-floor-D",
+          "label": "内场D",
+          "level": 1,
+          "priceTier": 1480,
+          "ring": [
+            [
+              368,
+              356
+            ],
+            [
+              445.3,
+              356
+            ],
+            [
+              445.3,
+              444
+            ],
+            [
+              368,
+              444
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shenzhen-bay-floor-E",
+          "label": "内场E",
+          "level": 1,
+          "priceTier": 1480,
+          "ring": [
+            [
+              461.3,
+              356
+            ],
+            [
+              538.7,
+              356
+            ],
+            [
+              538.7,
+              444
+            ],
+            [
+              461.3,
+              444
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shenzhen-bay-floor-F",
+          "label": "内场F",
+          "level": 1,
+          "priceTier": 1480,
+          "ring": [
+            [
+              554.7,
+              356
+            ],
+            [
+              632,
+              356
+            ],
+            [
+              632,
+              444
+            ],
+            [
+              554.7,
+              444
+            ]
+          ],
+          "frontEdge": 2
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-A",
+          "label": "A区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              799.9,
+              396.6
+            ],
+            [
+              785,
+              455.6
+            ],
+            [
+              889.5,
+              489.9
+            ],
+            [
+              909.8,
+              400.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-B",
+          "label": "B区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              778.5,
+              468
+            ],
+            [
+              735.8,
+              519.9
+            ],
+            [
+              822.2,
+              587.9
+            ],
+            [
+              880.7,
+              508.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-C",
+          "label": "C区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              723.6,
+              530
+            ],
+            [
+              658.1,
+              568.5
+            ],
+            [
+              716.1,
+              662
+            ],
+            [
+              805.6,
+              603.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-G",
+          "label": "G区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              341.9,
+              568.5
+            ],
+            [
+              276.4,
+              530
+            ],
+            [
+              194.4,
+              603.3
+            ],
+            [
+              283.9,
+              662
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-H",
+          "label": "H区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              264.2,
+              519.9
+            ],
+            [
+              221.5,
+              468
+            ],
+            [
+              119.3,
+              508.8
+            ],
+            [
+              177.8,
+              587.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-I",
+          "label": "I区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              215,
+              455.6
+            ],
+            [
+              200.1,
+              396.6
+            ],
+            [
+              90.2,
+              400.1
+            ],
+            [
+              110.5,
+              489.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-J",
+          "label": "J区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              200.1,
+              383.4
+            ],
+            [
+              215,
+              324.4
+            ],
+            [
+              110.5,
+              290.1
+            ],
+            [
+              90.2,
+              379.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-K",
+          "label": "K区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              221.5,
+              312
+            ],
+            [
+              264.2,
+              260.1
+            ],
+            [
+              177.8,
+              192.1
+            ],
+            [
+              119.3,
+              271.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-L",
+          "label": "L区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              276.4,
+              250
+            ],
+            [
+              341.9,
+              211.5
+            ],
+            [
+              283.9,
+              118
+            ],
+            [
+              194.4,
+              176.7
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-M",
+          "label": "M区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              358.2,
+              204.9
+            ],
+            [
+              438.7,
+              184.4
+            ],
+            [
+              416.2,
+              76.8
+            ],
+            [
+              306.3,
+              108
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-N",
+          "label": "N区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              457.2,
+              182.1
+            ],
+            [
+              542.8,
+              182.1
+            ],
+            [
+              558.5,
+              73.3
+            ],
+            [
+              441.5,
+              73.3
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-O",
+          "label": "O区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              561.3,
+              184.4
+            ],
+            [
+              641.8,
+              204.9
+            ],
+            [
+              693.7,
+              108
+            ],
+            [
+              583.8,
+              76.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-P",
+          "label": "P区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              658.1,
+              211.5
+            ],
+            [
+              723.6,
+              250
+            ],
+            [
+              805.6,
+              176.7
+            ],
+            [
+              716.1,
+              118
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-Q",
+          "label": "Q区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              735.8,
+              260.1
+            ],
+            [
+              778.5,
+              312
+            ],
+            [
+              880.7,
+              271.2
+            ],
+            [
+              822.2,
+              192.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-lower-R",
+          "label": "R区",
+          "level": 2,
+          "priceTier": 780,
+          "ring": [
+            [
+              785,
+              324.4
+            ],
+            [
+              799.9,
+              383.4
+            ],
+            [
+              909.8,
+              379.9
+            ],
+            [
+              889.5,
+              290.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-A",
+          "label": "A区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              937.8,
+              400.3
+            ],
+            [
+              923.7,
+              478.1
+            ],
+            [
+              1012.7,
+              501.4
+            ],
+            [
+              1029.8,
+              403.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-B",
+          "label": "B区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              916.4,
+              497.9
+            ],
+            [
+              875.3,
+              569.4
+            ],
+            [
+              954.2,
+              616.8
+            ],
+            [
+              1003.9,
+              526.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-C",
+          "label": "C区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              861.3,
+              586.7
+            ],
+            [
+              796.5,
+              646.1
+            ],
+            [
+              858.8,
+              713.8
+            ],
+            [
+              937.2,
+              638.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-D",
+          "label": "D区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              776.9,
+              659.6
+            ],
+            [
+              693.7,
+              702.1
+            ],
+            [
+              734.4,
+              784.6
+            ],
+            [
+              835,
+              730.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-H",
+          "label": "H区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              306.3,
+              702.1
+            ],
+            [
+              223.1,
+              659.6
+            ],
+            [
+              165,
+              730.9
+            ],
+            [
+              265.6,
+              784.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-I",
+          "label": "I区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              203.5,
+              646.1
+            ],
+            [
+              138.7,
+              586.7
+            ],
+            [
+              62.8,
+              638.8
+            ],
+            [
+              141.2,
+              713.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-J",
+          "label": "J区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              124.7,
+              569.4
+            ],
+            [
+              83.6,
+              497.9
+            ],
+            [
+              -3.9,
+              526.4
+            ],
+            [
+              45.8,
+              616.8
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-K",
+          "label": "K区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              76.3,
+              478.1
+            ],
+            [
+              62.2,
+              400.3
+            ],
+            [
+              -29.8,
+              403.1
+            ],
+            [
+              -12.7,
+              501.4
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-L",
+          "label": "L区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              62.2,
+              379.7
+            ],
+            [
+              76.3,
+              301.9
+            ],
+            [
+              -12.7,
+              278.6
+            ],
+            [
+              -29.8,
+              376.9
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-M",
+          "label": "M区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              83.6,
+              282.1
+            ],
+            [
+              124.7,
+              210.6
+            ],
+            [
+              45.8,
+              163.2
+            ],
+            [
+              -3.9,
+              253.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-N",
+          "label": "N区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              138.7,
+              193.3
+            ],
+            [
+              203.5,
+              133.9
+            ],
+            [
+              141.2,
+              66.2
+            ],
+            [
+              62.8,
+              141.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-O",
+          "label": "O区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              223.1,
+              120.4
+            ],
+            [
+              306.3,
+              77.9
+            ],
+            [
+              265.6,
+              -4.6
+            ],
+            [
+              165,
+              49.1
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-P",
+          "label": "P区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              329.9,
+              69.3
+            ],
+            [
+              424.8,
+              47.2
+            ],
+            [
+              409,
+              -43.5
+            ],
+            [
+              294.2,
+              -15.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-Q",
+          "label": "Q区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              450.6,
+              44.2
+            ],
+            [
+              549.4,
+              44.2
+            ],
+            [
+              559.8,
+              -47.2
+            ],
+            [
+              440.2,
+              -47.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-R",
+          "label": "R区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              575.2,
+              47.2
+            ],
+            [
+              670.1,
+              69.3
+            ],
+            [
+              705.8,
+              -15.5
+            ],
+            [
+              591,
+              -43.5
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-S",
+          "label": "S区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              693.7,
+              77.9
+            ],
+            [
+              776.9,
+              120.4
+            ],
+            [
+              835,
+              49.1
+            ],
+            [
+              734.4,
+              -4.6
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-T",
+          "label": "T区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              796.5,
+              133.9
+            ],
+            [
+              861.3,
+              193.3
+            ],
+            [
+              937.2,
+              141.2
+            ],
+            [
+              858.8,
+              66.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-U",
+          "label": "U区",
+          "level": 3,
+          "priceTier": 480,
+          "ring": [
+            [
+              875.3,
+              210.6
+            ],
+            [
+              916.4,
+              282.1
+            ],
+            [
+              1003.9,
+              253.6
+            ],
+            [
+              954.2,
+              163.2
+            ]
+          ],
+          "frontEdge": 0
+        },
+        {
+          "code": "demo-shenzhen-bay-upper-V",
+          "label": "V区",
+          "level": 3,
+          "priceTier": 320,
+          "ring": [
+            [
+              923.7,
+              301.9
+            ],
+            [
+              937.8,
+              379.7
+            ],
+            [
+              1029.8,
+              376.9
+            ],
+            [
+              1012.7,
+              278.6
+            ]
+          ],
+          "frontEdge": 0
+        }
+      ]
+    }
+  }
+]

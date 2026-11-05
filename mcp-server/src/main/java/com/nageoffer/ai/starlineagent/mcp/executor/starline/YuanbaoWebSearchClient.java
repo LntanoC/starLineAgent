@@ -62,17 +62,38 @@ public class YuanbaoWebSearchClient implements WebSearchClient {
             DateTimeFormatter.ISO_LOCAL_DATE);
 
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
+            .connectTimeout(Duration.ofSeconds(2))
             .build();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Environment environment;
+    private final String apiUrl;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public YuanbaoWebSearchClient(Environment environment) {
+        this(environment, API_URL);
+    }
+
+    public YuanbaoWebSearchClient(Environment environment, String apiUrl) {
         this.environment = environment;
+        this.apiUrl = apiUrl;
     }
 
     @Override
     public List<RawResult> search(String query, String publicationFreshness, int count) {
+        return searchRequest(query, null, publicationFreshness, count);
+    }
+
+    @Override
+    public String providerName() { return "yuanbao"; }
+
+    @Override
+    public SearchPage searchPage(SearchRequest request) {
+        if (request.page() != 0) throw new IllegalArgumentException("SearchPro has no documented page/offset parameter");
+        // https://cloud.tencent.cn/developer/mcp/server/11764: Cnt/Site exist; no page parameter.
+        return new SearchPage(searchRequest(request.query(), request.site(), request.freshness(), request.pageSize()), false, true);
+    }
+
+    private List<RawResult> searchRequest(String query, String site, String publicationFreshness, int count) {
         String apiKey = environment.getProperty(API_KEY);
         if (StrUtil.isBlank(apiKey)) {
             throw new McpToolException("演出查询未配置：请设置环境变量 YUANBAO_SEARCH_API_KEY");
@@ -80,11 +101,12 @@ public class YuanbaoWebSearchClient implements WebSearchClient {
         try {
             // Tencent Freshness filters page publication dates. Starline applies a separate
             // past/future event-date window after receiving search results, so omit Freshness.
-            String requestBody = objectMapper.createObjectNode()
-                    .put("Query", query)
-                    .toString();
-            HttpRequest request = HttpRequest.newBuilder(URI.create(API_URL))
-                    .timeout(Duration.ofSeconds(20))
+            var body = objectMapper.createObjectNode().put("Query", query).put("Cnt", Math.min(50, Math.max(10, ((count + 9) / 10) * 10)));
+            if (site != null && !site.isBlank()) body.put("Site", site);
+            if (publicationFreshness != null && !publicationFreshness.isBlank()) body.put("Freshness", publicationFreshness);
+            String requestBody = body.toString();
+            HttpRequest request = HttpRequest.newBuilder(URI.create(apiUrl))
+                    .timeout(Duration.ofSeconds(4))
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json; charset=UTF-8")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
@@ -107,9 +129,19 @@ public class YuanbaoWebSearchClient implements WebSearchClient {
 
     private List<RawResult> parse(String body, int count) throws Exception {
         JsonNode root = objectMapper.readTree(body);
+        if (root.path("Response").hasNonNull("Error") || root.hasNonNull("Error")) throw new McpToolException("腾讯搜索业务响应失败");
         JsonNode pages = root.path("Response").path("Pages");
         if (!pages.isArray()) {
             pages = root.path("Pages");
+        }
+        if (!pages.isArray()) {
+            JsonNode envelope = root.has("Response") ? root.path("Response") : root;
+            // Live SearchPro omits Pages on a valid empty site search; do not label that as a provider failure.
+            if (pages.isMissingNode() || pages.isNull()) {
+                if (envelope.hasNonNull("Query") && envelope.hasNonNull("RequestId") && envelope.hasNonNull("Version")
+                        && envelope.path("Msg").asText("").isBlank()) return List.of();
+            }
+            throw new McpToolException("腾讯搜索响应缺少有效Pages");
         }
         List<RawResult> results = new ArrayList<>();
         for (JsonNode page : pages) {

@@ -21,7 +21,16 @@ import java.time.Instant;
 import java.util.List;
 
 /** Search-provider boundary; provider-specific response formats stop here. */
-public interface WebSearchClient {
+public interface WebSearchClient extends com.nageoffer.ai.starlineagent.mcp.executor.starline.event.SearchProvider {
+
+    @Override
+    default SearchPage searchPage(SearchRequest request) {
+        if (request.page() != 0) throw new IllegalArgumentException("Provider has no pagination");
+        return new SearchPage(search(request.query(), request.freshness(), request.pageSize()), false, true);
+    }
+
+    @Override
+    default String providerName() { return getClass().getSimpleName(); }
 
     /** @param publicationFreshness provider-side page publication-time filter, not an event date window */
     List<RawResult> search(String query, String publicationFreshness, int count);

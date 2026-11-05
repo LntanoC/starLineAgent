@@ -81,11 +81,11 @@ export async function getMcpServers(): Promise<McpServerAdminItem[]> {
 }
 
 export async function createMcpServer(payload: McpServerSavePayload): Promise<McpServerAdminItem> {
-  return api.post<McpServerAdminItem, McpServerSavePayload>("/admin/mcp-servers", payload);
+  return api.post<unknown, McpServerAdminItem, McpServerSavePayload>("/admin/mcp-servers", payload);
 }
 
 export async function updateMcpServer(id: string, payload: McpServerSavePayload): Promise<McpServerAdminItem> {
-  return api.put<McpServerAdminItem, McpServerSavePayload>(`/admin/mcp-servers/${encodeURIComponent(id)}`, payload);
+  return api.put<unknown, McpServerAdminItem, McpServerSavePayload>(`/admin/mcp-servers/${encodeURIComponent(id)}`, payload);
 }
 
 export async function deleteMcpServer(id: string): Promise<void> {

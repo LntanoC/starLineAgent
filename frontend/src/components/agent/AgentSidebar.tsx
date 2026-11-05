@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   BellRing,
+  MapPin,
   BookOpen,
   Check,
   LogOut,
@@ -203,6 +204,10 @@ export function AgentSidebar({ mobileOpen = false, onMobileNavigate }: AgentSide
             <span className="agent-new-title">新建会话</span>
             <span className="agent-new-sub">从空白开始</span>
           </span>
+        </button>
+        <button type="button" className="agent-admin-btn" onClick={() => { onMobileNavigate?.(); navigate("/seat"); }}>
+          <MapPin className="h-3.5 w-3.5" strokeWidth={2} />
+          座位方位
         </button>
         <button type="button" className="agent-admin-btn" onClick={() => { onMobileNavigate?.(); navigate("/starline/reminders"); }}>
           <BellRing className="h-3.5 w-3.5" strokeWidth={2} />

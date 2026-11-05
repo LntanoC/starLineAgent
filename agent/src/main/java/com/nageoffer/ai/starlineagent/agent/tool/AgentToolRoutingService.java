@@ -29,6 +29,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.LinkedHashSet;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,7 +76,7 @@ public class AgentToolRoutingService {
         return result;
     }
 
-    public ToolRagService.RecallResult updateQuery(RuntimeContext context, String query) {
+    public ToolSearchUpdate updateQuery(RuntimeContext context, String query) {
         if (context == null) {
             throw new IllegalStateException("当前运行上下文不可用，无法刷新工具目录");
         }
@@ -82,8 +84,44 @@ public class AgentToolRoutingService {
         if (normalized == null || normalized.length() > 1000) {
             throw new IllegalArgumentException("子目标不能为空且不能超过 1000 个字符");
         }
-        context.put(AgentRuntimeContextKeys.ACTIVE_TOOL_ROUTING_QUERY, normalized);
-        return resolve(context);
+        synchronized (context) {
+            String previousQuery = currentQuery(context);
+            ToolRagService.RecallResult previousRecall = resolve(context);
+            SearchProgress progress = searchProgress(context, previousQuery, candidateFingerprint(previousRecall));
+            if (progress.exhausted()) {
+                return new ToolSearchUpdate(ToolSearchStatus.EXHAUSTED, previousRecall);
+            }
+
+            context.put(AgentRuntimeContextKeys.ACTIVE_TOOL_ROUTING_QUERY, normalized);
+            ToolRagService.RecallResult recall = resolve(context);
+            ToolSearchStatus status = progress.record(normalized, candidateFingerprint(recall));
+            if (status == ToolSearchStatus.EXHAUSTED) {
+                context.put(AgentRuntimeContextKeys.TOOL_SEARCH_EXHAUSTED, true);
+            }
+            return new ToolSearchUpdate(status, recall);
+        }
+    }
+
+    private SearchProgress searchProgress(RuntimeContext context, String query, String candidates) {
+        Object value = context.get(AgentRuntimeContextKeys.TOOL_SEARCH_PROGRESS);
+        if (value instanceof SearchProgress progress) {
+            return progress;
+        }
+        SearchProgress progress = new SearchProgress(query, candidates);
+        context.put(AgentRuntimeContextKeys.TOOL_SEARCH_PROGRESS, progress);
+        return progress;
+    }
+
+    private static String candidateFingerprint(ToolRagService.RecallResult recall) {
+        // 常驻工具本来就始终可见，不参与进展判断；这里只比较 ToolRAG 新召回的候选。
+        return recall.recalled().stream()
+                .map(ToolRagService.ScoredTool::tool)
+                .map(McpToolDO::getToolId)
+                .filter(StrUtil::isNotBlank)
+                .map(String::trim)
+                .distinct()
+                .sorted()
+                .collect(Collectors.joining("\n"));
     }
 
     public Set<String> dispatchableToolIds(RuntimeContext context) {
@@ -108,5 +146,55 @@ public class AgentToolRoutingService {
     }
 
     private record CachedRecall(String query, ToolRagService.RecallResult result) {
+    }
+
+    public enum ToolSearchStatus {
+        UPDATED,
+        NO_NEW_CANDIDATES,
+        EXHAUSTED
+    }
+
+    public record ToolSearchUpdate(ToolSearchStatus status, ToolRagService.RecallResult recall) {
+    }
+
+    /**
+     * 状态只放在单次运行的 RuntimeContext 中；重复 query、重复候选集或空候选都算本轮无进展。
+     */
+    private static final class SearchProgress {
+
+        private final Set<String> seenCandidateSets = new HashSet<>();
+        private String lastQuery;
+        private int consecutiveNoProgress;
+        private boolean exhausted;
+
+        private SearchProgress(String query, String candidates) {
+            lastQuery = normalizeQuery(query);
+            seenCandidateSets.add(candidates);
+        }
+
+        private ToolSearchStatus record(String query, String candidates) {
+            String normalizedQuery = normalizeQuery(query);
+            boolean noProgress = normalizedQuery.equals(lastQuery)
+                    || candidates.isEmpty()
+                    || !seenCandidateSets.add(candidates);
+            lastQuery = normalizedQuery;
+            if (!noProgress) {
+                consecutiveNoProgress = 0;
+                return ToolSearchStatus.UPDATED;
+            }
+            if (++consecutiveNoProgress >= 2) {
+                exhausted = true;
+                return ToolSearchStatus.EXHAUSTED;
+            }
+            return ToolSearchStatus.NO_NEW_CANDIDATES;
+        }
+
+        private boolean exhausted() {
+            return exhausted;
+        }
+
+        private static String normalizeQuery(String query) {
+            return query == null ? "" : query.strip().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
+        }
     }
 }

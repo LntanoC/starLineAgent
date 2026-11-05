@@ -25,6 +25,8 @@ public final class AgentRuntimeContextKeys {
     public static final String ACTIVE_TOOL_ROUTING_QUERY = "starlineagent_active_tool_routing_query";
     public static final String TOOL_ROUTING_RECALL = "starlineagent_tool_routing_recall";
     public static final String DISPATCHABLE_TOOL_IDS = "starlineagent_dispatchable_tool_ids";
+    public static final String TOOL_SEARCH_PROGRESS = "starlineagent_tool_search_progress";
+    public static final String TOOL_SEARCH_EXHAUSTED = "starlineagent_tool_search_exhausted";
 
     private AgentRuntimeContextKeys() {
     }

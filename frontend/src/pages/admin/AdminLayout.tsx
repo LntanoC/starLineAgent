@@ -100,6 +100,11 @@ const menuGroups: MenuGroup[] = [
         icon: Puzzle
       },
       {
+        path: "/admin/seat-views",
+        label: "座位分区图",
+        icon: Globe2
+      },
+      {
         path: "/admin/knowledge",
         label: "知识库管理",
         icon: Database

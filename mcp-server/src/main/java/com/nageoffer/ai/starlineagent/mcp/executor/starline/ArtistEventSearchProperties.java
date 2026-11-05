@@ -29,5 +29,12 @@ public class ArtistEventSearchProperties {
     private String sourceRegistryUrl = "http://starline-api:9090/api/starlineagent/internal/starline/platform-sources/whitelist";
     private long sourceRegistryTimeoutMillis = 3000;
     private long staleHours = 168;
-    private int maxItems = 10;
+    private int maxItems = 50;
+    private int maxQueries = 6;
+    private int maxPagesPerQuery = 2;
+    private int maxPageSize = 20;
+    private int maxRawResults = 200;
+    private long discoveryTimeoutMillis = 8000;
+    private String discoveryWindow = "year";
+    private java.util.Map<String, String> cityAliases = new java.util.LinkedHashMap<>();
 }

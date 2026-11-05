@@ -54,7 +54,7 @@ public class YouComWebSearchClient implements WebSearchClient {
     private static final ZoneId DEFAULT_ZONE = ZoneId.of("Asia/Shanghai");
 
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
+            .connectTimeout(Duration.ofSeconds(2))
             .build();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Environment environment;
@@ -73,6 +73,19 @@ public class YouComWebSearchClient implements WebSearchClient {
 
     @Override
     public List<RawResult> search(String query, String freshness, int count) {
+        return searchRequest(query, freshness, count, 0);
+    }
+
+    @Override
+    public String providerName() { return "youcom"; }
+
+    @Override
+    public SearchPage searchPage(SearchRequest request) {
+        var results = searchRequest(request.query(), request.freshness(), request.pageSize(), request.page());
+        return new SearchPage(results, results.size() >= request.pageSize(), false);
+    }
+
+    private List<RawResult> searchRequest(String query, String freshness, int count, int page) {
         String apiKey = environment.getProperty(API_KEY);
         if (StrUtil.isBlank(apiKey)) {
             throw new McpToolException("联网检索未配置：请设置环境变量 YDC_API_KEY");
@@ -80,12 +93,12 @@ public class YouComWebSearchClient implements WebSearchClient {
         try {
             StringBuilder url = new StringBuilder(apiUrl)
                     .append("?query=").append(URLEncoder.encode(query, StandardCharsets.UTF_8))
-                    .append("&count=").append(count);
+                    .append("&count=").append(count).append("&offset=").append(page);
             if (StrUtil.isNotBlank(freshness)) {
                 url.append("&freshness=").append(URLEncoder.encode(freshness, StandardCharsets.UTF_8));
             }
             HttpRequest request = HttpRequest.newBuilder(URI.create(url.toString()))
-                    .timeout(Duration.ofSeconds(15))
+                    .timeout(Duration.ofSeconds(4))
                     .header("X-API-Key", apiKey)
                     .GET()
                     .build();
@@ -107,6 +120,7 @@ public class YouComWebSearchClient implements WebSearchClient {
 
     private List<RawResult> parse(String body, int count) throws Exception {
         JsonNode results = objectMapper.readTree(body).path("results");
+        if (!results.isObject()) throw new McpToolException("You.com 响应缺少results");
         List<RawResult> items = new ArrayList<>();
         collect(items, results.path("web"));
         collect(items, results.path("news"));
@@ -133,7 +147,15 @@ public class YouComWebSearchClient implements WebSearchClient {
             return description;
         }
         JsonNode snippets = item.path("snippets");
-        return snippets.isArray() && !snippets.isEmpty() ? snippets.get(0).asText("") : "";
+        if (snippets.isArray() && !snippets.isEmpty()) return joinText(snippets);
+        JsonNode highlights = item.path("contents").path("highlights");
+        return highlights.isArray() ? joinText(highlights) : "";
+    }
+
+    private String joinText(JsonNode array) {
+        List<String> values = new ArrayList<>();
+        array.forEach(value -> values.add(value.asText("")));
+        return String.join("\n", values);
     }
 
     private Instant publishTime(JsonNode item) {

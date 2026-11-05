@@ -46,6 +46,8 @@ api.interceptors.response.use(
     return payload;
   },
   (error) => {
+    // 页面切换和 StrictMode 会主动取消请求，不应把取消显示为网络故障。
+    if (axios.isCancel(error)) return Promise.reject(error);
     if (error?.response?.status === 401) {
       storage.clearAuth();
       if (window.location.pathname !== "/login") {

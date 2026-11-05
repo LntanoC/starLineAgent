@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useAuthStore } from "@/stores/authStore";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = React.useState(false);
   const [remember, setRemember] = React.useState(true);
@@ -27,7 +28,8 @@ export function LoginPage() {
       if (!remember) {
         // 如需仅在内存中保存登录态，可在此扩展。
       }
-      navigate("/chat");
+      const returnTo = location.state?.returnTo;
+      navigate(typeof returnTo === "string" && (returnTo === "/seat" || returnTo.startsWith("/seat?")) ? returnTo : "/chat", { replace: true });
     } catch (err) {
       setError((err as Error).message || "登录失败，请稍后重试。");
     }

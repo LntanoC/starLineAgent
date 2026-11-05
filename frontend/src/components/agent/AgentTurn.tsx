@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { DislikeReasonDialog } from "@/components/common/DislikeReasonDialog";
 import { AgentMarkdownRenderer } from "@/components/agent/AgentMarkdownRenderer";
 import { parseStarlineEventSearchResult, StarlineEventCards } from "@/components/agent/StarlineEventCards";
+import { StarlineJourneyCards } from "@/components/agent/StarlineJourneyCards";
+import { parseJourney } from "@/lib/journey";
 import {
   buildTimelineRows,
   formatDuration,
@@ -498,6 +500,8 @@ function ToolCallBox({ block, messageId }: { block: AgentBlockUI; messageId?: st
   const failed = block.status === "failed";
   const raw = block.result ?? "";
   const parsed = React.useMemo(() => tryParse(raw), [raw]);
+  const journey = React.useMemo(() => ["plan_journey", "plan_event_journey"].includes(block.name ?? "")
+    && ["done", "failed"].includes(block.status ?? "") ? parseJourney(raw) : null, [block.name, block.status, raw]);
   const eventSearch = React.useMemo(
     () => block.name === "search_artist_events" && block.status === "done"
       ? parseStarlineEventSearchResult(raw)
@@ -524,6 +528,10 @@ function ToolCallBox({ block, messageId }: { block: AgentBlockUI; messageId?: st
   if (block.status === "interrupted" && !raw) {
     return null;
   }
+
+  if (journey) return <div className="agent-toolbox space-y-3"><StarlineJourneyCards plan={journey} />
+    <details className="rounded-lg border border-rule bg-paper px-3 py-2"><summary className="cursor-pointer text-xs text-muted-foreground">查看原始工具返回</summary>
+      <pre className="agent-pre mt-2">{raw}</pre></details></div>;
 
   if (eventSearch) {
     return (
