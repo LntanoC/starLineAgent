@@ -9,12 +9,6 @@ export function formatTimestamp(value?: string) {
   }
 }
 
-export function truncate(text: string, max = 36) {
-  if (!text) return "";
-  if (text.length <= max) return text;
-  return `${text.slice(0, max)}...`;
-}
-
 export function buildQuery(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {

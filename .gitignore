@@ -64,3 +64,20 @@ docs/temp
 /scripts/deploy-*.sh
 /scripts/deploy-*.ps1
 /resources/docker/server/releases/**/deploy-*.sh
+
+### Repo hygiene (enforced by scripts/check-hygiene.mjs) ###
+
+# TypeScript incremental build output.
+frontend/*.tsbuildinfo
+
+# tsc artifacts of vite.config.ts. Vite resolves .js before .ts, so a committed
+# vite.config.js silently shadows every edit to the real vite.config.ts.
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
+# Local environment files; keep .env.example tracked instead.
+.env
+
+# Local state of AI coding tools.
+.workbuddy-ai/
+.analysis/

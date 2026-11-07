@@ -17,7 +17,9 @@ export function BadCaseDetailDialog({ item, open, onOpenChange, onSaved }: {
 }) {
   const r = item?.report;
   const [signals,setSignals]=useState<BadCaseSignal[]>([]),[history,setHistory]=useState<unknown[]>([]);
-  useEffect(()=>{setSignals([]);setHistory([]);if(!item)return;let active=true;Promise.all([getBadCaseSignals(item.id),getReviewHistory(item.id)]).then(([s,h])=>{if(active){setSignals(s);setHistory(h);}}).catch(e=>toast.error((e as Error).message));return()=>{active=false;};},[item?.id,item?.revision]);
+  const itemId = item?.id;
+  const revision = item?.revision;
+  useEffect(()=>{setSignals([]);setHistory([]);if(!itemId)return;let active=true;Promise.all([getBadCaseSignals(itemId),getReviewHistory(itemId)]).then(([s,h])=>{if(active){setSignals(s);setHistory(h);}}).catch(e=>toast.error((e as Error).message));return()=>{active=false;};},[itemId,revision]);
   return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto">
     <DialogHeader><DialogTitle>Bad case 详情</DialogTitle><DialogDescription>{item ? `候选 ${item.id} · ${item.candidate.subject_type} · ${item.candidate.subject_id}` : "加载中…"}</DialogDescription></DialogHeader>
     {item && r && <div className="space-y-5">

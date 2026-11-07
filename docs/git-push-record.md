@@ -1314,3 +1314,41 @@ GitHub 页面截图显示 `main` 最新提交仍为 `7956e49`。本地 `main` �
 - 目标：`origin/main`。前端补丁将基于当前 `origin/main` 迁移；迁移后核验 MCP 管理页面改动未丢失。
 - 前端构建和 Hallmark 页面验收已在本轮设计完成时通过；后端构建结果见 `docs/change-log/2026-11-01.md`。本次不运行测试套件。
 - 本记录先于暂存与推送更新；推送前将核对 staged 路径仅包含上述项目改动。
+
+## 2026-11-07：冗余源码、SQL 与本地构建产物清理
+
+### 推送范围
+
+本次提交只包含本轮清理涉及的项目文件；逐项说明见 `docs/change-log/2026-11-06.md`。
+
+- `.gitignore`：忽略编译残留、配置编译产物、本地环境文件和 AI 工具状态。
+- `.hygiene-baseline.json`：新增已缩减的基线文件，记录从 93 条降至 57 条的已知存量项。
+- `assets/`：删除 28 个未引用图片/SVG，保留 4 个仍被文档引用的图。
+- `framework/`：删除 `ApplicationContextHolder`、`RagTraceContext`、6 个未使用的 idempotent 类和对应的 `IdempotentSubmitAspectTest`。
+- `infra-ai/`：删除未使用的 `LogSafe`。
+- `rag/`：删除 3 个旧 SSE DTO、未用的 `KnowledgeDocumentCreateRequest`、2 个未注册的 TypeHandler；`rag/pom.xml` 删除未使用的 `javax.validation` 依赖。
+- `frontend/`：删除 `.env`、Vite 编译产物、tsbuildinfo、空 `fcheck.mjs` 和 5 个不可达源文件；新增 `.env.example`；清理 6 个未使用 npm 依赖、移除未使用的 `truncate()`，并修复 3 个 ESLint Hook 警告。`package.json` 与 `package-lock.json` 同步。
+- `pom.xml`：删除未使用的 javax validation 属性和依赖管理项；保留实际被 `com.mzt.logapi` 使用的 `bizlog-sdk`。
+- `resources/docker/server/releases/starline-20261022/`：删除 13 个与 `resources/database/` 哈希相同的 SQL 副本。
+- `docs/change-log.md`、`docs/change-log/2026-11-06.md`、本文件：更新变更索引、逐文件记录和推送范围。
+
+本地删除的 Maven `target/`、前端 `dist/.output`、`.local-backups/`、服务器快照 JAR/压缩包及忽略的服务器 SQL 副本未加入 Git。
+
+### 排除范围
+
+- `docs/maintenance/redundancy-audit.md`、`AGENTS.md`、`.github/`、`.githooks/`、`scripts/check-hygiene.mjs`：工作区既有的未跟踪审计/约定文件，不属于本次提交。
+- `.workbuddy-ai/`、`frontend/.env.local`、`docs/server-operations/`：本机状态、环境配置和运维资料，继续留在本地。
+- 不提交 `target/`、`dist/`、`.output/`、JAR、压缩包或其他构建产物。
+
+### 验证
+
+- `node scripts/check-hygiene.mjs`：通过，57 条已知存量项仍在基线内。
+- `cd frontend && npm run lint && npm run build`：通过；Vite 有一个大 bundle 提示。
+- `./mvnw -q -DskipTests compile`：通过；`./mvnw -q clean` 已清理构建目录。
+- 未运行测试套件。
+
+### 推送目标与状态
+
+- 目标：`origin/main`。
+- 计划提交信息：`chore: remove redundant project files`。
+- 本记录先于暂存与提交更新，暂存路径已核对。HTTPS fetch/push 于 2026-11-07 均因 443 连接超时失败；只读 SSH-over-443 `ls-remote` 返回 `origin/main=430e5f3d10af15b145725e7c2993058bd2c7d031`，与本提交父提交一致。将通过 SSH-over-443 执行普通 fast-forward push，不使用强推。

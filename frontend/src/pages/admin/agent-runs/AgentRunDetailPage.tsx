@@ -13,8 +13,9 @@ export function AgentRunDetailPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const seq = useRef(0);
+  const invalidateRequest = useCallback(() => { seq.current++; }, []);
   const load = useCallback(async () => { const id = ++seq.current; setLoading(true); setError(""); try { const r = await getAgentRun(runId); if (id === seq.current) setDetail(r); } catch (e) { if (id === seq.current) setError(getErrorMessage(e, "加载运行详情失败")); } finally { if (id === seq.current) setLoading(false); } }, [runId]);
-  useEffect(() => { void load(); return () => { seq.current++; }; }, [load]);
+  useEffect(() => { void load(); return invalidateRequest; }, [load, invalidateRequest]);
   useEffect(() => { if (detail?.run.runStatus !== "RUNNING") return; const timer = setInterval(() => void load(), 3000); return () => clearInterval(timer); }, [detail?.run.runStatus, load]);
   const r = detail?.run;
   return <div className="space-y-6"><div className="flex items-center justify-between"><Link to="/admin/agent-runs" className="flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />运行列表</Link><Button variant="outline" onClick={() => void load()} disabled={loading}><RefreshCw className="mr-2 h-4 w-4" />刷新</Button></div>

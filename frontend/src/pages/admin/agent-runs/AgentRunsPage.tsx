@@ -17,13 +17,14 @@ export function AgentRunsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const seq = useRef(0);
+  const invalidateRequest = useCallback(() => { seq.current++; }, []);
   const load = useCallback(async () => {
     const id = ++seq.current; setLoading(true); setError("");
     try { const result = await getAgentRuns({ ...query, current: page, size: 20 }); if (seq.current === id) setData(result); }
     catch (e) { if (seq.current === id) setError(getErrorMessage(e, "加载运行记录失败")); }
     finally { if (seq.current === id) setLoading(false); }
   }, [query, page]);
-  useEffect(() => { void load(); return () => { seq.current++; }; }, [load]);
+  useEffect(() => { void load(); return invalidateRequest; }, [load, invalidateRequest]);
   useEffect(() => { if (!data?.records.some(r => r.runStatus === "RUNNING")) return; const id = setInterval(() => void load(), 5000); return () => clearInterval(id); }, [data, load]);
   const update = (key: keyof AgentAuditFilters, value: unknown) => setFilters(prev => ({ ...prev, [key]: value || undefined }));
   return <div className="space-y-6">
