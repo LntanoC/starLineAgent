@@ -59,7 +59,7 @@ public class EventPageExtractor {
         EventFactExtractor.Facts facts = EventFactExtractor.extract(text, source.tier(), raw.url());
         String venue = facts.venue();
         if (venue != null && cities.find(venue).stream().anyMatch(hit -> !Objects.equals(city, hit.city()))) venue = null;
-        boolean stale = raw.publishTime() != null && raw.publishTime().isBefore(Instant.now().minus(Duration.ofHours(properties.getStaleHours())));
+        boolean stale = raw.publishTime() == null || raw.publishTime().isBefore(Instant.now().minus(Duration.ofHours(properties.getStaleHours())));
         boolean noise = List.of("周边", "壁纸", "翻唱", "头像", "同款").stream().anyMatch(text::contains);
         LocalDateTime sale = saleTime(text);
         if (!"TICKETING".equals(source.tier())) sale = null;
@@ -88,9 +88,10 @@ public class EventPageExtractor {
     }
     private static boolean has(String text, String... terms) { return Arrays.stream(terms).anyMatch(text::contains); }
     private static LocalDateTime saleTime(String text) {
-        var matcher = Pattern.compile("(?:开票|预售|抢票|售票)(?:时间|日期)?\\s*[:：]?\\s*(20\\d{2})[-/.年](\\d{1,2})[-/.月](\\d{1,2})日?\\s*(\\d{1,2}):(\\d{2})").matcher(text);
-        if (matcher.find()) try { return LocalDateTime.of(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)),
-                Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(5))); } catch (DateTimeException ignored) { }
-        return null;
+        var matcher = Pattern.compile("(?:开票|开售|预售|抢票|售票)(?:时间|日期)?\\s*[:：]?\\s*(20\\d{2})[-/.年](\\d{1,2})[-/.月](\\d{1,2})日?\\s*(\\d{1,2}):(\\d{2})").matcher(text);
+        Set<LocalDateTime> times=new LinkedHashSet<>();
+        while (matcher.find()) try { times.add(LocalDateTime.of(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)),
+                Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(5)))); } catch (DateTimeException ignored) { }
+        return times.size()==1?times.iterator().next():null;
     }
 }

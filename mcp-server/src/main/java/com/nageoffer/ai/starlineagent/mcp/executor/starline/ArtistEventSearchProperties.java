@@ -30,11 +30,14 @@ public class ArtistEventSearchProperties {
     private long sourceRegistryTimeoutMillis = 3000;
     private long staleHours = 168;
     private int maxItems = 50;
-    private int maxQueries = 6;
+    private int maxQueries = 12;
     private int maxPagesPerQuery = 2;
     private int maxPageSize = 20;
     private int maxRawResults = 200;
     private long discoveryTimeoutMillis = 8000;
+    private boolean readDetails = true;
+    private int maxDetailPages = 4;
+    private long detailBudgetMillis = 1000;
     private String discoveryWindow = "year";
     private java.util.Map<String, String> cityAliases = new java.util.LinkedHashMap<>();
 }

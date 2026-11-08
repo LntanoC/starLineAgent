@@ -1352,3 +1352,11 @@ GitHub 页面截图显示 `main` 最新提交仍为 `7956e49`。本地 `main` �
 - 目标：`origin/main`。
 - 计划提交信息：`chore: remove redundant project files`。
 - 本记录先于暂存与提交更新，暂存路径已核对。HTTPS fetch/push 于 2026-11-07 均因 443 连接超时失败；只读 SSH-over-443 `ls-remote` 返回 `origin/main=430e5f3d10af15b145725e7c2993058bd2c7d031`，与本提交父提交一致。将通过 SSH-over-443 执行普通 fast-forward push，不使用强推。
+
+
+## 2026-11-09：演出搜索增量改造
+
+- 目标：`origin/main`。推送前确认远端新增 4 个提交，已从 `5fcbf95` 快进至 `0cc5095`，保留演出覆盖 v1、行程 v3 和前端改动。
+- 本地旧实现保存在 `backup/event-search-local-20261109`，不以旧执行器覆盖线上版本。本次仅提交基于最新架构的补搜、详情读取、日期/时效防误报及对应测试和中文记录。
+- 验证：92 项 MCP 离线测试、事件和行程 Java→TS 契约、覆盖评估器自检通过。
+- 排除服务器操作日志、SSH 密钥、环境文件、JAR、node_modules、生成的契约文件和回滚备份。推送和部署结果在完成后记录。

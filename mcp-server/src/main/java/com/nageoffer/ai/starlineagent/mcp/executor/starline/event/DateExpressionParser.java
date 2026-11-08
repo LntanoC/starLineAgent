@@ -27,6 +27,12 @@ public class DateExpressionParser {
     private static final Pattern DATE = Pattern.compile("(?<![\\d.])(20\\d{2}[-/.年])?(\\d{1,2})[-/.月](\\d{1,2})日?(?!\\d)");
     private static final Pattern SHORT_END = Pattern.compile("^\\s*(?:至|到|[-~—–])\\s*(\\d{1,2})日");
     public List<ParsedDate> parse(String text, EventSearchQuery query) {
+        // Expand only explicit date lists or ranges whose stated show count proves every day.
+        if (text.matches("(?s).*(?:连开|连演|共|连续)\\s*[一二三四五六七八九十\\d]+\\s*场.*")
+                || text.matches("(?s).*\\d日?[、及和]\\s*\\d{1,2}日.*")) {
+            var parsed = EventTextParser.dates(text);
+            if (!parsed.unresolved() && !parsed.values().isEmpty()) return countedDates(parsed, text);
+        }
         // Remove only explicit sale clauses, so a later show clause survives on the same line.
         text = text.replaceAll("(?:开票|预售|抢票|售票)(?:时间|日期)?\\s*[:：]?\\s*(?:20\\d{2}[-/.年])?\\d{1,2}[-/.月]\\d{1,2}日?(?:\\s*\\d{1,2}:\\d{2})?", "");
         text = text.replaceAll("(?:发布|公示|批准|批复|许可|备案)(?:时间|日期)\\s*[:：]?\\s*(?:20\\d{2}[-/.年])?\\d{1,2}[-/.月]\\d{1,2}日?(?:\\s*\\d{1,2}:\\d{2})?", "");
@@ -54,6 +60,9 @@ public class DateExpressionParser {
         }
         if (dates.isEmpty()) dates.add(new ParsedDate(null, true, List.of(), "未找到演出日期"));
         return dates.stream().distinct().toList();
+    }
+    private List<ParsedDate> countedDates(EventTextParser.Dates parsed, String expression) {
+        return parsed.values().stream().map(date -> new ParsedDate(date, false, List.of(), expression)).toList();
     }
     private ParsedDate create(Integer year, int month, int day, String expression, EventSearchQuery query) {
         if (year != null) {

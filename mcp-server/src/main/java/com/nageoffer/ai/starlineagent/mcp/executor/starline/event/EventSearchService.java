@@ -42,6 +42,7 @@ public class EventSearchService {
     private final ArtistEventSearchProperties properties;
     private final OfficialSourceRegistryClient registry;
     private final EventQueryPlanner planner;
+    private final CityDictionary cityDictionary;
     private final EventPageExtractor extractor;
     private final EventMerger merger;
     private final SourceResolver resolver;
@@ -59,6 +60,7 @@ public class EventSearchService {
     public EventSearchService(List<WebSearchClient> providers, ArtistEventSearchProperties properties, OfficialSourceRegistryClient registry,
                               EventQueryPlanner planner, EventPageExtractor extractor, EventMerger merger, SourceResolver resolver, ProviderRunner runner) {
         this.providers = providers; this.properties = properties; this.registry = registry; this.planner = planner;
+        this.cityDictionary = new CityDictionary(properties);
         this.extractor = extractor; this.merger = merger; this.resolver = resolver; this.runner = runner;
     }
     public Map<String, Object> search(Map<String, Object> args) {
@@ -116,29 +118,34 @@ public class EventSearchService {
         long started = System.currentTimeMillis();
         // City queries also serve the existing four-second journey boundary; keep its route algorithms unchanged.
         long deadline = started + Math.max(500, Math.min(query.city() == null ? 8000 : 3000, properties.getDiscoveryTimeoutMillis()));
-        var plans = planner.plan(query, sources, properties.getMaxQueries());
-        List<Future<Batch>> pending = new ArrayList<>();
-        List<Batch> batches = new ArrayList<>();
-        CompletionService<Batch> completion = new ExecutorCompletionService<>(workers);
-        Queue<Batch> completedPages = new ConcurrentLinkedQueue<>();
+        var plans = new ArrayList<>(planner.plan(query, sources, properties.getMaxQueries()));
         List<String> failures = new ArrayList<>();
         var rawBudget = new java.util.concurrent.atomic.AtomicInteger(Math.max(1, Math.min(200, properties.getMaxRawResults())));
-        if (!sources.isEmpty()) for (var plan : plans) for (var provider : providers) {
-            try { pending.add(completion.submit(() -> fetch(provider, plan, deadline, rawBudget, completedPages))); }
-            catch (RejectedExecutionException busy) { failures.add(provider.providerName() + ":PROVIDER_RATE_LIMITED"); }
-        }
-        int finished = 0;
-        try {
-            while (finished < pending.size()) {
-                Future<Batch> done = completion.poll(Math.max(1, deadline - System.currentTimeMillis()), TimeUnit.MILLISECONDS);
-                if (done == null) break;
-                batches.add(done.get()); finished++;
+        boolean discovery = query.city() == null;
+        long detailReserve = properties.isReadDetails() && discovery ? Math.min(Math.max(0, properties.getDetailBudgetMillis()), (deadline-started)/4) : 0;
+        long searchDeadline = deadline-detailReserve;
+        boolean adaptive = discovery && properties.getMaxQueries() > plans.size();
+        long firstDeadline = adaptive ? started + (searchDeadline-started)*3/5 : searchDeadline;
+        Phase first = runPhase(plans, sources, firstDeadline, rawBudget);
+        List<Batch> batches = new ArrayList<>(first.batches());
+        failures.addAll(first.failures());
+        int submitted = first.submitted();
+        if (adaptive && !sources.isEmpty() && !providers.isEmpty()) {
+            Set<String> discovered = new LinkedHashSet<>();
+            for (Batch batch : batches) for (Found page : batch.found()) {
+                String title = Objects.toString(page.raw.title(), "");
+                String text = title + " " + Objects.toString(page.raw.excerpt(), "");
+                if (text.contains(query.artist())) cityDictionary.find(text).stream().filter(hit -> !hit.unknown())
+                        .map(CityDictionary.Hit::city).forEach(discovered::add);
             }
-        } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); failures.add("SEARCH_INTERRUPTED"); }
-        catch (ExecutionException error) { failures.add("PROVIDER_QUERY_FAILED"); }
-        if (finished < pending.size()) failures.add("QUERY_BUDGET_EXHAUSTED:" + (pending.size() - finished) + " unfinished queries");
-        pending.forEach(task -> { if (!task.isDone()) task.cancel(true); });
-        batches.addAll(completedPages);
+            var followups = planner.followups(query, sources, List.copyOf(discovered), Math.min(12, properties.getMaxQueries())-plans.size());
+            followups = followups.stream().filter(plan -> !plans.contains(plan)).toList();
+            if (System.currentTimeMillis() < searchDeadline && !followups.isEmpty()) {
+                plans.addAll(followups);
+                Phase second = runPhase(followups, sources, searchDeadline, rawBudget);
+                batches.addAll(second.batches()); failures.addAll(second.failures()); submitted += second.submitted();
+            }
+        }
         batches.stream().filter(batch -> batch.failure != null).forEach(batch -> failures.add(batch.provider + ":" + batch.failure));
         boolean limited = batches.stream().anyMatch(Batch::pageLimit);
         List<Found> found = batches.stream().flatMap(batch -> batch.found.stream()).toList();
@@ -166,16 +173,17 @@ public class EventSearchService {
             resolvedPages.computeIfAbsent(resolution.url(), ignored -> new ArrayList<>()).addAll(entry.getValue());
             pageSources.put(resolution.url(), source);
         }
+        DetailPages details = readDetails(query, resolvedPages, deadline, discovery && properties.isReadDetails());
         for (var entry : resolvedPages.entrySet()) {
             var source = pageSources.get(entry.getKey());
             // Choose the richest excerpt for duplicate URLs, while retaining every matching query.
             Found chosen = entry.getValue().stream().max(Comparator.comparingInt(f -> Objects.toString(f.raw.excerpt(), "").length())).orElseThrow();
-            var raw = new WebSearchClient.RawResult(chosen.raw.title(), entry.getKey(), chosen.raw.excerpt(), chosen.raw.publishTime(), chosen.raw.siteName());
+            var raw = new WebSearchClient.RawResult(chosen.raw.title(), entry.getKey(), details.text().getOrDefault(entry.getKey(), chosen.raw.excerpt()), chosen.raw.publishTime(), chosen.raw.siteName());
             String text = Objects.toString(raw.title(), "") + " " + Objects.toString(raw.excerpt(), "");
             String slug;
             try { slug = URLDecoder.decode(raw.url(), StandardCharsets.UTF_8); } catch (RuntimeException ignored) { slug = ""; }
             if (!text.contains(query.artist()) && !slug.contains(query.artist())) { count(filtered, "NOT_ABOUT_ARTIST", entry.getValue().size()); continue; }
-            if (List.of("演唱会", "巡演", "演出", "音乐会", "见面会", "开票", "门票", "场馆").stream().noneMatch(text::contains)
+            if (List.of("演唱会", "巡演", "演出", "音乐会", "音乐节", "拼盘", "见面会", "开票", "门票", "场馆").stream().noneMatch(text::contains)
                     || ("GOV".equals(source.tier()) && List.of("许可", "批准", "批复", "准予").stream().noneMatch(text::contains))) {
                 count(filtered, "NO_EVENT_MARKER", entry.getValue().size()); continue;
             }
@@ -204,7 +212,10 @@ public class EventSearchService {
                     "raw", rawBySource.getOrDefault(source.domain(), 0), "accepted", acceptedBySource.getOrDefault(source.domain(), 0), "failure", failed ? "PROVIDER_QUERY_FAILED" : ""));
         }
         Map<String, Object> coverage = new LinkedHashMap<>();
-        coverage.put("queries", pending.isEmpty() ? List.of() : plans.stream().map(EventQueryPlanner.PlannedQuery::query).toList());
+        coverage.put("queries", submitted == 0 ? List.of() : plans.stream().map(EventQueryPlanner.PlannedQuery::query).toList());
+        coverage.put("detailAttempts", details.attempts());
+        coverage.put("detailRead", details.text().size());
+        coverage.put("detailUnavailable", details.attempts()-details.text().size());
         coverage.put("rawResults", found.size()); coverage.put("fetchedResults", fetched); coverage.put("afterSource", afterSource);
         coverage.put("afterRelevance", afterRelevance); coverage.put("afterDate", afterDate); coverage.put("drafts", draftsCount);
         coverage.put("merged", merged.size()); coverage.put("filtered", filtered); coverage.put("sources", sourceCoverage);
@@ -215,9 +226,62 @@ public class EventSearchService {
         coverage.put("completeness", sources.isEmpty() || providers.isEmpty() ? "UNKNOWN"
                 : limited || !failures.isEmpty() || filtered.containsKey("PARSER_REJECTED") || filtered.containsKey("REDIRECT_UNRESOLVED") || merged.stream().anyMatch(d -> d.dateUnknown() || d.cityUnknown()) ? "PARTIAL" : "BEST_EFFORT");
         log.info("event_search metrics queryHash={} queries={} raw={} filtered={} merged={} failures={} latencyMs={}",
-                Integer.toHexString(query.key().hashCode()), pending.size(), found.size(), filtered, merged.size(), failures.size(), System.currentTimeMillis() - started);
+                Integer.toHexString(query.key().hashCode()), submitted, found.size(), filtered, merged.size(), failures.size(), System.currentTimeMillis() - started);
         return new Snapshot(UUID.randomUUID().toString(), key, System.currentTimeMillis() + 300_000, merged, coverage);
     }
+    private record Phase(List<Batch> batches, int submitted, List<String> failures) { }
+    private Phase runPhase(List<EventQueryPlanner.PlannedQuery> plans, List<OfficialSource> sources,
+                           long deadline, java.util.concurrent.atomic.AtomicInteger budget) {
+        List<Future<Batch>> pending = new ArrayList<>();
+        List<Batch> batches = new ArrayList<>();
+        List<String> failures = new ArrayList<>();
+        Queue<Batch> pages = new ConcurrentLinkedQueue<>();
+        CompletionService<Batch> completion = new ExecutorCompletionService<>(workers);
+        if (!sources.isEmpty() && System.currentTimeMillis() < deadline) for (var plan : plans) for (var provider : providers) {
+            try { pending.add(completion.submit(() -> fetch(provider, plan, deadline, budget, pages))); }
+            catch (RejectedExecutionException busy) { failures.add(provider.providerName()+":PROVIDER_RATE_LIMITED"); }
+        }
+        int finished=0;
+        try {
+            while (finished < pending.size()) {
+                Future<Batch> done=completion.poll(Math.max(1, deadline-System.currentTimeMillis()), TimeUnit.MILLISECONDS);
+                if (done==null) break;
+                batches.add(done.get()); finished++;
+            }
+        } catch (InterruptedException error) { Thread.currentThread().interrupt(); failures.add("SEARCH_INTERRUPTED"); }
+        catch (ExecutionException error) { failures.add("PROVIDER_QUERY_FAILED"); }
+        if (finished < pending.size()) failures.add("QUERY_BUDGET_EXHAUSTED:"+(pending.size()-finished)+" unfinished queries");
+        pending.forEach(task -> { if (!task.isDone()) task.cancel(true); });
+        batches.addAll(pages);
+        return new Phase(batches,pending.size(),failures);
+    }
+
+    private record DetailPages(Map<String,String> text,int attempts) { }
+    private DetailPages readDetails(EventSearchQuery query, Map<String,List<Found>> pages,long deadline,boolean enabled) {
+        if (!enabled || System.currentTimeMillis() >= deadline) return new DetailPages(Map.of(),0);
+        Map<String,Future<Optional<String>>> pending=new LinkedHashMap<>();
+        EventPageReader reader=new EventPageReader(properties);
+        long detailDeadline=Math.min(deadline,System.currentTimeMillis()+Math.max(1,properties.getDetailBudgetMillis()));
+        for (var entry:pages.entrySet()) {
+            if (pending.size()>=Math.max(0,Math.min(6,properties.getMaxDetailPages()))) break;
+            Found chosen=entry.getValue().stream().max(Comparator.comparingInt(f -> Objects.toString(f.raw.excerpt(), "").length())).orElseThrow();
+            String title=Objects.toString(chosen.raw.title(), "");
+            if (!title.contains(query.artist())) continue;
+            var cities=cityDictionary.find(title).stream().filter(hit -> !hit.unknown()).map(CityDictionary.Hit::city).distinct().toList();
+            String city=cities.size()==1?cities.get(0):null;
+            try { pending.put(entry.getKey(),redirectWorkers.submit(() -> reader.read(entry.getKey(),query.artist(),city,Math.max(1,detailDeadline-System.currentTimeMillis())))); }
+            catch (RejectedExecutionException busy) { break; }
+        }
+        Map<String,String> text=new LinkedHashMap<>();
+        for (var entry:pending.entrySet()) try {
+            entry.getValue().get(Math.max(1,detailDeadline-System.currentTimeMillis()),TimeUnit.MILLISECONDS).ifPresent(value -> text.put(entry.getKey(),value));
+        } catch (InterruptedException error) { Thread.currentThread().interrupt(); break; }
+        catch (ExecutionException|TimeoutException ignored) { /* Preserve the search excerpt. */ }
+        finally { if (!entry.getValue().isDone()) entry.getValue().cancel(true); }
+        pending.values().forEach(task -> { if (!task.isDone()) task.cancel(true); });
+        return new DetailPages(text,pending.size());
+    }
+
     private Batch fetch(WebSearchClient provider, EventQueryPlanner.PlannedQuery plan, long deadline, java.util.concurrent.atomic.AtomicInteger budget, Queue<Batch> completedPages) {
         List<Found> found = List.of(); boolean limited = false;
         try {

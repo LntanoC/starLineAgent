@@ -10,7 +10,7 @@ starlineagent:
   artist-event-search:
     stale-hours: 168
     max-items: 50
-    max-queries: 6
+    max-queries: 12
     max-pages-per-query: 2
     max-page-size: 20
     max-raw-results: 200

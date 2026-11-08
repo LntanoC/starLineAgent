@@ -90,14 +90,16 @@ class EventSearchCoverageTest {
         try {
             var first = service.search(query(null, 1, null));
             String cursor = (String) first.get("nextCursor"); assertNotNull(cursor);
+            clearInvocations(search);
             var second = service.search(query(null, 1, cursor));
             assertNull(second.get("nextCursor")); assertNotEquals(first.get("items"), second.get("items"));
-            verify(search, times(4)).search(anyString(), isNull(), anyInt());
+            verifyNoInteractions(search); // Stable cursor paging must not repeat any provider query.
             when(registry.listEnabledSources()).thenReturn(List.of());
             assertThrows(IllegalArgumentException.class, () -> service.search(query(null, 1, cursor)));
         } finally { service.close(); }
     }
     @Test void oneProviderFailsButOtherProviderEventsSurviveAndUiFixtureIsRealJavaOutput() throws Exception {
+        props.setReadDetails(false);
         WebSearchClient good = new WebSearchClient() {
             public List<RawResult> search(String q, String f, int c) { return List.of(raw("杭州站 " + EventSearchQuery.today().plusDays(4) + "，无锡站 12.20")); }
             public String providerName() { return "good"; }

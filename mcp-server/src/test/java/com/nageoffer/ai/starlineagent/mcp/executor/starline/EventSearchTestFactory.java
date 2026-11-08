@@ -22,6 +22,7 @@ import java.util.List;
 
 final class EventSearchTestFactory {
     static EventSearchService service(WebSearchClient mock, ArtistEventSearchProperties props, OfficialSourceRegistryClient registry) {
+        props.setReadDetails(false); // Offline fixtures never fetch public pages.
         WebSearchClient adapter = new WebSearchClient() {
             public List<RawResult> search(String query, String freshness, int count) { return mock.search(query, freshness, count); }
             public String providerName() { return "fixture"; }
