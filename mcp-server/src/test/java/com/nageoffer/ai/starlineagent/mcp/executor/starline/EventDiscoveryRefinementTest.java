@@ -68,4 +68,30 @@ class EventDiscoveryRefinementTest {
         assertNull(drafts.get(0).item().saleStartTime());
         assertFalse(drafts.get(0).item().canBuyTicket());
     }
+    @Test void sparsePagesReturnUnusedRawBudgetToLaterQueries() {
+        props.setMaxRawResults(40);
+        when(registry.listEnabledSources()).thenReturn(List.of(source));
+        WebSearchClient client=(query,freshness,count) -> List.of(new WebSearchClient.RawResult(
+                "测试艺人赣州站演唱会","https://tickets.example/show","演出日期："+EventSearchQuery.today().plusDays(20),Instant.now(),"票务"));
+        var service=EventSearchTestFactory.service(client,props,registry);
+        try {
+            var result=new ObjectMapper().valueToTree(service.search(new EventSearchQuery("测试艺人",null,"year",false,20,null)));
+            assertTrue(result.path("coverage").path("queries").size()>4);
+            assertTrue(result.path("coverage").path("rawResults").asInt()<40);
+            assertTrue(result.path("coverage").path("failures").isEmpty(),result.path("coverage").path("failures").toString());
+        } finally { service.close(); }
+    }
+
+    @Test void endedRecapsDoNotBecomeUpcomingUnknownDateCardsOrFollowupCities() {
+        when(registry.listEnabledSources()).thenReturn(List.of(source));
+        WebSearchClient client=(q,f,n) -> List.of(new WebSearchClient.RawResult("测试艺人北京演唱会圆满收官", "https://tickets.example/review", "演出回顾",Instant.now(),"票务"));
+        var service=EventSearchTestFactory.service(client,props,registry);
+        try {
+            var result=new ObjectMapper().valueToTree(service.search(new EventSearchQuery("测试艺人",null,"recent",false,20,null)));
+            assertEquals(0,result.path("items").size());
+            assertTrue(result.path("coverage").path("filtered").path("ENDED_RECAP").asInt()>0);
+            assertFalse(result.path("coverage").path("queries").toString().contains("北京"));
+        } finally { service.close(); }
+    }
+
 }

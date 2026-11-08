@@ -28,7 +28,7 @@ public class EventQueryPlanner {
         List<PlannedQuery> plans = new ArrayList<>();
         // City planning must get its target even when the discovery query budget is small.
         if (query.city() != null) plans.add(new PlannedQuery(query.artist() + " " + query.city() + " 演唱会", null));
-        plans.add(new PlannedQuery(query.artist() + " 演唱会 巡演", null));
+        plans.add(new PlannedQuery(query.artist() + " " + EventSearchQuery.today().getYear() + "年" + EventSearchQuery.today().getMonthValue() + "月 演唱会 巡演", null));
         plans.add(new PlannedQuery(query.artist() + " 音乐节 拼盘 加场 " + EventSearchQuery.today().getYear(), null));
         sources.stream().sorted(Comparator.comparing(s -> !"TICKETING".equals(s.tier())))
                 .forEach(source -> plans.add(new PlannedQuery("site:" + source.domain() + " " + query.artist() + " 演出", source.domain())));

@@ -135,7 +135,9 @@ public class EventSearchService {
             for (Batch batch : batches) for (Found page : batch.found()) {
                 String title = Objects.toString(page.raw.title(), "");
                 String text = title + " " + Objects.toString(page.raw.excerpt(), "");
-                if (text.contains(query.artist())) cityDictionary.find(text).stream().filter(hit -> !hit.unknown())
+                var dates = new DateExpressionParser().parse(text,query).stream().map(DateExpressionParser.ParsedDate::date).filter(Objects::nonNull).toList();
+                boolean outside = !dates.isEmpty() && dates.stream().noneMatch(date -> !date.isBefore(query.fromDate()) && !date.isAfter(query.toDate()));
+                if (text.contains(query.artist()) && !outside && !isRecap(title,query)) cityDictionary.find(text).stream().filter(hit -> !hit.unknown())
                         .map(CityDictionary.Hit::city).forEach(discovered::add);
             }
             var followups = planner.followups(query, sources, List.copyOf(discovered), Math.min(12, properties.getMaxQueries())-plans.size());
@@ -187,6 +189,9 @@ public class EventSearchService {
                     || ("GOV".equals(source.tier()) && List.of("许可", "批准", "批复", "准予").stream().noneMatch(text::contains))) {
                 count(filtered, "NO_EVENT_MARKER", entry.getValue().size()); continue;
             }
+            if (isRecap(Objects.toString(raw.title(), ""),query)) {
+                count(filtered,"ENDED_RECAP",entry.getValue().size()); continue;
+            }
             afterRelevance += entry.getValue().size();
             List<Draft> extracted;
             try { extracted = extractor.extract(raw, source, query, entry.getValue().stream().map(Found::query).distinct().toList()); }
@@ -228,6 +233,9 @@ public class EventSearchService {
         log.info("event_search metrics queryHash={} queries={} raw={} filtered={} merged={} failures={} latencyMs={}",
                 Integer.toHexString(query.key().hashCode()), submitted, found.size(), filtered, merged.size(), failures.size(), System.currentTimeMillis() - started);
         return new Snapshot(UUID.randomUUID().toString(), key, System.currentTimeMillis() + 300_000, merged, coverage);
+    }
+    private static boolean isRecap(String title,EventSearchQuery query) {
+        return !query.includeEnded() && List.of("收官","落幕","回顾","圆满结束").stream().anyMatch(title::contains);
     }
     private record Phase(List<Batch> batches, int submitted, List<String> failures) { }
     private Phase runPhase(List<EventQueryPlanner.PlannedQuery> plans, List<OfficialSource> sources,
@@ -284,14 +292,28 @@ public class EventSearchService {
 
     private Batch fetch(WebSearchClient provider, EventQueryPlanner.PlannedQuery plan, long deadline, java.util.concurrent.atomic.AtomicInteger budget, Queue<Batch> completedPages) {
         List<Found> found = List.of(); boolean limited = false;
+        int reservation = 0;
         try {
             for (int page = 0; page < Math.max(1, Math.min(2, properties.getMaxPagesPerQuery())); page++) {
                 if (System.currentTimeMillis() >= deadline) return new Batch(provider.providerName(), plan, found, true, "QUERY_BUDGET_EXHAUSTED");
                 int pageSize = Math.max(1, Math.min(20, properties.getMaxPageSize()));
-                if (budget.getAndAdd(-pageSize) < pageSize) return new Batch(provider.providerName(), plan, found, true, "QUERY_BUDGET_EXHAUSTED");
-                var result = runner.run(provider, new SearchProvider.SearchRequest(plan.query(), plan.site(), page, pageSize, null));
+                int available;
+                do {
+                    available = budget.getAndUpdate(current -> Math.max(0, current-pageSize));
+                    if (available > 0 || Thread.currentThread().isInterrupted() || System.currentTimeMillis() >= deadline) break;
+                    // Other in-flight pages may return unused reservations shortly.
+                    java.util.concurrent.locks.LockSupport.parkNanos(1_000_000);
+                } while (true);
+                reservation = Math.min(pageSize, available);
+                if (reservation <= 0) return new Batch(provider.providerName(), plan, found, true, "QUERY_BUDGET_EXHAUSTED");
+                var result = runner.run(provider, new SearchProvider.SearchRequest(plan.query(), plan.site(), page, reservation, null));
                 // Publish each successful page before requesting the next one, so a later timeout cannot erase it.
-                var pageResults = result.results().stream().map(raw -> new Found(raw, plan.query())).toList();
+                // Charge actual accepted pages, returning unused slots for later adaptive queries.
+                // Reservation happens atomically before I/O, so concurrent providers cannot exceed the cap.
+                var pageResults = result.results().stream().limit(reservation).map(raw -> new Found(raw, plan.query())).toList();
+                budget.addAndGet(reservation-pageResults.size());
+                limited |= result.results().size() > reservation;
+                reservation = 0;
                 completedPages.add(new Batch(provider.providerName(), plan, pageResults, result.providerPageLimit(), null));
                 limited |= result.providerPageLimit();
                 if (!result.hasMore()) return new Batch(provider.providerName(), plan, found, limited, null);
@@ -299,6 +321,7 @@ public class EventSearchService {
             }
             return new Batch(provider.providerName(), plan, found, limited, null);
         } catch (RuntimeException error) {
+            if (reservation > 0) budget.addAndGet(reservation);
             String reason = Objects.toString(error.getMessage(), "");
             return new Batch(provider.providerName(), plan, found, limited, reason.contains("RATE_LIMIT") || reason.contains("429") ? "PROVIDER_RATE_LIMITED" : "PROVIDER_QUERY_FAILED");
         }
