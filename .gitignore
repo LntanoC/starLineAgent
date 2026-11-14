@@ -63,6 +63,8 @@ docs/temp
 /docs/server-operations/
 /scripts/deploy-*.sh
 /scripts/deploy-*.ps1
+/scripts/server/event-crawl-*.sh
+/scripts/run-recorded-server.py
 /resources/docker/server/releases/**/deploy-*.sh
 
 ### Repo hygiene (enforced by scripts/check-hygiene.mjs) ###
@@ -81,3 +83,4 @@ frontend/vite.config.d.ts
 # Local state of AI coding tools.
 .workbuddy-ai/
 .analysis/
+/event-crawl-data/

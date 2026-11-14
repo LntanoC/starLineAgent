@@ -29,6 +29,9 @@
 - [Agent 审计说明](agent/audit-usage.md)
 - [Bad Case 候选池说明](bad-case/candidate-pool-usage.md)
 - [回归与测评总览](testing/regression/README.md)
+- [明星社交动态订阅设计（微博/抖音/小红书）](design/social-feed-subscription-v1.md)
+- [文旅与大麦演出信息采集调研及验证脚本](research/event-crawling-plan-2026-11-14.md)
+- [演出直接采集、持久化索引与测试部署说明](design/event-crawl-v1.md)
 - [每日变更记录](change-log.md)
 
 ## 资源目录与文档的边界

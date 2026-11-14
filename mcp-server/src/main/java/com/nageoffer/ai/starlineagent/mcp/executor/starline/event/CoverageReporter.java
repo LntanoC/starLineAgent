@@ -36,6 +36,12 @@ public final class CoverageReporter {
         var failures = (List<?>) coverage.get("failures");
         if (!failures.isEmpty()) notes.add("检索失败/预算限制：" + failures + "，覆盖可能不完整；已保留其他成功结果。");
         if (Boolean.TRUE.equals(coverage.get("providerPageLimit"))) notes.add("搜索提供方存在单页或分页预算上限，覆盖可能不完整。");
+        if(coverage.get("crawlSources") instanceof List<?> crawlers && !crawlers.isEmpty()) {
+            notes.add("后台直接采集补充 " + coverage.get("crawledCandidates") + " 条许可候选；采集来源状态：" + crawlers.stream()
+                    .filter(Map.class::isInstance).map(Map.class::cast).map(s -> s.get("source")+"="+s.get("status")).toList()
+                    + "。首次查询的来源可能仍在初始化，采集受阻不代表没有演出；各站分页和详情有预算上限。");
+            notes.add("许可日期范围不展开为每日场次；变更批文按来源保留，不能按批文数量认定演出场数。");
+        }
         if ("UNKNOWN".equals(coverage.get("completeness"))) notes.add("没有可用来源或搜索提供方，本次没有执行检索，覆盖未知。");
         notes.add("仅表示在已启用来源、查询预算和窗口内本次检索到的结果；未查到不代表没有演出。GOV仅证明许可，购票状态请以票务来源为准。");
         return notes;

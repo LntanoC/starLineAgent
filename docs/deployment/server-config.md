@@ -6,7 +6,7 @@
 
 - starline：compose.yaml 与 pgvector.override.yaml。前者定义 PostgreSQL 和 Redis，后者把 PostgreSQL 镜像替换为带 pgvector 的版本。
 - starline-20261022：starline-app.compose.yaml。定义 API、Web、RocketMQ 和 RustFS。
-- `starline-mcp`：由应用 Compose 管理的独立 MCP Server 容器，使用 `mcp-server.jar`，只加入 Docker 内部网络，不发布宿主机端口；YUANBAO_SEARCH_API_KEY 留空时星序演出查询工具不会注册，YDC_API_KEY 仅用于可选的通用 You.com 搜索工具。
+- `starline-mcp`：由应用 Compose 管理的独立 MCP Server 容器，使用 `mcp-server.jar`，只加入 Docker 内部网络，不发布宿主机端口；演出查询合并元宝搜索与后台文旅采集，YDC_API_KEY 仅用于可选的通用 You.com 搜索工具。`event-crawl-data/` 挂载到 `/app/event-crawl-data`，保存重启后可恢复的采集索引，属于运行数据，不提交 Git。
 - rocketmq-broker.conf 与 nginx.conf：由应用 Compose 只读挂载的附属配置。
 
 应用 Stack 使用外部 Docker 网络 starline_default；先创建 starline Stack 后，应用 Stack 才能接入。配置还引用同目录的 starline.jar 和 frontend-dist/，这两项是发布构建产物，不在本目录中。
@@ -81,4 +81,4 @@ cd /home/ubuntu/starline-infra/releases/starline-20261022
 sudo docker compose --env-file /home/ubuntu/starline-infra/.env -p starline-20261022 -f starline-app.compose.yaml up -d --no-deps --force-recreate starline-mcp
 ~~~
 
-YUANBAO_SEARCH_API_KEY 未配置时，MCP 不注册 search_artist_events 工具。
+YUANBAO_SEARCH_API_KEY 未配置时，元宝搜索提供方不可用；已启用且采集成功的文旅索引仍可参与 `search_artist_events`，覆盖说明会反映来源限制。采集配置、测试与排障见[演出直接采集说明](../design/event-crawl-v1.md)。

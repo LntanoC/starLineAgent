@@ -28,9 +28,10 @@ public class EventMerger {
         Map<List<Object>, List<Draft>> groups = new LinkedHashMap<>();
         for (var draft : drafts) {
             var item = draft.item();
+            boolean directApproval = "GOV".equals(item.tier()) && draft.queries().stream().anyMatch(q -> q.startsWith("direct-crawl:"));
             // Unknown venues cannot prove that two venues are the same; retain their separate evidence.
             var key = Arrays.<Object>asList(item.artistName(), item.eventDate(), item.city(), item.venueName(),
-                    item.eventDate() == null ? item.sourceUrl() + "|" + draft.dateExpression() : item.venueName() == null ? item.sourceUrl() : "");
+                    item.eventDate() == null ? (directApproval && item.city()!=null && item.venueName()!=null ? item.title() : item.sourceUrl()) + "|" + draft.dateExpression() : item.venueName() == null ? item.sourceUrl() : "");
             groups.computeIfAbsent(key, k -> new ArrayList<>()).add(draft);
         }
         List<Draft> results = new ArrayList<>();
@@ -42,11 +43,11 @@ public class EventMerger {
             boolean timeConflict = group.stream().map(d -> d.item().showStartTime()).filter(Objects::nonNull).distinct().count() > 1
                     || group.stream().map(d -> d.item().showEndTime()).filter(Objects::nonNull).distinct().count() > 1;
             boolean saleConflict = ticketing.stream().map(EventItem::saleStartTime).filter(Objects::nonNull).distinct().count() > 1;
-            boolean conflict = timeConflict || saleConflict || ticketing.stream().map(EventItem::stage).distinct().count() > 1;
+            boolean conflict = group.stream().anyMatch(d -> d.item().conflict()) || timeConflict || saleConflict || ticketing.stream().map(EventItem::stage).distinct().count() > 1;
             var govt = group.stream().map(Draft::item).filter(i -> "GOV".equals(i.tier())).findFirst().orElse(null);
             EventItem merged = new EventItem(item.artistName(), item.title(), item.stage(), item.tier(), item.city(), item.eventDate(),
                     conflict ? null : item.saleStartTime(), conflict ? null : item.daysToSale(), item.canBuyTicket() && !conflict,
-                    item.sourceName(), item.sourceUrl(), govt == null ? null : govt.approvedNote(), govt == null ? null : govt.sourceUrl(),
+                    item.sourceName(), item.sourceUrl(), govt == null ? null : govt.approvedNote(), govt == null ? null : govt.approvedUrl(),
                     item.isStale(), conflict, group.stream().flatMap(d -> d.item().sourceEvidence().stream()).distinct().toList(),
                     item.venueName(), item.venueAddress(), timeConflict ? null : item.showStartTime(), timeConflict ? null : item.showEndTime(),
                     item.priceRange(), item.venueSource(), timeConflict ? null : item.timeSource());

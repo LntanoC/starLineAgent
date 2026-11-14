@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-11-14T23:46:08.289829+08:00",
+  "artist": "薛之谦",
+  "sources": {
+    "beijing": {
+      "status": "PARTIAL",
+      "url": "https://banshi.whlyj.beijing.gov.cn/cms/web/whj/index.jsp?name=%E8%96%9B%E4%B9%8B%E8%B0%A6&curPage=1",
+      "candidate_count": 6,
+      "records": [
+        {
+          "title": "北京市文化和旅游局批准重庆潮音文化传播有限公司申请举办薛之谦“万兽之王”演唱会-北京站（“增加演员”...",
+          "source_url": "https://banshi.whlyj.beijing.gov.cn/cms/web/whj/content.jsp?id=7852144022835279",
+          "stage": "APPROVAL_CANDIDATE",
+          "event_dates": null,
+          "attachments": [
+            {
+              "url": "https://banshi.whlyj.beijing.gov.cn/publish/7852144022835279.pdf",
+              "label": "准予行政许可（备案）决定.pdf",
+              "pdf_text_checked": true,
+              "pages": 1,
+              "text_layer_present": true,
+              "artist_in_text": true
+            }
+          ]
+        },
+        {
+          "title": "北京市文化和旅游局批准北京亚美时代文化传媒有限公司申请举办薛之谦“天外来物”演唱会—北京站（增加表演...",
+          "source_url": "https://banshi.whlyj.beijing.gov.cn/cms/web/whj/content.jsp?id=7127440160823031",
+          "stage": "APPROVAL_CANDIDATE",
+          "event_dates": null,
+          "attachments": [
+            {
+              "url": "https://banshi.whlyj.beijing.gov.cn/publish/7127440160823031.pdf",
+              "label": "准予行政许可（备案）决定书.pdf",
+              "pdf_text_checked": false,
+              "error": "PdfStreamError: Stream has ended unexpectedly"
+            }
+          ]
+        }
+      ],
+      "limitations": [
+        "Only page 1 and at most 2 details checked",
+        "PDF fields and approval changes not normalized"
+      ]
+    },
+    "guangzhou": {
+      "status": "OK",
+      "historical_sample": true,
+      "records": [
+        {
+          "source_url": "https://wglj.gz.gov.cn/xxgk/bmwj/ywxx/wgl/content/post_10729254.html",
+          "stage": "APPROVED",
+          "fields": {
+            "序号": "11",
+            "许可日期": "2026/3/10",
+            "许可编号": "440100522026000273",
+            "许可对象": "重庆潮音文化传播有限公司",
+            "业务类型": "演出活动非内地变更",
+            "许可事项": "中国艺人薛之谦等一行37人到广州天河体育中心体育场演出活动（薛之谦“万兽之王”巡回演唱会-广州站）",
+            "演出地址": "广州天河体育中心体育场",
+            "演出时间": "2026年03月20日至2026年04月05日"
+          },
+          "dates_are_approval_range": true,
+          "can_buy_ticket": null
+        }
+      ],
+      "limitations": [
+        "One fixed historical notice; no list pagination or upcoming coverage tested"
+      ]
+    },
+    "damai": {
+      "status": "BLOCKED_CHALLENGE",
+      "content_type": "text/html",
+      "records": null,
+      "note": "Challenge response; not an empty event result. No retries or bypass attempted."
+    }
+  },
+  "requests_sent": 7
+}

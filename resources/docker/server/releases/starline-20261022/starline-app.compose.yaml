@@ -64,7 +64,11 @@ services:
     command: ['java', '-jar', '/app/mcp-server.jar']
     volumes:
       - ./mcp-server.jar:/app/mcp-server.jar:ro
+      - ./event-crawl-data:/app/event-crawl-data
     environment:
+      STARLINEAGENT_EVENT_CRAWL_ENABLED: 'true'
+      STARLINEAGENT_EVENT_CRAWL_DAMAI_ENABLED: 'true'
+      STARLINEAGENT_EVENT_CRAWL_DIRECTORY: /app/event-crawl-data
       TZ: Asia/Shanghai
       SERVER_ADDRESS: 0.0.0.0
       SERVER_PORT: '9099'

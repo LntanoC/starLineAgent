@@ -27,6 +27,8 @@ import com.nageoffer.ai.starlineagent.mcp.executor.starline.event.EventPageExtra
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.nageoffer.ai.starlineagent.mcp.executor.starline.event.crawl.EventCrawlIndex;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -47,6 +49,7 @@ public class EventSearchService {
     private final EventMerger merger;
     private final SourceResolver resolver;
     private final ProviderRunner runner;
+    private EventCrawlIndex crawlIndex;
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     private final ExecutorService workers = new ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(48), task -> {
         Thread thread = new Thread(task, "event-discovery"); thread.setDaemon(true); return thread;
@@ -62,6 +65,13 @@ public class EventSearchService {
         this.providers = providers; this.properties = properties; this.registry = registry; this.planner = planner;
         this.cityDictionary = new CityDictionary(properties);
         this.extractor = extractor; this.merger = merger; this.resolver = resolver; this.runner = runner;
+    }
+    @Autowired
+    public EventSearchService(List<WebSearchClient> providers, ArtistEventSearchProperties properties, OfficialSourceRegistryClient registry,
+                              EventQueryPlanner planner, EventPageExtractor extractor, EventMerger merger, SourceResolver resolver,
+                              ProviderRunner runner, EventCrawlIndex crawlIndex) {
+        this(providers,properties,registry,planner,extractor,merger,resolver,runner);
+        this.crawlIndex=crawlIndex;
     }
     public Map<String, Object> search(Map<String, Object> args) {
         Map<String, Object> normalized = new LinkedHashMap<>(args);
@@ -88,7 +98,8 @@ public class EventSearchService {
                 if (cursor.length != 2 || snapshot == null || !snapshot.key.equals(key) || offset < 1 || offset >= snapshot.items.size()) throw new IllegalArgumentException();
             } catch (RuntimeException error) { throw new IllegalArgumentException("分页游标已过期或来源/条件已变化，请重新查询"); }
         } else {
-            snapshot = snapshots.values().stream().filter(s -> s.key.equals(key) && ((List<?>) s.coverage.get("failures")).isEmpty()).findFirst().orElse(null);
+            snapshot = snapshots.values().stream().filter(s -> s.key.equals(key) && ((List<?>) s.coverage.get("failures")).isEmpty()
+                    && Objects.equals(s.coverage.get("crawlRevision"),crawlIndex==null?0L:crawlIndex.revision())).findFirst().orElse(null);
             if (snapshot == null) {
                 CompletableFuture<Snapshot> fresh = new CompletableFuture<>();
                 CompletableFuture<Snapshot> previous = flights.putIfAbsent(key, fresh);
@@ -116,6 +127,7 @@ public class EventSearchService {
     }
     private Snapshot discover(EventSearchQuery query, List<OfficialSource> sources, String key) {
         long started = System.currentTimeMillis();
+        var direct=crawlIndex==null?new EventCrawlIndex.View(List.of(),List.of(),Set.of()):crawlIndex.read(query,sources);
         // City queries also serve the existing four-second journey boundary; keep its route algorithms unchanged.
         long deadline = started + Math.max(500, Math.min(query.city() == null ? 8000 : 3000, properties.getDiscoveryTimeoutMillis()));
         var plans = new ArrayList<>(planner.plan(query, sources, properties.getMaxQueries()));
@@ -178,6 +190,7 @@ public class EventSearchService {
         DetailPages details = readDetails(query, resolvedPages, deadline, discovery && properties.isReadDetails());
         for (var entry : resolvedPages.entrySet()) {
             var source = pageSources.get(entry.getKey());
+            if("GOV".equals(source.tier()) && direct.handledUrls().contains(entry.getKey())) { count(filtered,"DIRECT_CRAWL_REPLACED"); continue; }
             // Choose the richest excerpt for duplicate URLs, while retaining every matching query.
             Found chosen = entry.getValue().stream().max(Comparator.comparingInt(f -> Objects.toString(f.raw.excerpt(), "").length())).orElseThrow();
             var raw = new WebSearchClient.RawResult(chosen.raw.title(), entry.getKey(), details.text().getOrDefault(entry.getKey(), chosen.raw.excerpt()), chosen.raw.publishTime(), chosen.raw.siteName());
@@ -207,6 +220,7 @@ public class EventSearchService {
             if (accepted > 0) { afterDate += entry.getValue().size(); acceptedBySource.merge(source.domain(), accepted, Integer::sum); }
             count(filtered, "DUPLICATE_URL", entry.getValue().size() - 1);
         }
+        drafts.addAll(direct.drafts());
         List<Draft> merged = merger.diverseOrder(merger.merge(drafts));
         count(filtered, "DUPLICATE_EVENT", drafts.size() - merged.size());
         List<Map<String, Object>> sourceCoverage = new ArrayList<>();
@@ -217,6 +231,8 @@ public class EventSearchService {
                     "raw", rawBySource.getOrDefault(source.domain(), 0), "accepted", acceptedBySource.getOrDefault(source.domain(), 0), "failure", failed ? "PROVIDER_QUERY_FAILED" : ""));
         }
         Map<String, Object> coverage = new LinkedHashMap<>();
+        coverage.put("crawlRevision",crawlIndex==null?0L:crawlIndex.revision());
+        coverage.put("crawlSources",direct.sources()); coverage.put("crawledCandidates",direct.drafts().size());
         coverage.put("queries", submitted == 0 ? List.of() : plans.stream().map(EventQueryPlanner.PlannedQuery::query).toList());
         coverage.put("detailAttempts", details.attempts());
         coverage.put("detailRead", details.text().size());
@@ -228,7 +244,8 @@ public class EventSearchService {
         coverage.put("filterUnits", Map.of("source/relevance/DUPLICATE_URL", "pages", "city/date/parser/DUPLICATE_EVENT", "drafts"));
         coverage.put("window", query.fromDate() + " 至 " + query.toDate());
         coverage.put("unknownDates", merged.stream().filter(Draft::dateUnknown).count());
-        coverage.put("completeness", sources.isEmpty() || providers.isEmpty() ? "UNKNOWN"
+        coverage.put("completeness", sources.isEmpty() || providers.isEmpty() && direct.drafts().isEmpty() ? "UNKNOWN"
+                : !direct.sources().isEmpty() ? "PARTIAL"
                 : limited || !failures.isEmpty() || filtered.containsKey("PARSER_REJECTED") || filtered.containsKey("REDIRECT_UNRESOLVED") || merged.stream().anyMatch(d -> d.dateUnknown() || d.cityUnknown()) ? "PARTIAL" : "BEST_EFFORT");
         log.info("event_search metrics queryHash={} queries={} raw={} filtered={} merged={} failures={} latencyMs={}",
                 Integer.toHexString(query.key().hashCode()), submitted, found.size(), filtered, merged.size(), failures.size(), System.currentTimeMillis() - started);
