@@ -8,7 +8,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const out = resolve(root, ".output/seat-view");
 mkdirSync(out, { recursive: true });
 execFileSync(process.execPath, [resolve(root, "node_modules/typescript/bin/tsc"), "src/lib/seatView.ts", "--target", "ES2020", "--module", "ES2020", "--outDir", out, "--skipLibCheck"], { cwd: root, stdio: "inherit" });
-const { sectionPosition, percentage, mapBounds, resolveDocument, seatSearch } = await import(pathToFileURL(resolve(out, "seatView.js")).href);
+const { sectionPosition, percentage, mapBounds, resolveDocument, seatSearch, seatGridPosition } = await import(pathToFileURL(resolve(out, "seatView.js")).href);
 const catalog = JSON.parse(readFileSync(resolve(root, "../resources/seat-view/demo-catalog.json"), "utf8"));
 assert.equal(catalog.length, 5);
 assert.equal(percentage("NaN"), 50);
@@ -16,6 +16,10 @@ assert.equal(percentage("Infinity"), 50);
 assert.equal(percentage("-2"), 0);
 assert.equal(percentage("201"), 100);
 assert.equal(percentage(null), 50);
+const gridSection = { ...catalog[0].show.sections[0], seatGrid: { rows: 5, seats: 3, reverseRows: true, reverseSeats: false } };
+assert.deepEqual(seatGridPosition(gridSection, 1, 3), [100, 100]);
+assert.equal(seatGridPosition(gridSection, 6, 1), undefined);
+assert.equal(seatGridPosition(catalog[0].show.sections[0], 1, 1), undefined);
 let positions = 0;
 for (const doc of catalog) {
   assert.equal(doc.show.provenance, "DEMO");
@@ -39,6 +43,8 @@ for (const doc of catalog) {
   }
   const section = doc.show.sections[0];
   assert.equal(resolveDocument(catalog, seatSearch(doc, section.code, 40, 60)), doc);
+  assert.equal(seatSearch(doc, section.code, 40, 60, true).get("standing"), "1");
+  assert.equal(seatSearch(doc, section.code, 40, 60).has("standing"), false);
 }
 assert.equal(resolveDocument(catalog, new URLSearchParams("show=unknown")), undefined);
 assert.equal(resolveDocument(catalog, new URLSearchParams("venue=unknown")), undefined);

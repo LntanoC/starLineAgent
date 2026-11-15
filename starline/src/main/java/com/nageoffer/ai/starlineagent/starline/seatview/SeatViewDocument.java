@@ -31,5 +31,13 @@ public record SeatViewDocument(Venue venue, Show show) {
 
     /** ring 按边界顺序存四个点；frontEdge 指定朝舞台的边，0/100 表示相对位置而非排号。 */
     public record Section(String code, String label, int level, Integer priceTier,
-                          List<List<Double>> ring, int frontEdge) {}
+                          List<List<Double>> ring, int frontEdge, SeatGrid seatGrid) {
+        public Section(String code, String label, int level, Integer priceTier,
+                       List<List<Double>> ring, int frontEdge) {
+            this(code, label, level, priceTier, ring, frontEdge, null);
+        }
+    }
+
+    /** 经人工核对的均匀排座范围；缺失时不提供排座定位。 */
+    public record SeatGrid(int rows, int seats, boolean reverseRows, boolean reverseSeats) {}
 }

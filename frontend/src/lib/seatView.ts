@@ -6,6 +6,7 @@ export interface SeatSection {
   priceTier: number | null;
   ring: Point[];
   frontEdge: number;
+  seatGrid?: { rows: number; seats: number; reverseRows: boolean; reverseSeats: boolean } | null;
 }
 export interface SeatViewDocument {
   venue: { id: string; name: string; city: string; aliases: string[] };
@@ -27,6 +28,14 @@ export function percentage(value: string | number | null, fallback = 50): number
   if (value === null || value === "") return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : fallback;
+}
+
+export function seatGridPosition(section: SeatSection, row: number, seat: number): Point | undefined {
+  const grid = section.seatGrid;
+  if (!grid || !Number.isInteger(row) || !Number.isInteger(seat) || row < 1 || seat < 1 || row > grid.rows || seat > grid.seats) return undefined;
+  const depth = grid.rows === 1 ? 50 : (row - 1) / (grid.rows - 1) * 100;
+  const lateral = grid.seats === 1 ? 50 : (seat - 1) / (grid.seats - 1) * 100;
+  return [grid.reverseRows ? 100 - depth : depth, grid.reverseSeats ? 100 - lateral : lateral];
 }
 
 /** 环顺序及凸性由服务端校验；指定前沿后，两次插值保证标记留在分区内部。 */
@@ -69,7 +78,7 @@ export function resolveDocument(catalog: SeatViewDocument[], params: URLSearchPa
   return catalog[0];
 }
 
-export function seatSearch(document: SeatViewDocument, section: string, depth: number, lateral: number): URLSearchParams {
+export function seatSearch(document: SeatViewDocument, section: string, depth: number, lateral: number, standing = false): URLSearchParams {
   return new URLSearchParams({ venue: document.venue.id, show: document.show.id, section,
-    depth: String(percentage(depth)), lateral: String(percentage(lateral)) });
+    depth: String(percentage(depth)), lateral: String(percentage(lateral)), ...(standing ? { standing: "1" } : {}) });
 }

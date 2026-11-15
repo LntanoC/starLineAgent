@@ -69,6 +69,10 @@ public final class SeatViewValidation {
             require(section.priceTier() == null || (section.priceTier() >= 0 && section.priceTier() <= 100000), "票档无效");
             require(section.frontEdge() >= 0 && section.frontEdge() < 4, "朝舞台边编号无效");
             validateRing(section.ring());
+            if (section.seatGrid() != null) {
+                require(section.seatGrid().rows() >= 1 && section.seatGrid().rows() <= 500
+                        && section.seatGrid().seats() >= 1 && section.seatGrid().seats() <= 1000, "排座范围无效");
+            }
         }
     }
 

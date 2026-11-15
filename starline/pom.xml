@@ -12,6 +12,11 @@
     <dependencies>
         <dependency>
             <groupId>com.nageoffer.ai</groupId>
+            <artifactId>rag</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nageoffer.ai</groupId>
             <artifactId>system</artifactId>
             <version>${project.version}</version>
         </dependency>

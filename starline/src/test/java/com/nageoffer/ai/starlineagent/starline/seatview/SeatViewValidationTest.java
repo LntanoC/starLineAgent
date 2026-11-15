@@ -64,6 +64,13 @@ class SeatViewValidationTest {
         assertThrows(ClientException.class, () -> SeatViewValidation.validate(document("UNKNOWN", "https://example.com", null, List.of(section))));
     }
 
+    @Test void validatesOptionalSeatGrid() {
+        Section valid = new Section("grid", "测试区", 2, 880, section.ring(), 0, new SeatGrid(20, 30, false, true));
+        Section invalid = new Section("bad", "测试区", 2, 880, section.ring(), 0, new SeatGrid(0, 30, false, false));
+        assertDoesNotThrow(() -> SeatViewValidation.validate(document("DRAFT", "https://example.com", null, List.of(valid))));
+        assertThrows(ClientException.class, () -> SeatViewValidation.validate(document("DRAFT", "https://example.com", null, List.of(invalid))));
+    }
+
     @Test void validatesEveryBundledDemo() throws Exception {
         Path root = Path.of(System.getProperty("maven.multiModuleProjectDirectory", ".."));
         List<SeatViewDocument> documents = new ObjectMapper().readValue(root.resolve("resources/seat-view/demo-catalog.json").toFile(), new TypeReference<>() {});
