@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# 提交前卫生检查。安装方式（每个克隆只需执行一次）：
+#
+#   git config core.hooksPath .githooks
+#   chmod +x .githooks/pre-commit      # Windows 由 git for Windows 自动执行，可省略
+#
+# 紧急情况下可用 `git commit --no-verify` 跳过，但 CI 仍会拦截，
+# 因此跳过钩子并不能绕过检查。
+
+if ! command -v node >/dev/null 2>&1; then
+    echo "[pre-commit] 未找到 node，跳过 hygiene 检查（CI 仍会执行）。" >&2
+    exit 0
+fi
+
+if ! node scripts/check-hygiene.mjs; then
+    echo "" >&2
+    echo "[pre-commit] 卫生检查未通过，提交已阻止。" >&2
+    echo "            修复违规，而不是把它们加进 .hygiene-baseline.json。" >&2
+    exit 1
+fi
+
+exit 0

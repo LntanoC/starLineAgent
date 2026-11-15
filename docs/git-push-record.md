@@ -1397,3 +1397,19 @@ GitHub 页面截图显示 `main` 最新提交仍为 `7956e49`。本地 `main` �
 
 - 用户明确确认上述具体仓库及分支后，普通推送成功：远端 `main` 从 `fe54ad9` 快进至 `18f0d12`，包含功能提交 `4ec76a9` 及审批过程记录提交 `18f0d12`。
 - 本次后续文档提交补记推送成功结果，继续推送同一 `origin/main`，不修改应用源码或服务器二进制。
+
+## 2026-11-15：同步远端并推送本地座位功能及卫生检查工具
+
+- 目标：`https://github.com/LntanoC/starLineAgent.git` 的 `main`；用户已授权拉取和推送。远端 6 个提交已快进合入，本地应用代码没有合并冲突；变更日志索引已合并双方记录。
+- 座位功能文件：`frontend/package.json`、`frontend/package-lock.json`（Three.js 依赖与构建入口），`frontend/src/components/agent/SeatPerspective.tsx`（三维视角），`SeatPhotos.tsx`（照片表单与筛选），`frontend/src/pages/SeatViewPage.tsx`（视角、排座与对比入口），`frontend/src/lib/seatView.ts`（排座计算及分享参数），`frontend/src/services/seatViewService.ts`（照片 API），`frontend/tests/seat-view.check.mjs`（几何和链接回归），`scripts/build-frontend.mjs`（Windows 构建临时目录隔离）。
+- 后端及 DDL：`starline/pom.xml`（复用存储模块），`starline/src/main/java/com/nageoffer/ai/starlineagent/starline/seatview/` 下的 `SeatViewController.java`（照片接口）、`SeatViewDocument.java`（排座结构）、`SeatViewValidation.java`（范围校验）、`SeatViewPhotoService.java`（照片校验、存储及失败清理）；对应测试目录的 `SeatViewValidationTest.java` 与 `SeatViewPhotoServiceTest.java`；`resources/database/upgrades/v1.1.0/261104_seat_view.sql`（排座 JSON 说明）、`261107_seat_view_photos.sql`（照片表及索引）。
+- 仓库检查文件：`.githooks/pre-commit`（提交检查）、`.github/workflows/hygiene.yml`（CI 检查）、`AGENTS.md`（代理约定）、`scripts/check-hygiene.mjs`（卫生门槛）、`docs/maintenance/redundancy-audit.md`（历史盘点）。检查规则和基线保持原样。
+- 记录文件：`docs/change-log.md`（合并索引）、`docs/change-log/2026-11-07.md`（原有座位功能逐文件说明）、`docs/change-log/2026-11-15.md`（本次同步说明）、`docs/git-push-record.md`（本记录）。
+- 按功能与仓库检查工具分开提交；排除构建产物、运行数据、环境配置、密钥和服务器操作材料。不使用强制推送。
+
+### 本次同步验证
+
+- `node scripts/check-hygiene.mjs`、`./mvnw.cmd -q -DskipTests compile`、前端 `npm run lint` 与 `npm run build` 均通过；基线未修改，现存 57 项已知违规。
+- `node frontend/tests/seat-view.check.mjs` 通过（5 场馆 / 5350 个位置）；`SeatViewValidationTest` 5 项与 `SeatViewPhotoServiceTest` 2 项测试通过。首次定向测试因 PowerShell 参数解析未启动，给 `-Dsurefire.failIfNoSpecifiedTests=false` 加引号后重跑通过。
+- 暂存空白检查和常见密钥模式检查通过；检查完整文件清单，无构建产物或服务器操作材料。未运行全量测试、生产浏览器验证或迁移；前端构建存在较大 bundle 提示。
+- 座位功能提交 `7f712624`；检查工具和本次记录单独提交，随后普通推送到上述 `origin/main`。最终提交及远端一致性以 Git 历史和同步结果为准。

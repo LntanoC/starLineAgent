@@ -1,0 +1,22 @@
+name: repo-hygiene
+
+# 与 .githooks/pre-commit 执行同一个脚本。
+# 钩子可以被 --no-verify 跳过，CI 不行 —— 这是最后一道兜底。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Repo hygiene gate
+        run: node scripts/check-hygiene.mjs
