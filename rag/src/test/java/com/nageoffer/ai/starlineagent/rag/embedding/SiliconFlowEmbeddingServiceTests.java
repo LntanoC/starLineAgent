@@ -21,6 +21,7 @@ import com.nageoffer.ai.starlineagent.infra.embedding.EmbeddingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -28,6 +29,7 @@ import java.util.List;
 
 @Slf4j
 @SpringBootTest
+@EnabledIfEnvironmentVariable(named = "STARLINE_RAG_LIVE_TESTS", matches = "true")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SiliconFlowEmbeddingServiceTests {
 

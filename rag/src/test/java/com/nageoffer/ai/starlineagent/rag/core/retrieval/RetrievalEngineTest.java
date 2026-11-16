@@ -24,6 +24,7 @@ import com.nageoffer.ai.starlineagent.rag.core.prompt.PromptTemplateLoader;
 import com.nageoffer.ai.starlineagent.rag.core.rewrite.RewriteResult;
 import com.nageoffer.ai.starlineagent.rag.dto.RetrievalContext;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.DefaultResourceLoader;
 
 import java.util.List;
 
@@ -55,7 +56,8 @@ class RetrievalEngineTest {
                 .retrieve(new RewriteResult("主问题", List.of("子问题一", "子问题二")));
 
         assertEquals(List.of(chunkA, chunkB), result.getChunks());
-        assertEquals(2, occurrences(result.getKbContext(), "<sub_question"));
+        assertEquals(2, occurrences(result.getKbContext(), "<document index="));
+        assertEquals(2, occurrences(result.getKbContext(), "<question>"));
         assertEquals(2, occurrences(result.getKbContext(), "上下文"));
         verify(multiChannel).retrieveKnowledgeChannels("子问题一", new RetrievalBudget(20, 40, 10));
         verify(multiChannel).retrieveKnowledgeChannels("子问题二", new RetrievalBudget(20, 40, 10));
@@ -90,7 +92,7 @@ class RetrievalEngineTest {
 
     private RetrievalEngine engine(MultiChannelRetrievalEngine multiChannel, ContextFormatter contextFormatter) {
         return new RetrievalEngine(new SearchChannelProperties(), contextFormatter,
-                mock(PromptTemplateLoader.class), multiChannel, Runnable::run);
+                new PromptTemplateLoader(new DefaultResourceLoader()), multiChannel, Runnable::run);
     }
 
     private RetrievedChunk chunk(String id, String text) {

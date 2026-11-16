@@ -20,26 +20,29 @@ package com.nageoffer.ai.starlineagent.rag.config;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * 只覆盖档位解析
- * <p>
- * 认不出的取值由 {@link OrchestrationMode#of} 回落 WORKFLOW，这里不加启动期校验拦它：档位配错在第一屏
- * 就现形（EngineGate 会渲染 v1 聊天页而不是 Agent 页），再早报几秒换不来什么
+ * 验证唯一支持的 Agent 入口及旧配置的拒绝行为。
  */
 class OrchestrationPropertiesTest {
 
     @Test
-    void defaultTypeIsWorkflow() {
-        assertEquals(OrchestrationMode.WORKFLOW, new OrchestrationProperties().getMode());
+    void defaultTypeIsAgent() {
+        assertEquals(OrchestrationMode.AGENT, new OrchestrationProperties().getMode());
     }
 
     @Test
-    void acceptsKnownModesIgnoringCaseAndPadding() {
+    void acceptsAgentIgnoringCaseAndPadding() {
         assertEquals(OrchestrationMode.AGENT, of("agent").getMode());
         assertEquals(OrchestrationMode.AGENT, of("AGENT").getMode());
         assertEquals(OrchestrationMode.AGENT, of(" agent ").getMode());
-        assertEquals(OrchestrationMode.WORKFLOW, of("Workflow").getMode());
+    }
+
+    @Test
+    void rejectsRetiredWorkflowAndUnknownModes() {
+        assertThrows(IllegalStateException.class, () -> of("workflow").getMode());
+        assertThrows(IllegalStateException.class, () -> of("unknown").getMode());
     }
 
     private OrchestrationProperties of(String type) {

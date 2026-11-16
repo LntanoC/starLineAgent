@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ import java.util.List;
 
 @Slf4j
 @SpringBootTest
+@EnabledIfEnvironmentVariable(named = "STARLINE_RAG_LIVE_TESTS", matches = "true")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class QueryRewriteTests {
 

@@ -20,3 +20,7 @@
 - 每个直接子套件使用自己的 `artifacts/` 保存编译缓存、运行日志、数据库快照、报告和本地凭据；每次运行另建唯一子目录。根 `.gitignore` 的 `/resources/regression/*/artifacts/` 统一忽略这些产物，也覆盖新增套件。
 - `artifacts/` 按需创建，不追踪空目录。如需提交新的证据，从产物中选择性导出并去除凭据，不强制添加整个 `artifacts/`。
 - 以实际观测与断言判断结果：未触发的 `UNCOVERED`、观测不完整的 `UNKNOWN`，都不能当作通过。
+
+## RAG 外部环境测试
+
+默认 Java 测试不连接真实模型或 Milvus。设置 `STARLINE_RAG_LIVE_TESTS=true` 可运行相关真实环境测试，需要预先配置对应模型、Milvus 和测试数据；其中 Milvus 测试会创建测试 collection，应仅指向隔离环境。设置 `STARLINE_RAG_INTEGRATION_TESTS=true` 可运行 RAG Spring 上下文启动检查，需要配置 Redis、数据库等依赖。真实环境测试可能产生费用或写入数据。

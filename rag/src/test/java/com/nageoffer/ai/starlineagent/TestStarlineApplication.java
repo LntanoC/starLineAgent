@@ -20,6 +20,8 @@ package com.nageoffer.ai.starlineagent;
 import com.mzt.logapi.starter.annotation.EnableLogRecord;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -27,6 +29,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * 差异：agent.dao.mapper 不在 rag 测试类路径上，故不镜像该扫描包
  */
 @SpringBootApplication
+@ComponentScan(basePackages = "com.nageoffer.ai.starlineagent", excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = com.nageoffer.ai.starlineagent.admin.controller.DashboardController.class))
 @EnableScheduling
 @EnableLogRecord(tenant = "starlineagent", proxyTargetClass = true)
 @MapperScan(basePackages = {

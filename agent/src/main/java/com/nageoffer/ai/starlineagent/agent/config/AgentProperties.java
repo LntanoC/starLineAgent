@@ -53,6 +53,7 @@ public class AgentProperties {
      * SSE 通道超时
      */
     @NotNull
+    @Min(1)
     private Long sseTimeoutMs = 900_000L;
 
     /**

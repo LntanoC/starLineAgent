@@ -122,6 +122,8 @@ class AgentChatServiceImplTest {
 
         gateReleased = new AtomicInteger();
         when(runGate.acquire(anyString(), anyString(), anyString())).thenReturn(gateReleased::incrementAndGet);
+        when(agentProvider.getAgent(anyString())).thenReturn(new ActiveAgent(
+                agent, new ResolvedCatalog("知识库工具描述", null, List.of(), List.of(), List.of())));
         when(agentProvider.getAgent()).thenReturn(new ActiveAgent(
                 agent, new ResolvedCatalog("知识库工具描述", null, List.of(), List.of(), List.of())));
         when(conversationService.touchConversation(anyString(), anyString(), anyString()))
@@ -399,7 +401,7 @@ class AgentChatServiceImplTest {
         order.verify(agent).saveAgentState(USER_ID, CONVERSATION_ID);
         order.verify(agent).clearStateCache(USER_ID, CONVERSATION_ID);
         order.verify(releaseGate).run();
-        verify(agentProvider).getAgent();
+        verify(agentProvider).getAgent("问题");
     }
 
     /**
@@ -487,7 +489,7 @@ class AgentChatServiceImplTest {
         try (ReActAgent original = ReActAgent.builder().name("pre-start-cancel")
                 .model(model).stateStore(stateStore).build()) {
             ReActAgent unstartedAgent = spy(original);
-            when(agentProvider.getAgent()).thenReturn(new ActiveAgent(unstartedAgent,
+            when(agentProvider.getAgent(anyString())).thenReturn(new ActiveAgent(unstartedAgent,
                     new ResolvedCatalog("知识库工具描述", null, List.of(), List.of(), List.of())));
             doAnswer(invocation -> {
                 invocation.getArgument(2, Runnable.class).run();
@@ -602,7 +604,7 @@ class AgentChatServiceImplTest {
     @NullAndEmptySource
     @ValueSource(strings = {CONVERSATION_ID})
     void shouldGetAgentBeforeWritingConversationOrQuestion(String requestedId) {
-        when(agentProvider.getAgent()).thenThrow(new IllegalStateException("Prompt 不可用"));
+        when(agentProvider.getAgent(anyString())).thenThrow(new IllegalStateException("Prompt 不可用"));
 
         assertThatThrownBy(() -> service.streamChat("问题", requestedId, new SseEmitter()))
                 .isInstanceOf(IllegalStateException.class);

@@ -18,9 +18,11 @@
 package com.nageoffer.ai.starlineagent;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
+@EnabledIfEnvironmentVariable(named = "STARLINE_RAG_INTEGRATION_TESTS", matches = "true")
 class StarlineCoreApplicationTests {
 
     @Test
