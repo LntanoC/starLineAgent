@@ -73,6 +73,11 @@ class SkillLoadToolActivationTest {
         when(registry.listEnabled()).thenReturn(List.of(skill));
         when(registry.findByCode(SKILL_CODE)).thenReturn(skill);
 
+        var routingService = mock(com.nageoffer.ai.starlineagent.agent.tool.AgentToolRoutingService.class);
+        when(routingService.resolve(org.mockito.ArgumentMatchers.any())).thenReturn(
+                new com.nageoffer.ai.starlineagent.rag.service.ToolRagService.RecallResult(
+                        List.of(), List.of(), false, false));
+
         McpClientWrapper client = mock(McpClientWrapper.class);
         when(client.getName()).thenReturn("returns");
         when(client.callTool(eq(MCP_TOOL), anyMap(), anyMap())).thenReturn(Mono.just(CallToolResult.builder()
@@ -98,7 +103,7 @@ class SkillLoadToolActivationTest {
                 .toolkit(toolkit)
                 .stateStore(new InMemoryAgentStateStore())
                 .permissionContext(PermissionContextState.builder().mode(PermissionMode.BYPASS).build())
-                .middleware(new AgentSkillMaskingMiddleware(registry))
+                .middleware(new AgentSkillMaskingMiddleware(registry, routingService))
                 .maxIters(3)
                 .build();
 

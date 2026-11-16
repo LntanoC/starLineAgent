@@ -121,6 +121,7 @@ class ReActAgentProviderTest {
         provider = new ReActAgentProvider(
                 agentPromptResolver,
                 toolCatalog,
+                mock(com.nageoffer.ai.starlineagent.agent.tool.AgentToolRoutingService.class),
                 model,
                 stateStore,
                 agentProperties,
@@ -226,7 +227,7 @@ class ReActAgentProviderTest {
         provider.getAgent();
 
         // 解析两次就有两份现实，指纹与 Toolkit 各信一份，中间注册表一变就长期不再自愈
-        verify(toolCatalog, times(1)).resolve(any());
+        verify(toolCatalog, times(1)).resolveForDynamicRouting(any());
         verify(mcpClients, times(1)).get("sales_query");
         // 提示词一次读全，分两次读会拼出半新半旧的实例
         verify(agentPromptResolver, times(1)).resolveAll();
