@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { ArrowUp, Loader2, Square } from "lucide-react";
+import { ThinkingOrb } from "thinking-orbs";
 
 import { awaitingConfirm, useAgentChatStore } from "@/stores/agentChatStore";
 
@@ -9,6 +10,7 @@ export function AgentChatInput() {
   const [value, setValue] = React.useState("");
   const isComposingRef = React.useRef(false);
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const [showThinking, setShowThinking] = React.useState(false);
   const {
     sendMessage,
     isStreaming,
@@ -20,6 +22,15 @@ export function AgentChatInput() {
   } = useAgentChatStore();
   // 挂起在写操作确认上时输入条让位：这会儿只有卡片上那两枚钮是有效的下一步
   const awaiting = awaitingConfirm(messages);
+
+  React.useEffect(() => {
+    if (!isStreaming) {
+      setShowThinking(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setShowThinking(true), 2000);
+    return () => window.clearTimeout(timer);
+  }, [isStreaming]);
 
   const focusInput = React.useCallback(() => {
     textareaRef.current?.focus({ preventScroll: true });
@@ -124,9 +135,10 @@ export function AgentChatInput() {
         )}
       </div>
       {/* 免责一行在框外：框里不摆第二行是因为没有真控件 这句有真职责 */}
-      <p className="agent-composer-note" aria-live="polite">
-        {cancelRequested ? "正在停止并保存已生成内容…" : "内容由 AI 生成，请仔细甄别"}
-      </p>
+      <div className="agent-composer-note" role="status" aria-live="polite">
+        {showThinking && !cancelRequested ? <ThinkingOrb state="breathing" size={20} aria-hidden="true" /> : null}
+        <span>{cancelRequested ? "正在停止并保存已生成内容…" : showThinking ? "正在生成回复…" : "内容由 AI 生成，请仔细甄别"}</span>
+      </div>
     </div>
   );
 }

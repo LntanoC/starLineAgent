@@ -25,6 +25,7 @@ import {
 } from "@/services/agentService";
 import { buildQuery } from "@/utils/helpers";
 import { createAgentStreamResponse } from "@/hooks/useAgentStream";
+import { API_BASE_URL } from "@/services/api";
 import {
   applyConfirmStatus,
   applyTextBlockSeal,
@@ -174,8 +175,6 @@ function streamStartPatch(assistantId: string) {
     cancelRequested: false
   } as const;
 }
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
 export const useAgentChatStore = create<AgentChatState>((set, get) => {
   let accountEpoch = 0;
