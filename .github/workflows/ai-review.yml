@@ -1,0 +1,46 @@
+name: AI code review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ai-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Only trusted contributors' branches in this repository can access the API key.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.pull_request.author_association == 'OWNER' ||
+       github.event.pull_request.author_association == 'MEMBER' ||
+       github.event.pull_request.author_association == 'COLLABORATOR') &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check review configuration
+        env:
+          REVIEW_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          REVIEW_MODEL: ${{ vars.OCR_LLM_MODEL }}
+        run: |
+          if [ -z "$REVIEW_API_KEY" ] || [ -z "$REVIEW_MODEL" ]; then
+            echo 'Configure DEEPSEEK_API_KEY secret and OCR_LLM_MODEL variable before using AI review.' >&2
+            exit 1
+          fi
+      - name: Review pull request
+        uses: alibaba/open-code-review@7e5ce06c88de5ce81df5dc4f24e2e485b517fae8
+        with:
+          llm_url: https://api.deepseek.com/chat/completions
+          llm_auth_token: ${{ secrets.DEEPSEEK_API_KEY }}
+          llm_model: ${{ vars.OCR_LLM_MODEL }}
+          llm_use_anthropic: 'false'
+          ocr_version: '1.13.10'
+          language: Chinese
+          review_concurrency: '1'
+          upload_artifacts: 'false'
