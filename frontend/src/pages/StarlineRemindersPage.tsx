@@ -214,7 +214,7 @@ export function StarlineRemindersPage() {
 
   return (
     <AgentLayout>
-      <div className="h-full min-h-0 w-full min-w-0 overflow-y-auto bg-paper px-4 py-5 sm:px-5 sm:py-7 md:px-9">
+      <div className="workspace-page h-full min-h-0 w-full min-w-0 overflow-y-auto px-4 py-5 sm:px-5 sm:py-7 md:px-9">
         <div className="mx-auto max-w-6xl">
           <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
             <div>

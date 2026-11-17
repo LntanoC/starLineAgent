@@ -187,7 +187,7 @@ body {
 
 .admin-layout .admin-main {
   min-height: 100vh;
-  background: var(--color-paper-2);
+  background: radial-gradient(ellipse at 82% 0%, color-mix(in oklab, var(--color-accent) 8%, transparent), transparent 38%), var(--color-paper-2);
   color: var(--color-ink);
 }
 
@@ -203,7 +203,7 @@ body {
 
 .admin-layout .admin-topbar {
   border-color: var(--color-rule);
-  background: var(--color-paper);
+  background: color-mix(in oklab, var(--color-paper) 94%, var(--color-accent-wash));
   backdrop-filter: none;
 }
 
@@ -258,6 +258,7 @@ body {
 .admin-layout .dashboard-page h1,
 .admin-layout .admin-content > h1 {
   color: var(--color-ink);
+  letter-spacing: -0.035em;
 }
 
 .admin-layout .ui-table-header,
@@ -288,6 +289,45 @@ body {
 .ui-dialog-overlay,
 .ui-alert-dialog-overlay {
   background: color-mix(in oklab, var(--color-graphite) 70%, transparent);
+}
+
+.ui-card,
+.ui-dialog-content,
+.ui-alert-dialog-content {
+  border-radius: var(--radius-card);
+}
+
+.ui-input,
+.admin-layout .admin-topbar-search input,
+.admin-layout input:not([type="checkbox"]):not([type="radio"]),
+.admin-layout select,
+.admin-layout textarea {
+  border-radius: var(--radius-input);
+}
+
+.ui-button {
+  border-radius: var(--radius-input);
+}
+
+.ui-card-title {
+  letter-spacing: -0.025em;
+}
+
+.workspace-page {
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--color-accent) 8%, transparent), transparent 50%), var(--color-paper);
+}
+
+.workspace-page > header h1,
+.workspace-page > div > header h1 {
+  letter-spacing: -0.035em;
+}
+
+.document-screen {
+  background: var(--color-paper-2);
+}
+
+.document-header {
+  background: color-mix(in oklab, var(--color-paper) 94%, var(--color-accent-wash));
 }
 
 .agent-app {
@@ -391,7 +431,7 @@ body {
 
 .agent-app .agent-main {
   background: var(--color-paper);
-  background-image: none;
+  background-image: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--color-accent) 9%, transparent), transparent 55%);
 }
 
 .agent-app .agent-stream-rows,
@@ -424,6 +464,61 @@ body {
   transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
 }
 
+.agent-app .agent-empty-intro {
+  padding: 0 0 32px;
+}
+
+.agent-app .agent-empty-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-accent-deep);
+  font: 600 11px var(--font-outlier);
+  letter-spacing: 0.14em;
+}
+
+.agent-app .agent-empty-eyebrow span {
+  font-size: 18px;
+}
+
+.agent-app .agent-empty-intro h1 {
+  margin: 20px 0 12px;
+  font-size: clamp(32px, 4.5vw, 52px);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.04em;
+}
+
+.agent-app .agent-empty-intro h1 span {
+  color: var(--color-accent-deep);
+}
+
+.agent-app .agent-empty-intro p {
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.agent-app .agent-empty-card {
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--color-paper) 88%, var(--color-accent-wash));
+}
+
+.agent-app .agent-empty-try {
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.agent-app .agent-empty-chips {
+  width: 100%;
+}
+
+.agent-app .agent-empty-chip {
+  min-height: 42px;
+  border-radius: 10px;
+}
+
 .agent-app .agent-composer {
   padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
 }
@@ -434,7 +529,7 @@ body {
 
 .agent-app .agent-composer-box {
   border-color: var(--color-rule-2);
-  border-radius: 8px;
+  border-radius: 16px;
   background: var(--color-paper);
   box-shadow: var(--shadow-card);
 }
@@ -464,6 +559,14 @@ body {
   color: var(--color-muted);
 }
 
+.agent-app .agent-composer-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 20px;
+}
+
 .agent-app .agent-item-btn {
   opacity: 1;
 }
@@ -475,18 +578,12 @@ body {
   place-items: center;
   overflow: hidden;
   padding: clamp(calc(var(--space-md) + var(--space-2xs)), 5vw, var(--space-2xl));
-  background: var(--color-paper-2);
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--color-accent) 15%, transparent), transparent 55%), var(--color-paper-2);
   color: var(--color-ink);
 }
 
 .auth-screen::before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: min(42vw, 520px);
-  height: 8px;
-  background: var(--color-accent);
-  content: "";
+  content: none;
 }
 
 .auth-panel {
@@ -496,9 +593,23 @@ body {
   width: min(100%, 440px);
   padding: clamp(calc(var(--space-lg) + var(--space-2xs)), 5vw, var(--space-xl));
   border: 1px solid var(--color-rule);
-  border-radius: 8px;
+  border-radius: 20px;
   background: var(--color-paper);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 20px 60px color-mix(in oklab, var(--color-ink) 8%, transparent);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+  color: var(--color-accent-deep);
+  font: 600 11px var(--font-outlier);
+  letter-spacing: 0.12em;
+}
+
+.auth-brand span {
+  font-size: 20px;
 }
 
 .auth-panel h1 {
@@ -522,13 +633,13 @@ body {
   color: var(--color-ink);
   min-height: 42px;
   border-color: var(--color-rule-2);
-  border-radius: 6px;
+  border-radius: var(--radius-input);
   background: var(--color-paper);
 }
 
 .auth-panel button[type="submit"] {
   min-height: 42px;
-  border-radius: 6px;
+  border-radius: var(--radius-input);
   background: var(--color-accent);
   color: var(--color-accent-ink);
 }

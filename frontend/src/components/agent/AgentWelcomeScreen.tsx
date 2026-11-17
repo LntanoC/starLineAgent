@@ -120,6 +120,11 @@ export function AgentWelcomeScreen() {
   return (
     <div className="agent-stream-empty">
       <div className="agent-empty-wrap">
+        <div className="agent-empty-intro">
+          <span className="agent-empty-eyebrow"><span aria-hidden="true">✳</span> STARLINE ASSISTANT</span>
+          <h1>想看什么，<br /><span>从这里开始。</span></h1>
+          <p>演出、座位和出行计划，交给星序陪你一起探索。</p>
+        </div>
         <div className="agent-empty-card">
           <AgentSampleQuestions />
         </div>

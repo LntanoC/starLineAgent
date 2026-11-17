@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 const MarkdownRenderer = lazy(() => import("@/components/common/MarkdownRenderer").then(m => ({ default: m.MarkdownRenderer })));
 import { csvToMarkdown } from "@/lib/csvToMarkdown";
 import { fetchDocumentFile, previewDocument } from "@/services/knowledgeService";
+import { API_BASE_URL } from "@/services/api";
 
 // xlsx 预览依赖较重(exceljs + x-data-spreadsheet)，懒加载避免拖累主包
 const SpreadsheetPreview = lazy(() =>
@@ -19,8 +20,6 @@ const DocxPreview = lazy(() =>
 const PdfPreview = lazy(() =>
   import("@/components/document/PdfPreview").then((m) => ({ default: m.PdfPreview }))
 );
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
 const IMAGE_EXTS = ["png", "jpg", "jpeg", "svg", "gif", "webp", "bmp"];
 

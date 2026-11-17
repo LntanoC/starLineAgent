@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 import { storage } from "@/utils/storage";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "/api/starlineagent").replace(/\/$/, "");
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

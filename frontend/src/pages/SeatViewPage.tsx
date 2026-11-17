@@ -94,7 +94,7 @@ export function SeatViewPage() {
     } catch { toast.error("复制失败，请复制浏览器地址栏中的链接"); }
   }
 
-  return <AgentLayout><div className="mx-auto w-full max-w-6xl space-y-6 overflow-y-auto p-4 md:p-8">
+  return <AgentLayout><div className="workspace-page mx-auto w-full max-w-6xl space-y-6 overflow-y-auto p-4 md:p-8">
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div><h1 className="flex items-center gap-2 text-2xl font-semibold text-ink"><MapPin className="h-6 w-6" />座位方位</h1>
         <p className="mt-2 text-sm text-muted-foreground">选一个分区，看看你和舞台的大致位置。</p></div>

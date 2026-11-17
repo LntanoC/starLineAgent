@@ -35,8 +35,8 @@ export function DocPreviewPage() {
   }, [docId]);
 
   return (
-    <div className="flex h-screen flex-col bg-paper">
-      <header className="flex shrink-0 items-center gap-2 border-b border-rule px-6 py-3.5">
+    <div className="document-screen flex h-screen flex-col bg-paper">
+      <header className="document-header flex shrink-0 items-center gap-2 border-b border-rule px-6 py-3.5">
         <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
         <h1 className="truncate text-base font-medium text-ink" title={doc?.docName || ""}>
           {doc?.docName || "文档预览"}

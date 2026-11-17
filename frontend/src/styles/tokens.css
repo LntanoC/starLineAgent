@@ -23,7 +23,7 @@
   --color-key-face: oklch(99.4% 0.003 250); --color-key-edge: oklch(80% 0.016 254);
   --font-display: "Space Grotesk", system-ui, sans-serif; --font-body: "DM Sans", system-ui, sans-serif;
   --font-outlier: "JetBrains Mono", ui-monospace, monospace;
-  --radius-card: 8px; --radius-input: 6px; --radius-pill: 999px;
+  --radius-card: 16px; --radius-input: 10px; --radius-pill: 999px;
   --cell-w: 8px; --cell-h: 16px; --cut: 8px; --cut-l: 16px;
   --rule-hair: 1px; --shadow-card: 0 1px 2px oklch(21% 0.028 262 / 0.06);
   --shadow-key: 0 3px 0 0 var(--color-key-edge), 0 6px 8px -4px oklch(21% 0.028 262 / 0.28), inset 0 1px 0 oklch(100% 0 0 / 0.9);

@@ -38,6 +38,7 @@ export function LoginPage() {
   return (
     <main className="auth-screen">
       <section className="auth-panel">
+        <div className="auth-brand"><span aria-hidden="true">✳</span> STARLINE / 星序</div>
         <div className="mb-6">
           <h1 className="font-display font-semibold">欢迎回来</h1>
           <p className="mt-1 text-sm text-muted-foreground">
